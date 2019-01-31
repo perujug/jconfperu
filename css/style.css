@@ -506,14 +506,14 @@ textarea.input {
 
 .speaker .speaker-body {
   position: absolute;
-  bottom: 60px;
+  bottom: 0px;
   left: 0;
   right: 0;
 }
 
 .speaker .speaker-content {
   position: relative;
-  padding: 30px;
+  padding: 10px;
   background: #dd0a37;
   text-align: right;
   z-index: 20;
