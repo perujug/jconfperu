@@ -1,4 +1,3 @@
-var position = { lat: -12.046374 , lng: -77.042793 }
 
 // Map style
 var style = [
@@ -191,21 +190,24 @@ var style = [
 ]
 
 
-// Set google map options
-var options = {
-	center: position,
-	zoom: 14,
-	mapTypeControl: false,
-	streetViewControl: false,
-	scrollwheel: false,
-	styles: style
+function initMap() {
+    // Set google map options
+    var options = {
+        center: position,
+        zoom: 14,
+        mapTypeControl: false,
+        streetViewControl: false,
+        scrollwheel: false
+    }
+    var position = { lat: -12.072231 , lng: -76.941941 }
+
+    // Init Map
+    var map = new google.maps.Map( document.getElementById('map') , options);
+
+    // Set map marker
+    var marker = new google.maps.Marker({
+        position: position,
+        map: map,
+    });
+
 }
-
-// Init Map
-var map = new google.maps.Map( document.getElementById('map') , options);
-
-// Set map marker
-var marker = new google.maps.Marker({
-    position: position,
-    map: map,
-});
