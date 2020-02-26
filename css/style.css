@@ -69,6 +69,13 @@ h4 {
   font-size: 20px;
 }
 
+.lead-a {
+  color: white;
+  -webkit-transition: 0.3s color;
+  transition: 0.3s color;
+  font-size: 20px;
+}
+
 a {
   color: #0b0f28;
   -webkit-transition: 0.3s color;
