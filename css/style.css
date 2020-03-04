@@ -782,16 +782,27 @@ textarea.input {
   text-align: center;
 }
 
+.c4p-link {
+  font-size: 20px;
+  color: #dd0a37;
+}
+
+.c4p-link:hover {
+  opacity: 0.8;
+}
+
 /*=========================================================
 	SPONSORS
 ===========================================================*/
 
 .sponsor {
-  display: block;
+  display: flex;
+  align-items: center;
   opacity: 0.5;
   margin-bottom: 30px;
   -webkit-transition: 0.3s opacity;
   transition: 0.3s opacity;
+  height: 150px;
 }
 
 .sponsor:hover {
