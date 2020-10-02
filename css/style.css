@@ -770,6 +770,10 @@ textarea.input {
   min-height: 120px;
 }
 
+.event .event-separator {
+  height: 25px;
+}
+
 .event .event-time {
   font-size: 14px;
 }
