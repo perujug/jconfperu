@@ -1,9 +1,8 @@
-# JCONF PERU 2021
+# JCONF PERU 2022
 
 ## Descripción
 1 día
-Sábado 27 de Noviembre
+Sábado 26 de Noviembre
 
 # Speakers
-- 2 tracks:
--- Uno Principiante / Avanzado
+- Los tracks se organizarán por tópico y por nivel (básico, intermedio y avanzado)
