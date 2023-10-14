@@ -2,6 +2,10 @@
 # Created by https://www.toptal.com/developers/gitignore/api/macos,windows,vim,visualstudiocode
 # Edit at https://www.toptal.com/developers/gitignore?templates=macos,windows,vim,visualstudiocode
 
+
+.Gemfile.lock
+_site
+
 ### macOS ###
 # General
 .DS_Store
