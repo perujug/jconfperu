@@ -6,7 +6,7 @@ Full Day el Sabado 02 de Diciembre
 
 ## Lugar
 
-Open Pucp - Blvd. Plaza Mantaro, Pueblo Libre 15088
+Edificio SOHO+, Tomas Ramsey 930, Magdalena del Mar, Lima-Peru
 
 
 # Speakers
