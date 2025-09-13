@@ -12,6 +12,42 @@
 		$('.main-nav').toggleClass('open');
 	});
 
+	// Dropdown toggle
+	$('.dropdown-toggle').on('click', function(e) {
+		e.preventDefault();
+		e.stopPropagation();
+		
+		var $dropdown = $(this).parent();
+		var $menu = $dropdown.find('.dropdown-menu');
+		
+		// Close other dropdowns
+		$('.dropdown').not($dropdown).removeClass('open');
+		
+		// Toggle current dropdown
+		$dropdown.toggleClass('open');
+		
+		console.log('Dropdown clicked, open class:', $dropdown.hasClass('open'));
+		console.log('Menu element:', $menu);
+		console.log('Menu display:', $menu.css('display'));
+	});
+
+	// Dropdown hover functionality
+	$('.dropdown').on('mouseenter', function() {
+		$(this).addClass('open');
+	});
+
+	$('.dropdown').on('mouseleave', function() {
+		$(this).removeClass('open');
+	});
+
+	// Close dropdown when clicking outside
+	$(document).on('click', function(e) {
+		if (!$(e.target).closest('.dropdown').length) {
+			$('.dropdown').removeClass('open');
+		}
+	});
+
+
 	// Fixed nav
 	$(window).on('scroll', function() {
 		var wScroll = $(this).scrollTop();
