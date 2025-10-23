@@ -1,0 +1,22 @@
+{
+  "name": "jconf-peru",
+  "version": "1.0.0",
+  "description": "JCONF Peru - Java Conference Peru",
+  "scripts": {
+    "build": "echo 'Build completed - using pre-built _site directory' && exit 0",
+    "dev": "echo 'Use: bundle exec jekyll serve'"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/perujug/jconfperu.git"
+  },
+  "keywords": [
+    "java",
+    "conference",
+    "peru",
+    "jekyll"
+  ],
+  "author": "PeruJUG",
+  "license": "MIT"
+}
+
