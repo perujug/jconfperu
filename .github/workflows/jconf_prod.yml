@@ -77,11 +77,9 @@ jobs:
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
           working-directory: ./
           vercel-args: '--prod'
-      - name: Install Vercel CLI and jq
+      - name: Install Vercel CLI
         if: github.event_name == 'pull_request'
-        run: |
-          npm install -g vercel@latest
-          sudo apt-get update && sudo apt-get install -y jq
+        run: npm install -g vercel@latest
       - name: Deploy to Vercel (Preview)
         if: github.event_name == 'pull_request'
         id: deploy
@@ -92,16 +90,16 @@ jobs:
           
           # Deploy using Vercel CLI
           echo "Deploying with Vercel CLI..."
-          vercel --token ${{ secrets.VERCEL_TOKEN }} --yes --json > deploy_output.json
+          vercel --token ${{ secrets.VERCEL_TOKEN }} --yes > deploy_output.txt 2>&1
           
-          # Extract deployment URL
-          DEPLOY_URL=$(cat deploy_output.json | jq -r '.url')
+          # Extract deployment URL from output
+          DEPLOY_URL=$(grep -o 'https://[^[:space:]]*\.vercel\.app' deploy_output.txt | head -1)
           echo "Deployment URL: $DEPLOY_URL"
           echo "deploy_url=$DEPLOY_URL" >> $GITHUB_OUTPUT
           
           # Show deployment details
           echo "Deployment details:"
-          cat deploy_output.json
+          cat deploy_output.txt
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
