@@ -3,8 +3,8 @@
 # separate terms of service, privacy policy, and support
 # documentation.
 
-# Workflow for building JCONF website and deploying a Jekyll site to FTP
-name: Deploy JCONF website to FTP
+# Workflow for building JCONF website and deploying a Jekyll site to Vercel
+name: Deploy JCONF website to Vercel
 
 on:
   # Runs on pushes targeting the default branch
@@ -51,11 +51,11 @@ jobs:
         with:
           name: jconfwebsite
           path: _site
-      - name: FTP to Host
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+      - name: Deploy to Vercel
+        uses: amondnet/vercel-action@v25
         with:
-          server: ${{ secrets.JCONF_FTP_CICD_SERVER }}
-          username: ${{ secrets.JCONF_FTP_CICD_USERNAME }}
-          password: ${{ secrets.JCONF_FTP_CICD_PASSWORD }}
-          dry-run: false
-          local-dir: ./_site/
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          working-directory: ./
+          vercel-args: '--prod'
