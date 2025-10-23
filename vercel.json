@@ -1,5 +1,6 @@
 {
   "version": 2,
+  "name": "jconfperu",
   "builds": [
     {
       "src": "_site/**",
@@ -15,6 +16,12 @@
       "src": "/",
       "dest": "/_site/index.html"
     }
-  ]
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  },
+  "github": {
+    "enabled": false
+  }
 }
 
