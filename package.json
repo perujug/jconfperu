@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "JCONF Peru - Java Conference Peru",
   "scripts": {
-    "build": "echo 'Build completed - using pre-built _site directory' && exit 0",
+    "build": "echo 'Using pre-built _site directory' && ls -la _site/ && echo 'Build completed'",
     "dev": "echo 'Use: bundle exec jekyll serve'"
   },
   "repository": {
