@@ -72,7 +72,7 @@ jobs:
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
           working-directory: ./
-          vercel-args: '--no-prod --name jconfperu-pr-${{ github.event.number }}'
+          vercel-args: '--name jconfperu-pr-${{ github.event.number }}'
       - name: Comment PR with Preview URL
         if: github.event_name == 'pull_request'
         uses: actions/github-script@v7
