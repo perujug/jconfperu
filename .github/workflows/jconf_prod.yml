@@ -73,15 +73,26 @@ jobs:
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
           working-directory: ./
           vercel-args: '--prod'
+      - name: Install Vercel CLI and jq
+        if: github.event_name == 'pull_request'
+        run: |
+          npm install -g vercel@latest
+          sudo apt-get update && sudo apt-get install -y jq
       - name: Deploy to Vercel (Preview)
         if: github.event_name == 'pull_request'
-        uses: amondnet/vercel-action@v25
-        with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          working-directory: ./
-          vercel-args: '--name jconfperu-pr-${{ github.event.number }}'
+        id: deploy
+        run: |
+          cd _site
+          echo "Deploying from _site directory..."
+          echo "Contents before deployment:"
+          ls -la
+          echo "Deploying with Vercel CLI..."
+          DEPLOY_URL=$(vercel --token ${{ secrets.VERCEL_TOKEN }} --name jconfperu-pr-${{ github.event.number }} --yes --json | jq -r '.url')
+          echo "Deployment URL: $DEPLOY_URL"
+          echo "deploy_url=$DEPLOY_URL" >> $GITHUB_OUTPUT
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
       - name: Comment PR with Preview URL
         if: github.event_name == 'pull_request'
         uses: actions/github-script@v7
@@ -97,8 +108,8 @@ jobs:
               comment.user.type === 'Bot' && comment.body.includes('🚀 Preview deployment')
             );
             
-            // Get the preview URL from Vercel deployment
-            const previewUrl = process.env.VERCEL_URL || `https://jconfperu-pr-${context.issue.number}-dario-lunas-projects.vercel.app`;
+            // Get the preview URL from the deployment step
+            const previewUrl = '${{ steps.deploy.outputs.deploy_url }}' || `https://jconfperu-pr-${context.issue.number}-dario-lunas-projects.vercel.app`;
             
             const body = `🚀 **Preview deployment ready!**
             
