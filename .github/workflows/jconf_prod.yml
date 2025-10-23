@@ -55,6 +55,15 @@ jobs:
         with:
           name: jconfwebsite
           path: _site
+      - name: Debug _site directory
+        if: github.event_name == 'pull_request'
+        run: |
+          echo "Contents of _site directory:"
+          ls -la _site/
+          echo "Checking for index.html:"
+          ls -la _site/index.html || echo "index.html not found"
+          echo "Checking for other files:"
+          find _site -name "*.html" | head -5
       - name: Deploy to Vercel (Production)
         if: github.ref == 'refs/heads/master' && github.event_name == 'push'
         uses: amondnet/vercel-action@v25
