@@ -153,24 +153,17 @@ jobs:
           # Remove any existing .vercel directory to avoid conflicts
           rm -rf .vercel
           
-          # Create a .vercel/project.json to ensure public access
+          # Create a simple .vercel/project.json for clean deployment
           mkdir -p .vercel
           cat > .vercel/project.json << EOF
           {
             "orgId": "${{ secrets.VERCEL_ORG_ID }}",
-            "projectId": "",
-            "settings": {
-              "framework": null,
-              "buildCommand": null,
-              "devCommand": null,
-              "installCommand": null,
-              "outputDirectory": null
-            }
+            "projectId": ""
           }
           EOF
           
-          # Deploy with explicit public settings
-          if vercel --token ${{ secrets.VERCEL_TOKEN }} --yes --scope ${{ secrets.VERCEL_ORG_ID }} --public --confirm > deploy_output.txt 2>&1; then
+          # Deploy with basic settings (public by default for new projects)
+          if vercel --token ${{ secrets.VERCEL_TOKEN }} --yes --scope ${{ secrets.VERCEL_ORG_ID }} > deploy_output.txt 2>&1; then
             echo "Deployment successful!"
             
             # Extract deployment URL from output
@@ -185,17 +178,6 @@ jobs:
             # Verify the deployment is accessible
             echo "Testing deployment accessibility..."
             sleep 5  # Wait a moment for deployment to propagate
-            
-            # Get the project ID from the deployment
-            PROJECT_ID=$(grep -o '"projectId":"[^"]*"' deploy_output.txt | cut -d'"' -f4 | head -1)
-            if [ ! -z "$PROJECT_ID" ]; then
-              echo "Configuring project $PROJECT_ID for public access..."
-              # Update project settings to ensure public access
-              curl -X PATCH "https://api.vercel.com/v1/projects/$PROJECT_ID" \
-                -H "Authorization: Bearer ${{ secrets.VERCEL_TOKEN }}" \
-                -H "Content-Type: application/json" \
-                -d '{"public": true}' || echo "Could not update project settings (this is normal for new projects)"
-            fi
             
             if curl -s -o /dev/null -w "%{http_code}" "$DEPLOY_URL" | grep -q "200"; then
               echo "✅ Deployment is accessible and returns 200 OK"
