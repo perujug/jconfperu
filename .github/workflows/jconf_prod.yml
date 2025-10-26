@@ -163,7 +163,16 @@ jobs:
           EOF
           
           # Deploy with basic settings (public by default for new projects)
-          if vercel --token ${{ secrets.VERCEL_TOKEN }} --yes --scope ${{ secrets.VERCEL_ORG_ID }} > deploy_output.txt 2>&1; then
+          echo "Testing Vercel authentication..."
+          if vercel whoami --token ${{ secrets.VERCEL_TOKEN }}; then
+            echo "✅ Vercel authentication successful"
+          else
+            echo "❌ Vercel authentication failed"
+            exit 1
+          fi
+          
+          echo "Attempting deployment..."
+          if vercel --token ${{ secrets.VERCEL_TOKEN }} --yes > deploy_output.txt 2>&1; then
             echo "Deployment successful!"
             
             # Extract deployment URL from output
