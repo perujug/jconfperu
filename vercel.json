@@ -1,19 +1,27 @@
 {
   "version": 2,
+  "name": "jconfperu",
   "builds": [
     {
-      "src": "package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "_site"
-      }
+      "src": "_site/**",
+      "use": "@vercel/static"
     }
   ],
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "/$1"
+      "dest": "/_site/$1"
+    },
+    {
+      "src": "/",
+      "dest": "/_site/index.html"
     }
-  ]
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  },
+  "github": {
+    "enabled": false
+  }
 }
 

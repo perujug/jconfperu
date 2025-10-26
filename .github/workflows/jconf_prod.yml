@@ -122,16 +122,10 @@ jobs:
           
           echo "index.html found, proceeding with deployment..."
           
-          # Set environment variables for Vercel
-          export VERCEL_ORG_ID="${{ secrets.VERCEL_ORG_ID }}"
-          export VERCEL_PROJECT_ID="${{ secrets.VERCEL_PROJECT_ID }}"
-          
-          # Deploy using Vercel CLI with better error handling
+          # Deploy using Vercel CLI with public access
           echo "Deploying with Vercel CLI..."
-          echo "Using VERCEL_ORG_ID: $VERCEL_ORG_ID"
-          echo "Using VERCEL_PROJECT_ID: $VERCEL_PROJECT_ID"
           
-          # Try deployment with explicit project settings
+          # Deploy as a preview (public by default)
           if vercel --token ${{ secrets.VERCEL_TOKEN }} --yes --scope ${{ secrets.VERCEL_ORG_ID }} > deploy_output.txt 2>&1; then
             echo "Deployment successful!"
             
@@ -143,6 +137,14 @@ jobs:
             # Show deployment details
             echo "Deployment details:"
             cat deploy_output.txt
+            
+            # Verify the deployment is accessible
+            echo "Testing deployment accessibility..."
+            if curl -s -o /dev/null -w "%{http_code}" "$DEPLOY_URL" | grep -q "200"; then
+              echo "✅ Deployment is accessible and returns 200 OK"
+            else
+              echo "⚠️  Deployment may not be accessible yet (this is normal for new deployments)"
+            fi
           else
             echo "Deployment failed!"
             echo "Error details:"
