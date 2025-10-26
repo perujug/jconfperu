@@ -3,18 +3,14 @@
   "name": "jconfperu",
   "builds": [
     {
-      "src": "_site/**",
+      "src": "**/*",
       "use": "@vercel/static"
     }
   ],
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "/_site/$1"
-    },
-    {
-      "src": "/",
-      "dest": "/_site/index.html"
+      "dest": "/$1"
     }
   ],
   "env": {
@@ -22,6 +18,7 @@
   },
   "github": {
     "enabled": false
-  }
+  },
+  "public": true
 }
 

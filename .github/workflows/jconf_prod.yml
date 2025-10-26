@@ -106,11 +106,10 @@ jobs:
           # Test Vercel authentication
           echo "Testing Vercel authentication..."
           vercel whoami --token ${{ secrets.VERCEL_TOKEN }}
-      - name: Deploy to Vercel (Preview)
+      - name: Prepare Static Files for Deployment
         if: github.event_name == 'pull_request'
-        id: deploy
         run: |
-          echo "Deploying to Vercel..."
+          echo "Preparing static files for deployment..."
           echo "Contents of _site directory:"
           ls -la _site/
           
@@ -120,7 +119,20 @@ jobs:
             exit 1
           fi
           
-          echo "index.html found, proceeding with deployment..."
+          echo "Copying _site contents to root for direct serving..."
+          cp -r _site/* .
+          cp -r _site/.* . 2>/dev/null || true
+          
+          echo "Contents of root directory after copy:"
+          ls -la
+          
+          echo "Verifying index.html is accessible:"
+          ls -la index.html
+      - name: Deploy to Vercel (Preview)
+        if: github.event_name == 'pull_request'
+        id: deploy
+        run: |
+          echo "Deploying to Vercel..."
           
           # Deploy using Vercel CLI with public access
           echo "Deploying with Vercel CLI..."
