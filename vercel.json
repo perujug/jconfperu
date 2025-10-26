@@ -19,6 +19,8 @@
   "github": {
     "enabled": false
   },
-  "public": true
+  "public": true,
+  "functions": {},
+  "regions": ["iad1"]
 }
 
