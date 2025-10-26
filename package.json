@@ -3,8 +3,12 @@
   "version": "1.0.0",
   "description": "JCONF Peru - Java Conference Peru",
   "scripts": {
-    "build": "echo 'Using pre-built _site directory' && ls -la _site/ && echo 'Build completed'",
-    "dev": "echo 'Use: bundle exec jekyll serve'"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^7.1.7"
   },
   "repository": {
     "type": "git",

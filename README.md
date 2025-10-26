@@ -7,63 +7,75 @@ This is the website for JCONF Peru (Java Conference Peru) - the premier Java con
 - **Production**: [https://jconfperu.com](https://jconfperu.com)
 - **Preview/Sandbox**: [https://jconfperu-etqvmqfyo-dario-lunas-projects.vercel.app](https://jconfperu-etqvmqfyo-dario-lunas-projects.vercel.app)
 
-## Local Development
+## 🚀 Local Development
 
-This website is built with Jekyll and can be served locally for development.
+This website is a static landing page built with HTML, CSS, and JavaScript, powered locally by [Vite](https://vitejs.dev/).
 
-### Prerequisites
+### 🧱 Prerequisites
 
-- Ruby 2.7.0 or higher
-- Bundler gem
-- For Windows, you can use RubyInstaller: https://rubyinstaller.org/
+- Node.js **v22.20.0** or higher (recommended)
+- [fnm](https://github.com/Schniz/fnm) or [nvm](https://github.com/nvm-sh/nvm) for managing Node versions (optional but helpful)
 
-### Setup
+### ⚙️ Setup
 
 1. **Install dependencies:**
    ```bash
-   bundle install
+   npm install
    ```
 
 2. **Start the development server:**
    ```bash
-   bundle exec jekyll serve
+   npm run dev
    ```
 
-3. **Open your browser and navigate to:**
+3. **Open your browser at:**
    ```
-   http://localhost:4000
+   http://localhost:5173
    ```
 
-### Development with Live Reload
+### 🔁 Development with Live Reload
 
-For automatic browser refresh when files change:
+Vite provides instant hot module replacement (HMR). Any changes to HTML, CSS, or JS will automatically refresh the browser.
 
-```bash
-bundle exec jekyll serve --livereload
-```
+### 🛠️ Additional Commands
 
-This will start:
-- Main site: http://localhost:4000
-- LiveReload server: http://localhost:35729
-
-### Additional Commands
-
-- **Build the site (without serving):**
+- **Build the site for production:**
   ```bash
-  bundle exec jekyll build
+  npm run build
   ```
 
-- **Serve with custom port:**
+- **Preview the production build locally:**
   ```bash
-  bundle exec jekyll serve --port 3000
+  npm run preview
+  ```
+
+- **Serve on a custom port:**
+  Edit the `vite.config.js` file:
+  ```js
+  export default {
+    server: {
+      port: 3000
+    }
+  }
   ```
 
 - **Stop the server:**
-  Press `Ctrl+C` in the terminal where Jekyll is running
+  Press `Ctrl+C` in the terminal where Vite is running.
 
-### Troubleshooting
+### 🧩 Troubleshooting
 
-If you encounter permission errors during `bundle install`, the project is configured to install gems locally in the `vendor/bundle` directory to avoid system permission issues.
+If you see an error like:
+
+```
+You are using Node.js 20.11.1. Vite requires Node.js version 20.19+ or 22.12+. Please upgrade your Node.js version.
+```
+
+Update Node.js using `fnm`:
+
+```bash
+fnm install 22.20.0
+fnm use 22.20.0
+```
 
 ## 🚀 Deployment & Preview System
 
