@@ -1297,3 +1297,7 @@ textarea.input {
     max-width: 250px !important;
   }
 }
+
+.service-entry {
+  min-height: 180px;
+}
