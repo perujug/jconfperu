@@ -1,12 +1,10 @@
 {
   "version": 2,
+  "name": "jconfperu",
   "builds": [
     {
-      "src": "package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "_site"
-      }
+      "src": "**/*",
+      "use": "@vercel/static"
     }
   ],
   "routes": [
@@ -14,6 +12,13 @@
       "src": "/(.*)",
       "dest": "/$1"
     }
-  ]
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  },
+  "github": {
+    "enabled": false
+  },
+  "public": true
 }
 

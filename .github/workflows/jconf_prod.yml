@@ -106,11 +106,10 @@ jobs:
           # Test Vercel authentication
           echo "Testing Vercel authentication..."
           vercel whoami --token ${{ secrets.VERCEL_TOKEN }}
-      - name: Deploy to Vercel (Preview)
+      - name: Prepare Static Files for Deployment
         if: github.event_name == 'pull_request'
-        id: deploy
         run: |
-          echo "Deploying to Vercel..."
+          echo "Preparing static files for deployment..."
           echo "Contents of _site directory:"
           ls -la _site/
           
@@ -120,35 +119,25 @@ jobs:
             exit 1
           fi
           
-          echo "index.html found, proceeding with deployment..."
+          echo "Copying _site contents to root for direct serving..."
+          cp -r _site/* .
+          cp -r _site/.* . 2>/dev/null || true
           
-          # Set environment variables for Vercel
-          export VERCEL_ORG_ID="${{ secrets.VERCEL_ORG_ID }}"
-          export VERCEL_PROJECT_ID="${{ secrets.VERCEL_PROJECT_ID }}"
+          echo "Contents of root directory after copy:"
+          ls -la
           
-          # Deploy using Vercel CLI with better error handling
-          echo "Deploying with Vercel CLI..."
-          echo "Using VERCEL_ORG_ID: $VERCEL_ORG_ID"
-          echo "Using VERCEL_PROJECT_ID: $VERCEL_PROJECT_ID"
-          
-          # Try deployment with explicit project settings
-          if vercel --token ${{ secrets.VERCEL_TOKEN }} --yes --scope ${{ secrets.VERCEL_ORG_ID }} > deploy_output.txt 2>&1; then
-            echo "Deployment successful!"
-            
-            # Extract deployment URL from output
-            DEPLOY_URL=$(grep -o 'https://[^[:space:]]*\.vercel\.app' deploy_output.txt | head -1)
-            echo "Deployment URL: $DEPLOY_URL"
-            echo "deploy_url=$DEPLOY_URL" >> $GITHUB_OUTPUT
-            
-            # Show deployment details
-            echo "Deployment details:"
-            cat deploy_output.txt
-          else
-            echo "Deployment failed!"
-            echo "Error details:"
-            cat deploy_output.txt
-            exit 1
-          fi
+          echo "Verifying index.html is accessible:"
+          ls -la index.html
+      - name: Deploy to Vercel (Preview)
+        if: github.event_name == 'pull_request'
+        id: deploy
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          working-directory: ./
+          vercel-args: '--prod=false'
       - name: Comment PR with Preview URL
         if: github.event_name == 'pull_request'
         uses: actions/github-script@v7
@@ -165,7 +154,7 @@ jobs:
             );
             
             // Get the preview URL from the deployment step
-            const previewUrl = '${{ steps.deploy.outputs.deploy_url }}' || `https://jconfperu-pr-${context.issue.number}-dario-lunas-projects.vercel.app`;
+            const previewUrl = '${{ steps.deploy.outputs.preview-url }}' || `https://jconfperu-pr-${context.issue.number}-dario-lunas-projects.vercel.app`;
             
             const body = `🚀 **Preview deployment ready!**
             
