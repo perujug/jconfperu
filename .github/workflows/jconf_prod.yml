@@ -128,19 +128,48 @@ jobs:
           
           echo "Verifying index.html is accessible:"
           ls -la index.html
+      - name: Install Vercel CLI
+        if: github.event_name == 'pull_request'
+        run: npm install -g vercel@latest
       - name: Deploy to Vercel (Preview)
         if: github.event_name == 'pull_request'
         id: deploy
-        uses: amondnet/vercel-action@v25
-        with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          working-directory: ./
-          vercel-args: '--name jconfperu-pr-${{ github.event.number }} --public'
-        env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          echo "Deploying to Vercel..."
+          
+          # Create a unique project name for this PR
+          PROJECT_NAME="jconfperu-pr-${{ github.event.number }}"
+          echo "Using project name: $PROJECT_NAME"
+          
+          # Deploy using Vercel CLI with a new project name
+          echo "Deploying with Vercel CLI..."
+          
+          # Deploy as a preview with a unique project name
+          if vercel --token ${{ secrets.VERCEL_TOKEN }} --yes --scope ${{ secrets.VERCEL_ORG_ID }} --name "$PROJECT_NAME" > deploy_output.txt 2>&1; then
+            echo "Deployment successful!"
+            
+            # Extract deployment URL from output
+            DEPLOY_URL=$(grep -o 'https://[^[:space:]]*\.vercel\.app' deploy_output.txt | head -1)
+            echo "Deployment URL: $DEPLOY_URL"
+            echo "deploy_url=$DEPLOY_URL" >> $GITHUB_OUTPUT
+            
+            # Show deployment details
+            echo "Deployment details:"
+            cat deploy_output.txt
+            
+            # Verify the deployment is accessible
+            echo "Testing deployment accessibility..."
+            if curl -s -o /dev/null -w "%{http_code}" "$DEPLOY_URL" | grep -q "200"; then
+              echo "✅ Deployment is accessible and returns 200 OK"
+            else
+              echo "⚠️  Deployment may not be accessible yet (this is normal for new deployments)"
+            fi
+          else
+            echo "Deployment failed!"
+            echo "Error details:"
+            cat deploy_output.txt
+            exit 1
+          fi
       - name: Comment PR with Preview URL
         if: github.event_name == 'pull_request'
         uses: actions/github-script@v7
@@ -157,7 +186,7 @@ jobs:
             );
             
             // Get the preview URL from the deployment step
-            const previewUrl = '${{ steps.deploy.outputs.preview-url }}' || `https://jconfperu-pr-${context.issue.number}-dario-lunas-projects.vercel.app`;
+            const previewUrl = '${{ steps.deploy.outputs.deploy_url }}' || `https://jconfperu-pr-${context.issue.number}-dario-lunas-projects.vercel.app`;
             
             const body = `🚀 **Preview deployment ready!**
             
