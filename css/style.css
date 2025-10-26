@@ -1247,3 +1247,53 @@ textarea.input {
     width: 100%;
   }
 }
+
+/* Mejoras de estilo para la sección early bird */
+.text-primary {
+  color: #dd0a37 !important;
+}
+
+.text-white {
+  color: white !important;
+}
+
+.bg-warning {
+  background-color: white;
+  color: black;
+}
+
+.bg-payments-instructions{
+  background-color: #dd0a37;
+  color: white;
+}
+
+.payment-instructions {
+  padding: 40px 30px;
+}
+
+.payment-qr {
+  padding: 1%;
+}
+
+.payment-steps {
+  text-align: left;
+  padding-left: 20px;
+}
+
+.payment-step {
+  margin-bottom: 20px;
+}
+
+.payment-step p {
+  margin-bottom: 5px;
+}
+
+@media (max-width: 767px) {
+  .payment-instructions {
+    padding: 30px 20px;
+  }
+
+  .payment-qr img {
+    max-width: 250px !important;
+  }
+}
