@@ -147,14 +147,30 @@ jobs:
           
           echo "index.html found, proceeding with deployment..."
           
-          # Deploy using Vercel CLI without project ID to create new project
-          echo "Deploying with Vercel CLI (creating new project)..."
+          # Deploy using Vercel CLI with explicit public settings
+          echo "Deploying with Vercel CLI (ensuring public access)..."
           
           # Remove any existing .vercel directory to avoid conflicts
           rm -rf .vercel
           
-          # Deploy as a new project (this will be public by default)
-          if vercel --token ${{ secrets.VERCEL_TOKEN }} --yes --scope ${{ secrets.VERCEL_ORG_ID }} > deploy_output.txt 2>&1; then
+          # Create a .vercel/project.json to ensure public access
+          mkdir -p .vercel
+          cat > .vercel/project.json << EOF
+          {
+            "orgId": "${{ secrets.VERCEL_ORG_ID }}",
+            "projectId": "",
+            "settings": {
+              "framework": null,
+              "buildCommand": null,
+              "devCommand": null,
+              "installCommand": null,
+              "outputDirectory": null
+            }
+          }
+          EOF
+          
+          # Deploy with explicit public settings
+          if vercel --token ${{ secrets.VERCEL_TOKEN }} --yes --scope ${{ secrets.VERCEL_ORG_ID }} --public --confirm > deploy_output.txt 2>&1; then
             echo "Deployment successful!"
             
             # Extract deployment URL from output
@@ -169,6 +185,18 @@ jobs:
             # Verify the deployment is accessible
             echo "Testing deployment accessibility..."
             sleep 5  # Wait a moment for deployment to propagate
+            
+            # Get the project ID from the deployment
+            PROJECT_ID=$(grep -o '"projectId":"[^"]*"' deploy_output.txt | cut -d'"' -f4 | head -1)
+            if [ ! -z "$PROJECT_ID" ]; then
+              echo "Configuring project $PROJECT_ID for public access..."
+              # Update project settings to ensure public access
+              curl -X PATCH "https://api.vercel.com/v1/projects/$PROJECT_ID" \
+                -H "Authorization: Bearer ${{ secrets.VERCEL_TOKEN }}" \
+                -H "Content-Type: application/json" \
+                -d '{"public": true}' || echo "Could not update project settings (this is normal for new projects)"
+            fi
+            
             if curl -s -o /dev/null -w "%{http_code}" "$DEPLOY_URL" | grep -q "200"; then
               echo "✅ Deployment is accessible and returns 200 OK"
             else

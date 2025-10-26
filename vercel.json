@@ -19,6 +19,13 @@
   "github": {
     "enabled": false
   },
-  "public": true
+  "public": true,
+  "functions": {},
+  "regions": ["iad1"],
+  "framework": null,
+  "buildCommand": null,
+  "devCommand": null,
+  "installCommand": null,
+  "outputDirectory": null
 }
 
