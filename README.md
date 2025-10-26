@@ -15,6 +15,7 @@ This website is built with Jekyll and can be served locally for development.
 
 - Ruby 2.7.0 or higher
 - Bundler gem
+- For Windows, you can use RubyInstaller: https://rubyinstaller.org/
 
 ### Setup
 
