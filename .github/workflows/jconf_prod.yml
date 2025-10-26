@@ -80,6 +80,32 @@ jobs:
       - name: Install Vercel CLI
         if: github.event_name == 'pull_request'
         run: npm install -g vercel@latest
+      - name: Verify Vercel Configuration
+        if: github.event_name == 'pull_request'
+        run: |
+          # Check Vercel CLI version
+          echo "Vercel CLI version:"
+          vercel --version
+          
+          # Check if vercel.json exists
+          if [ -f "vercel.json" ]; then
+            echo "vercel.json found:"
+            cat vercel.json
+          else
+            echo "WARNING: vercel.json not found"
+          fi
+          
+          # Check if package.json exists
+          if [ -f "package.json" ]; then
+            echo "package.json found:"
+            cat package.json
+          else
+            echo "WARNING: package.json not found"
+          fi
+          
+          # Test Vercel authentication
+          echo "Testing Vercel authentication..."
+          vercel whoami --token ${{ secrets.VERCEL_TOKEN }}
       - name: Deploy to Vercel (Preview)
         if: github.event_name == 'pull_request'
         id: deploy
@@ -88,21 +114,41 @@ jobs:
           echo "Contents of _site directory:"
           ls -la _site/
           
-          # Deploy using Vercel CLI
+          # Check if _site directory has content
+          if [ ! -f "_site/index.html" ]; then
+            echo "ERROR: index.html not found in _site directory"
+            exit 1
+          fi
+          
+          echo "index.html found, proceeding with deployment..."
+          
+          # Set environment variables for Vercel
+          export VERCEL_ORG_ID="${{ secrets.VERCEL_ORG_ID }}"
+          export VERCEL_PROJECT_ID="${{ secrets.VERCEL_PROJECT_ID }}"
+          
+          # Deploy using Vercel CLI with better error handling
           echo "Deploying with Vercel CLI..."
-          vercel --token ${{ secrets.VERCEL_TOKEN }} --yes > deploy_output.txt 2>&1
+          echo "Using VERCEL_ORG_ID: $VERCEL_ORG_ID"
+          echo "Using VERCEL_PROJECT_ID: $VERCEL_PROJECT_ID"
           
-          # Extract deployment URL from output
-          DEPLOY_URL=$(grep -o 'https://[^[:space:]]*\.vercel\.app' deploy_output.txt | head -1)
-          echo "Deployment URL: $DEPLOY_URL"
-          echo "deploy_url=$DEPLOY_URL" >> $GITHUB_OUTPUT
-          
-          # Show deployment details
-          echo "Deployment details:"
-          cat deploy_output.txt
-        env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          # Try deployment with explicit project settings
+          if vercel --token ${{ secrets.VERCEL_TOKEN }} --yes --scope ${{ secrets.VERCEL_ORG_ID }} > deploy_output.txt 2>&1; then
+            echo "Deployment successful!"
+            
+            # Extract deployment URL from output
+            DEPLOY_URL=$(grep -o 'https://[^[:space:]]*\.vercel\.app' deploy_output.txt | head -1)
+            echo "Deployment URL: $DEPLOY_URL"
+            echo "deploy_url=$DEPLOY_URL" >> $GITHUB_OUTPUT
+            
+            # Show deployment details
+            echo "Deployment details:"
+            cat deploy_output.txt
+          else
+            echo "Deployment failed!"
+            echo "Error details:"
+            cat deploy_output.txt
+            exit 1
+          fi
       - name: Comment PR with Preview URL
         if: github.event_name == 'pull_request'
         uses: actions/github-script@v7
