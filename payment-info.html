@@ -29,6 +29,136 @@
     <!-- Custom stlylesheet -->
     <link type="text/css" rel="stylesheet" href="css/style.css" />
 
+    <style>
+        /* Prevenir scroll horizontal */
+        html,
+        body {
+            overflow-x: hidden;
+            width: 100%;
+            max-width: 100%;
+        }
+
+        /* Estilos para las tarjetas de precios */
+        .pricing-card {
+            border: 1px solid #e0e0e0;
+            padding: 30px;
+            border-radius: 8px;
+            height: 100%;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            margin-bottom: 30px;
+            background: white;
+        }
+
+        .pricing-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .pricing-header {
+            margin-bottom: 25px;
+        }
+
+        .price h2 {
+            color: #dd0a37;
+            font-size: 2.5em;
+            margin: 20px 0 10px;
+        }
+
+        .pricing-features {
+            margin: 30px 0;
+        }
+
+        .list-unstyled {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .list-unstyled li {
+            margin-bottom: 15px;
+            color: #444;
+        }
+
+        .fa-check {
+            color: #28a745;
+            margin-right: 8px;
+        }
+
+        /* Estilos para los métodos de pago */
+        .payment-method-card {
+            border: 1px solid #e0e0e0;
+            padding: 25px;
+            border-radius: 8px;
+            transition: transform 0.3s ease;
+            background: white;
+            height: 100%;
+            margin-bottom: 30px;
+        }
+
+        .payment-method-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .payment-instructions {
+            background-color: black;
+            color: white;
+            padding: 40px;
+            border-radius: 8px;
+            margin: 20px 0;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .payment-steps {
+            padding-left: 20px;
+            margin: 0;
+            list-style-position: inside;
+        }
+
+        .payment-step {
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }
+
+        .payment-step:last-child {
+            margin-bottom: 0;
+        }
+
+        .payment-step p {
+            margin: 10px 0;
+        }
+
+        .section-content {
+            padding: 50px 0;
+        }
+
+        /* Ajustes responsive */
+        @media (max-width: 768px) {
+
+            .pricing-card,
+            .payment-method-card {
+                margin-bottom: 30px;
+            }
+
+            .container {
+                padding-left: 15px;
+                padding-right: 15px;
+            }
+
+            .row {
+                margin-left: 0;
+                margin-right: 0;
+            }
+
+            .col-md-12,
+            .col-md-4,
+            .col-sm-6,
+            .col-xs-12 {
+                padding-left: 10px;
+                padding-right: 10px;
+            }
+        }
+    </style>
+
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
     <!--[if lt IE 9]>
@@ -57,6 +187,51 @@
             #header #nav .main-nav li a.main-btn:hover {
                 background-color: #fff !important;
                 color: #dd0a37 !important;
+            }
+
+            /* Estilos adicionales para las tarjetas de precios */
+            .pricing-card {
+                transition: transform 0.3s ease;
+                background: white;
+                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            }
+
+            .pricing-card:hover {
+                transform: translateY(-5px);
+            }
+
+            .payment-method-card {
+                transition: transform 0.3s ease;
+                background: white;
+                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            }
+
+            .payment-method-card:hover {
+                transform: translateY(-5px);
+            }
+
+            .list-unstyled {
+                list-style: none;
+                padding-left: 0;
+            }
+
+            .list-unstyled li {
+                margin-bottom: 10px;
+            }
+
+            .fa-check {
+                color: #28a745;
+                margin-right: 5px;
+            }
+
+            .section-content {
+                padding: 50px 0;
+            }
+
+            .price h2 {
+                color: #dd0a37;
+                font-size: 2.5em;
+                margin: 20px 0;
             }
         </style>
         <!-- container -->
@@ -103,115 +278,276 @@
     </header>
     <!-- /Header -->
 
-    <!-- early bird-->
-    <div id="early_bird" class="section">
+    <div id="tickets" class="section">
         <div class="section-header">
             <div class="container">
                 <div class="row">
                     <!-- section title -->
                     <div class="section-title">
                         <h2 class="title">
-                            <span>Consigue tus</span>
-                            <span class="text-primary">entradas</span>
+                            <span>Entradas</span>
+                            <span style="color: #dd0a37;">JConf Peru 2025</span>
                         </h2>
+                        <p class="lead">Selecciona el tipo de entrada que mejor se adapte a tus necesidades</p>
                     </div>
                 </div>
             </div>
         </div>
+
         <div class="section-content">
-            <!-- container -->
             <div class="container">
-                <!-- row -->
+                <!-- Individual Tickets -->
                 <div class="row">
-                    <div class="col-md-6 col-sm-6 text-center">
-                        <h3 class="title">
-                            <span>Hasta el</span>
-                            <span class="text-primary">15/11/2025</span>
+                    <div class="col-md-12 text-center">
+                        <h3 class="title" style="margin-bottom: 30px;">
+                            <span>Entradas</span>
+                            <span style="color: #dd0a37;">Individuales</span>
                         </h3>
-                        <h4>Aprovecha nuestro <span class="text-info">early bird</span></h4>
-                        <p class="h2"><strong>S/ 80.00</strong></p>
                     </div>
-                    <div class="col-md-6 col-sm-6 text-center">
-                        <h3 class="title">
-                            <span>Desde el 16/11/2025 hasta</span>
-                            <span class="text-primary">25/11/2025</span>
-                        </h3>
-                        <h4>Precio <span class="text-info">regular</span></h4>
-                        <p class="h2"><strong>S/ 120.00</strong></p>
+                </div>
+                <div class="row">
+                    <!-- Individual Early Bird -->
+                    <div class="col-md-6">
+                        <div class="pricing-card text-center">
+                            <div class="pricing-header">
+                                <h3>Individual Early Bird</h3>
+                                <div class="price">
+                                    <h2><strong>S/ 80.00</strong></h2>
+                                    <p class="text-muted">Hasta el 15/11/2025</p>
+                                </div>
+                            </div>
+                            <a href="#payment-methods" class="main-btn">Comprar Ahora</a>
+                        </div>
+                    </div>
+
+                    <!-- Individual Regular -->
+                    <div class="col-md-6">
+                        <div class="pricing-card text-center">
+                            <div class="pricing-header">
+                                <h3>Individual Regular</h3>
+                                <div class="price">
+                                    <h2><strong>S/ 120.00</strong></h2>
+                                    <p class="text-muted">Del 16/11 al 25/11/2025</p>
+                                </div>
+                            </div>
+                            <a href="#payment-methods" class="main-btn">Comprar Ahora</a>
+                        </div>
                     </div>
                 </div>
 
-                <div class="row bg-warning">
-                    <div class="col-md-6 col-sm-12 text-center">
-                        <div class="payment-qr">
-                            <img src="./images/payments/yape-qr-jconfperu2025.png" alt="Yape QR JConf Peru 2025"
-                                class="img-responsive center-block" style="max-width: 300px; padding: 30px;" />
+                <!-- Group Tickets -->
+                <div class="row">
+                    <div class="col-md-12 text-center">
+                        <h3 class="title" style="margin: 50px 0 30px;">
+                            <span>Entradas</span>
+                            <span style="color: #dd0a37;">Grupales</span>
+                        </h3>
+                        <p class="lead" style="margin-bottom: 30px;">Para grupos de 5 o más personas</p>
+                    </div>
+                </div>
+                <div class="row">
+                    <!-- Grupo Early Bird -->
+                    <div class="col-md-6">
+                        <div class="pricing-card text-center">
+                            <div class="pricing-header">
+                                <h3>Grupo Early Bird</h3>
+                                <div class="price">
+                                    <h2><strong>S/ 70.00</strong></h2>
+                                    <p class="text-muted">Por persona (mínimo 5)<br>Hasta el 15/11/2025</p>
+                                </div>
+                            </div>
+                            <a href="#payment-methods" class="main-btn">Comprar Ahora</a>
                         </div>
                     </div>
-                    <div class="col-md-6 col-sm-12 bg-payments-instructions">
-                        <div class="payment-instructions">
-                            <h3 class="text-white">Pasos a seguir:</h3>
-                            <ol class="payment-steps">
-                                <li class="payment-step">
-                                    <p class="lead">- Yape a nombre de <strong>José Martín Diaz Diaz</strong></p>
-                                </li>
-                                <li class="payment-step">
-                                    <p class="lead">
-                                        - Completa tu registro vía
-                                        <a href="https://www.meetup.com/peru-java-user-group/events/304677936/?utm_medium=referral&utm_campaign=share-btn_savedevents_share_modal&utm_source=link"
-                                            target="_blank" rel="noopener noreferrer" class="text-white">
-                                            <strong>Meetup</strong>
-                                        </a>
-                                    </p>
-                                </li>
-                                <li class="payment-step">
-                                    <p class="lead">
-                                        - Luego de tu transferencia, envíanos el comprobante a los siguientes correos:
-                                        <br>
-                                    <ul>
-                                        <li>Jose Diaz ::<a href="mailto:jose.diaz@joedayz.pe" class="text-white">
-                                                <strong>jose.diaz@joedayz.pe</strong>
-                                            </a>
-                                        </li>
-                                        <li>Carlos Zela ::<a href="mailto:c.zelabueno@gmail.com" class="text-white">
-                                                <strong>c.zelabueno@gmail.com</strong>
-                                            </a>
-                                        </li>
-                                        <li><strong>Asunto:</strong> Comprobante de pago JConf Peru 2025</li>
-                                        <li><strong>Mensaje:</strong> Incluye tu nombre completo indicando  y su nombre de usuario en meetup.com.</li>
-                                    </ul>
-                                    </p>
-                                </li>
-                                <li class="payment-step">
-                                    Su compra sera validada y se enviaría un mensaje de confirmación desde meetup.com. <br>
-                                    En el evento de meetup.com su asistencia será marcada como "pagado" y su asistencia sera reservada si todo está en orden.<br>
-                                    Todos los registros en meetup.com que no hayan enviado voucher será marcado como "No ira" y se liberará el cupo. <br>
-                                </li>
-                            </ol>
+
+                    <!-- Grupo Regular -->
+                    <div class="col-md-6">
+                        <div class="pricing-card text-center">
+                            <div class="pricing-header">
+                                <h3>Grupo Regular</h3>
+                                <div class="price">
+                                    <h2><strong>S/ 100.00</strong></h2>
+                                    <p class="text-muted">Por persona (mínimo 5)<br>Del 16/11 al 25/11/2025</p>
+                                </div>
+                            </div>
+                            <a href="#payment-methods" class="main-btn">Comprar Ahora</a>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    <!-- /early bird-->
 
-    <!-- Footer -->
-    <footer id="footer">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-12 text-center">
-                    <p>
-                        <span class="copyright">
-                            Copyright &copy; 2025 JConf Peru. All rights reserved
-                        </span>
-                    </p>
+    <!-- Payment Methods Section -->
+    <div id="payment-methods" class="section">
+        <div class="section-content">
+            <div class="container">
+                <!-- Payment Methods Header -->
+                <div class="row">
+                    <div class="col-md-12 text-center">
+                        <h3 class="title">
+                            <span>Métodos de</span>
+                            <span style="color: #dd0a37;">Pago</span>
+                        </h3>
+                        <p class="lead">Elige el método de pago de tu preferencia</p>
+                    </div>
+                </div>
+
+                <!-- Payment Methods Cards -->
+                <div class="row">
+                    <!-- Yape -->
+                    <div class="col-md-4">
+                        <div class="payment-method-card text-center">
+                            <img src="./images/payments/yape-qr-jconfperu2025.png" alt="Yape QR"
+                                class="img-responsive center-block" style="max-width: 200px; margin: 20px auto;" />
+                            <h4>Yape</h4>
+                            <p>José Amadeo Martín Diaz Diaz</p>
+                        </div>
+                    </div>
+
+                    <!-- Plin -->
+                    <div class="col-md-4">
+                        <div class="payment-method-card text-center">
+                            <img src="./images/payments/yape-qr-jconfperu2025.png" alt="Plin QR"
+                                class="img-responsive center-block" style="max-width: 200px; margin: 20px auto;" />
+                            <h4>Plin</h4>
+                            <p>José Amadeo Martín Diaz Diaz</p>
+                        </div>
+                    </div>
+
+                    <!-- Transferencia -->
+                    <div class="col-md-4">
+                        <div class="payment-method-card text-center">
+                            <i class="fa fa-bank fa-4x" style="margin: 20px 0; color: #dd0a37;"></i>
+                            <h4>Transferencia Bancaria</h4>
+                            <p>BCP: 194-357-125-00-0-31<br>
+                                José Amadeo Martín Diaz Diaz</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
+    </div>
+
+    <!-- Payment Instructions Section -->
+    <div id="payment-instructions" class="section">
+        <div class="section-content">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-12 text-center">
+                        <h3 class="title">
+                            <span>Instrucciones de </span>
+                            <span style="color: #dd0a37;">Pago</span>
+                        </h3>
+                         <p class="lead">Realiza el pago a través del método de tu preferencia</p>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="payment-instructions">
+                            <ol class="payment-steps">
+                                <li class="payment-step">
+                                    <p>Completa tu registro en
+                                        <a href="https://www.meetup.com/peru-java-user-group/events/304677936/"
+                                            target="_blank" rel="noopener noreferrer" class="text-white">
+                                            <strong>Meetup</strong>
+                                        </a>
+                                    </p>
+                                </li>
+                                <li class="payment-step">
+                                    <p>Envía el comprobante de pago a:</p>
+                                    <ul style="color: white; margin-left: 20px;">
+                                        <li>Jose Diaz: <a href="mailto:jose.diaz@joedayz.pe"
+                                                class="text-white"><strong>jose.diaz@joedayz.pe</strong></a>
+                                        </li>
+                                        <li>Carlos Zela: <a href="mailto:c.zelabueno@gmail.com"
+                                                class="text-white"><strong>c.zelabueno@gmail.com</strong></a>
+                                        </li>
+                                    </ul>
+                                    <p>Incluye en el correo:</p>
+                                    <ul style="color: white; margin-left: 20px;">
+                                        <li><strong>Asunto:</strong> Comprobante de pago JConf Peru 2025</li>
+                                        <li><strong>Mensaje:</strong> Tu nombre completo y usuario de Meetup
+                                        </li>
+                                    </ul>
+                                </li>
+                                <li class="payment-step">
+                                    <p>Recibirás la confirmación por Meetup y tu asistencia será marcada como
+                                        "Pagado"</p>
+                                </li>
+                            </ol>
+                            <p class="text-center" style="margin-top: 30px;">
+                                <strong>Nota:</strong> Los registros sin comprobante de pago serán marcados como
+                                "No irá" y se liberará el cupo
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- /Payment Instructions Section -->
+
+    <!-- Footer -->
+    <footer id="footer">
+        <!-- container -->
+        <div class="container">
+            <!-- row -->
+            <div class="row">
+                <!-- footer logo -->
+                <div class="col-md-4 col-md-push-4">
+                    <div class="footer-brand">
+                        <a href="index.html">
+                            <img src="./images/perujug/logo-2024.png" alt="logo" style="max-height: 200px" />
+                        </a>
+                        <p>&nbsp;</p>
+                        <p>Peru JUG</p>
+                    </div>
+                </div>
+                <!-- /footer logo -->
+
+                <!-- contact social -->
+                <div class="col-md-4 col-md-push-4">
+                    <div class="contact-social">
+                        <a href="https://www.facebook.com/groups/perujug/" target="_blank"><i
+                                class="fa fa-facebook"></i></a>
+                        <a href="https://twitter.com/perujug" target="_blank"><i class="fa fa-twitter"></i></a>
+                        <a href="https://groups.google.com/forum/?hl=en#!forum/itp_java" target="_blank"><i
+                                class="fa fa-google-plus"></i></a>
+                        <a href="https://www.linkedin.com/company/perujug/" target="_blank"><i
+                                class="fa fa fa-linkedin"></i></a>
+                        <a href="https://chat.whatsapp.com/JmKlWu7gZipAMDkKz3eulV" target="_blank"><i
+                                class="fa fa fa-whatsapp"></i></a>
+
+                    </div>
+                </div>
+                <!-- /contact social -->
+
+                <!-- copyright -->
+                <div class="col-md-4 col-md-pull-8">
+                    <p>
+                        <span class="copyright">
+                            <!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. -->
+                            Copyright &copy;
+                            <script>
+                                document.write(new Date().getFullYear());
+                            </script>
+                            All rights reserved
+                        </span>
+                    </p>
+
+                    <span style="font-size: small;">This template is made with
+                        <i class="fa fa-heart-o" aria-hidden="true"></i> by
+                        <a href="https://colorlib.com" target="_blank">Colorlib</a>
+                        <!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. --></span>
+                </div>
+                <!-- /copyright -->
+            </div>
+            <!-- /row -->
+        </div>
+        <!-- /container -->
     </footer>
     <!-- /Footer -->
-
     <!-- jQuery Plugins -->
     <script src="js/jquery.min.js"></script>
     <script src="js/bootstrap.min.js"></script>
