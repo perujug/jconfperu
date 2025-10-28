@@ -122,17 +122,27 @@ jobs:
           
           echo "index.html found, proceeding with deployment..."
           
-          # Set environment variables for Vercel
-          export VERCEL_ORG_ID="${{ secrets.VERCEL_ORG_ID }}"
-          export VERCEL_PROJECT_ID="${{ secrets.VERCEL_PROJECT_ID }}"
+          # Copy _site contents to root for deployment
+          echo "Copying _site contents to root..."
+          cp -r _site/* .
           
-          # Deploy using Vercel CLI with better error handling
+          # Verify files are in root
+          echo "Root directory contents:"
+          ls -la
+          
+          # Check if index.html is now in root
+          if [ ! -f "index.html" ]; then
+            echo "ERROR: index.html not found in root directory after copy"
+            exit 1
+          fi
+          
+          echo "Files ready for deployment!"
+          
+          # Deploy using Vercel CLI
           echo "Deploying with Vercel CLI..."
-          echo "Using VERCEL_ORG_ID: $VERCEL_ORG_ID"
-          echo "Using VERCEL_PROJECT_ID: $VERCEL_PROJECT_ID"
           
-          # Try deployment with explicit project settings
-          if vercel --token ${{ secrets.VERCEL_TOKEN }} --yes --scope ${{ secrets.VERCEL_ORG_ID }} > deploy_output.txt 2>&1; then
+          # Deploy without scope to create new project (public by default)
+          if vercel --token ${{ secrets.VERCEL_TOKEN }} --yes > deploy_output.txt 2>&1; then
             echo "Deployment successful!"
             
             # Extract deployment URL from output
