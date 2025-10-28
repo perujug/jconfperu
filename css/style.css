@@ -456,6 +456,19 @@ textarea.input {
     background-color: #dd0a37;
     color: #fff !important;
   }
+  
+  /* Botón Entradas en mobile */
+  .main-nav li a.main-btn {
+    background-color: #dd0a37 !important;
+    color: #FFF !important;
+    padding: 12px 30px !important;
+  }
+  
+  .main-nav li a.main-btn:hover {
+    background-color: #FFF !important;
+    color: #dd0a37 !important;
+  }
+  
   .navbar-toggle {
     display: block;
   }

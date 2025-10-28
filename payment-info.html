@@ -41,27 +41,7 @@
 
 <body>
     <!-- Header -->
-    <header id="header" style="background-color: #1b1c1e; padding: 10px 0;">
-        <style>
-            #header #nav .main-nav li a {
-                color: #fff !important;
-            }
-
-            #header #nav .main-nav li a:hover {
-                color: #dd0a37 !important;
-            }
-
-            #header #nav .main-nav li a.main-btn {
-                color: #fff !important;
-                background-color: #dd0a37;
-            }
-
-            #header #nav .main-nav li a.main-btn:hover {
-                background-color: #fff !important;
-                color: #dd0a37 !important;
-            }
-
-        </style>
+    <header id="header" class="transparent-navbar">
         <!-- container -->
         <div class="container">
             <!-- navbar header -->
@@ -70,6 +50,7 @@
                 <div class="navbar-brand">
                     <a class="logo" href="index.html">
                         <img class="logo-img" src="./images/perujug/logo-2024.png" alt="logo" />
+                        <img class="logo-alt-img" src="./images/perujug/logo-2024.png" alt="logo" />
                     </a>
                 </div>
                 <!-- /Logo -->
@@ -85,10 +66,10 @@
             <!-- Navigation -->
             <nav id="nav">
                 <ul class="main-nav nav navbar-nav navbar-right">
-                    <li><a href="index.html#schedule">Agenda</a></li>
-                    <li><a href="index.html#speakers">Conferencistas</a></li>
-                    <li><a href="index.html#become-sponsors">Sponsors</a></li>
-                    <li><a href="index.html#contact">Contacto</a></li>
+                    <li><a href="#prices">Precios</a></li>
+                    <li><a href="#payment-methods">Métodos de pago</a></li>
+                    <li><a href="#payment-instructions">Instrucciones de pago</a></li>
+                    <li><a href="index.html">Información del evento</a></li>
                 </ul>
             </nav>
             <!-- /Navigation -->
@@ -97,100 +78,117 @@
     </header>
     <!-- /Header -->
 
-    <div id="tickets" class="section">
-        <div class="section-header">
+    <!-- Home -->
+    <div id="home">
+        <!-- background image -->
+        <div class="section-bg" style="background-image:url(./images/conference_javaone.jpg)"
+            data-stellar-background-ratio="0.5"></div>
+        <!-- /background image -->
+
+        <!-- home wrapper -->
+        <div class="home-wrapper">
+            <!-- container -->
             <div class="container">
+                <!-- row -->
                 <div class="row">
-                    <!-- section title -->
-                    <div class="section-title">
-                        <h2 class="title">
-                            <span>Entradas</span>
-                            <span style="color: #dd0a37;">JConf Peru 2025</span>
-                        </h2>
-                        <p class="lead">Selecciona el tipo de entrada que mejor se adapte a tus necesidades</p>
+                    <!-- home content -->
+                    <div class="col-md-8 col-md-offset-2">
+                        <div class="home-content">
+                            <h1>Entradas
+                                <span style="color: #dd0a37;">JCONF PERU 2025</span>
+                            </h1>
+                            <h4 class="lead">
+                                Selecciona el tipo de entrada que mejor se adapte a tus necesidades
+                            </h4>
+                        </div>
+                    </div>
+                    <!-- /home content -->
+                </div>
+                <!-- /row -->
+            </div>
+            <!-- /container -->
+        </div>
+        <!-- /home wrapper -->
+    </div>
+    <!-- /Home -->
+
+    <div id="prices" class="section-content">
+        <div class="container">
+            <!-- Individual Tickets -->
+            <div class="row">
+                <div class="col-md-12 text-center">
+                    <h3 class="title" style="margin-bottom: 30px;">
+                        <span>Entradas</span>
+                        <span style="color: #dd0a37;">Individuales</span>
+                    </h3>
+                </div>
+            </div>
+            <div class="row">
+                <!-- Individual Early Bird -->
+                <div class="col-md-6">
+                    <div class="pricing-card text-center">
+                        <div class="pricing-header">
+                            <h3>Individual Early Bird</h3>
+                            <div class="price">
+                                <h2><strong>S/ 80.00</strong></h2>
+                                <p class="text-muted">Hasta el 15/11/2025</p>
+                            </div>
+                        </div>
+                        <a href="#payment-methods" class="main-btn">Comprar Ahora</a>
+                    </div>
+                </div>
+
+                <!-- Individual Regular -->
+                <div class="col-md-6">
+                    <div class="pricing-card text-center">
+                        <div class="pricing-header">
+                            <h3>Individual Regular</h3>
+                            <div class="price">
+                                <h2><strong>S/ 120.00</strong></h2>
+                                <p class="text-muted">Del 16/11 al 25/11/2025</p>
+                            </div>
+                        </div>
+                        <a href="#payment-methods" class="main-btn">Comprar Ahora</a>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <div class="section-content">
-            <div class="container">
-                <!-- Individual Tickets -->
-                <div class="row">
-                    <div class="col-md-12 text-center">
-                        <h3 class="title" style="margin-bottom: 30px;">
-                            <span>Entradas</span>
-                            <span style="color: #dd0a37;">Individuales</span>
-                        </h3>
-                    </div>
+            <!-- Group Tickets -->
+            <div class="row">
+                <div class="col-md-12 text-center">
+                    <h3 class="title" style="margin: 50px 0 30px;">
+                        <span>Entradas</span>
+                        <span style="color: #dd0a37;">Grupales</span>
+                    </h3>
+                    <p class="lead" style="margin-bottom: 30px;">Para grupos de 5 o más personas</p>
                 </div>
-                <div class="row">
-                    <!-- Individual Early Bird -->
-                    <div class="col-md-6">
-                        <div class="pricing-card text-center">
-                            <div class="pricing-header">
-                                <h3>Individual Early Bird</h3>
-                                <div class="price">
-                                    <h2><strong>S/ 80.00</strong></h2>
-                                    <p class="text-muted">Hasta el 15/11/2025</p>
-                                </div>
+            </div>
+            <div class="row">
+                <!-- Grupo Early Bird -->
+                <div class="col-md-6">
+                    <div class="pricing-card text-center">
+                        <div class="pricing-header">
+                            <h3>Grupo Early Bird</h3>
+                            <div class="price">
+                                <h2><strong>S/ 70.00</strong></h2>
+                                <p class="text-muted">Por persona (mínimo 5)<br>Hasta el 15/11/2025</p>
                             </div>
-                            <a href="#payment-methods" class="main-btn">Comprar Ahora</a>
                         </div>
-                    </div>
-
-                    <!-- Individual Regular -->
-                    <div class="col-md-6">
-                        <div class="pricing-card text-center">
-                            <div class="pricing-header">
-                                <h3>Individual Regular</h3>
-                                <div class="price">
-                                    <h2><strong>S/ 120.00</strong></h2>
-                                    <p class="text-muted">Del 16/11 al 25/11/2025</p>
-                                </div>
-                            </div>
-                            <a href="#payment-methods" class="main-btn">Comprar Ahora</a>
-                        </div>
+                        <a href="#payment-methods" class="main-btn">Comprar Ahora</a>
                     </div>
                 </div>
 
-                <!-- Group Tickets -->
-                <div class="row">
-                    <div class="col-md-12 text-center">
-                        <h3 class="title" style="margin: 50px 0 30px;">
-                            <span>Entradas</span>
-                            <span style="color: #dd0a37;">Grupales</span>
-                        </h3>
-                        <p class="lead" style="margin-bottom: 30px;">Para grupos de 5 o más personas</p>
-                    </div>
-                </div>
-                <div class="row">
-                    <!-- Grupo Early Bird -->
-                    <div class="col-md-6">
-                        <div class="pricing-card text-center">
-                            <div class="pricing-header">
-                                <h3>Grupo Early Bird</h3>
-                                <div class="price">
-                                    <h2><strong>S/ 70.00</strong></h2>
-                                    <p class="text-muted">Por persona (mínimo 5)<br>Hasta el 15/11/2025</p>
-                                </div>
+                <!-- Grupo Regular -->
+                <div class="col-md-6">
+                    <div class="pricing-card text-center">
+                        <div class="pricing-header">
+                            <h3>Grupo Regular</h3>
+                            <div class="price">
+                                <h2><strong>S/ 100.00</strong></h2>
+                                <p class="text-muted">Por persona (mínimo 5)<br>Del 16/11 al 25/11/2025</p>
                             </div>
-                            <a href="#payment-methods" class="main-btn">Comprar Ahora</a>
                         </div>
-                    </div>
-
-                    <!-- Grupo Regular -->
-                    <div class="col-md-6">
-                        <div class="pricing-card text-center">
-                            <div class="pricing-header">
-                                <h3>Grupo Regular</h3>
-                                <div class="price">
-                                    <h2><strong>S/ 100.00</strong></h2>
-                                    <p class="text-muted">Por persona (mínimo 5)<br>Del 16/11 al 25/11/2025</p>
-                                </div>
-                            </div>
-                            <a href="#payment-methods" class="main-btn">Comprar Ahora</a>
-                        </div>
+                        <a href="#payment-methods" class="main-btn">Comprar Ahora</a>
                     </div>
                 </div>
             </div>
