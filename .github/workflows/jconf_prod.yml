@@ -102,10 +102,6 @@ jobs:
           else
             echo "WARNING: package.json not found"
           fi
-          
-          # Test Vercel authentication
-          echo "Testing Vercel authentication..."
-          vercel whoami --token ${{ secrets.VERCEL_TOKEN }}
       - name: Deploy to Vercel (Preview)
         if: github.event_name == 'pull_request'
         id: deploy
