@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 
 <head>
     <meta charset="utf-8"/>
@@ -7,7 +7,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
 
-    <title>JConf Peru 2023</title>
+    <title>JConf Peru 2025</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="./favicon.ico">
+    <link rel="icon" type="image/png" href="./images/perujug/logo-2024.png">
+    <link rel="shortcut icon" type="image/png" href="./images/perujug/logo-2024.png">
+    <link rel="apple-touch-icon" href="./images/perujug/logo-2024.png">
 
     <!-- Google font -->
     <link href="https://fonts.googleapis.com/css?family=Poppins:400,700,900" rel="stylesheet"/>
@@ -42,9 +48,9 @@
         <div class="navbar-header">
             <!-- Logo -->
             <div class="navbar-brand">
-                <a class="logo" href="index.html">
-                    <img class="logo-img" src="./images/perujug/logo.png" alt="logo"/>
-                    <img class="logo-alt-img" src="./images/perujug/logo.png" alt="logo"/>
+                <a class="logo" href="#home">
+                    <img class="logo-img" src="./images/perujug/logo-2024.png" alt="logo"/>
+                    <img class="logo-alt-img" src="./images/perujug/logo-2024.png" alt="logo"/>
                 </a>
             </div>
             <!-- /Logo -->
@@ -60,16 +66,19 @@
         <!-- Navigation -->
         <nav id="nav">
             <ul class="main-nav nav navbar-nav navbar-right">
-                <li><a href="#home">Inicio</a></li>
                 <li><a href="#about">Acerca de</a></li>
                 <li><a href="#schedule">Agenda</a></li>
                 <li><a href="#organizers">Organizadores</a></li>
                 <li><a href="#speakers">Conferencistas</a></li>
-                <li><a href="#sponsors">Sponsors</a></li>
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">Anteriores <span class="caret"></span></a>
+                    <ul class="dropdown-menu">
+                        <li><a href="2024.html" target="_blank">2024</a></li>
+                    </ul>
+                </li>
+                <li><a href="#become-sponsors">Sponsors</a></li>
                 <li><a href="#contact">Contacto</a></li>
-                <li><a href="https://www.meetup.com/peru-java-user-group/events/296799025/?utm_medium=referral&utm_campaign=share-btn_savedevents_share_modal&utm_source=link" target="_blank" class="main-btn">Registro</a></li>
-                <li>&nbsp;&nbsp;&nbsp;</li>
-<!--                <li><a href="https://sessionize.com/jconf-peru-2023/" target="_blank" class="main-btn">Call for Speakers</a></li>-->
+                <li><a href="payment-info.html" class="main-btn">Entradas</a></li>
             </ul>
         </nav>
         <!-- /Navigation -->
@@ -94,11 +103,11 @@
                 <!-- home content -->
                 <div class="col-md-8 col-md-offset-2">
                     <div class="home-content">
-                        <h1>JCONF PERU 2023</h1>
+                        <h1>JCONF PERU 2025</h1>
                         <h4 class="lead">
                             LA CONFERENCIA PARA USUARIOS Y DESARROLLADORES JAVA.
                         </h4>
-                        <a href="https://www.meetup.com/peru-java-user-group/events/296799025/?utm_medium=referral&utm_campaign=share-btn_savedevents_share_modal&utm_source=link" class="main-btn" target="_blank">Registro</a>
+                        <a href="https://www.meetup.com/peru-java-user-group/events/304677936/?utm_medium=referral&utm_campaign=share-btn_savedevents_share_modal&utm_source=link" class="main-btn" target="_blank">Registro</a>
                         <!--<a href="https://sessionize.com/jconf-peru-2023/" class="main-btn" target="_blank">Call for Speakers</a>-->
                     </div>
                 </div>
@@ -130,7 +139,7 @@
                 <!-- about content -->
                 <div class="about-content">
                     <p>
-                        <b>La Conferencia Java Day Peru 2023</b> busca conectar a
+                        <b>La Conferencia Java Day Peru 2025</b> busca conectar a
                         desarrolladores y empresas interesadas en las tecnologías
                         alrededor de Java. Contaremos con
                         <b>expositores de diferentes partes del mundo</b> que
@@ -161,7 +170,7 @@
                         <div class="col-md-3 col-sm-3 col-xs-6">
                             <div class="number">
                                 <h3>
-                                    <span class="counter" data-from="0" data-to="24" data-speed="1500">0</span>+
+                                    <span class="counter" data-from="0" data-to="13" data-speed="1500">0</span>+
                                 </h3>
                                 <p>Sesiones</p>
                             </div>
@@ -172,7 +181,7 @@
                         <div class="col-md-3 col-sm-3 col-xs-6">
                             <div class="number">
                                 <h3>
-                                    <span class="counter" data-from="0" data-to="15" data-speed="1500">0</span>+
+                                    <span class="counter" data-from="0" data-to="8" data-speed="1500">0</span>+
                                 </h3>
                                 <p>Pa&iacute;ses</p>
                             </div>
@@ -183,7 +192,7 @@
                         <div class="col-md-3 col-sm-3 col-xs-6">
                             <div class="number">
                                 <h3>
-                                    <span class="counter" data-from="0" data-to="22" data-speed="1500">0</span>+
+                                    <span class="counter" data-from="0" data-to="13" data-speed="1500">0</span>+
                                 </h3>
                                 <p>Conferencistas</p>
                             </div>
@@ -249,261 +258,10 @@
             </div>
             <!-- /section title -->
 
-            <div class="col-md-8 col-md-offset-2">
-                <div class="events-wrapper">
+            <div class="col-md-8 col-md-offset-2 text-center">
 
-                    <!-- event -->
-                    <div class="event">
-                        <div class="event-day">
-                            <div>
-                                <span class="day">02</span>
-                                <span class="year">DICIEMBRE, 2023</span>
-                            </div>
-                        </div>
-                        <div class="event-content">
-                            <p class="event-time"><i class="fa fa-clock-o"></i> 8 : 00 AM - 8 : 30 AM (GMT-5)</p>
-                            <h3 class="event-title"> Auditorio: Bienvenida | Welcome</h3>
-                            <p>Por <a href="#organizers">Organizadores</a>&nbsp;&nbsp;
-                            <p style="font-size: small;">Transmitido también por:     
-                                <a href="https://www.youtube.com/watch?v=aJbVi3zTRgE" target="_blank"><img src="./images/speakers/2020/ver_en_youtube.png" width="60px" height="60px"/></a> o
-                                <a href="https://www.facebook.com/events/256434537428700" target="_blank"><img src="./images/speakers/2020/ver_en_facebook.png" width="60px" height="60px"/></a>
-                            </p>
-                        </div>
-                    </div>
-                    <!-- /event -->
-
-                    <!-- event -->
-                    <div class="event">
-                        <div class="event-hour"></div>
-                        <div class="event-content">
-                            <p class="event-time"><i class="fa fa-clock-o"></i> 8 : 30 AM - 9 : 30 AM (GMT-5)</p>
-                            <h3 class="event-title">Auditorio: Java en una Big Tech Company (eBay)</h3>
-
-                            <p>Por <a href="#">Edward Cacho</a>&nbsp;&nbsp;</p>
-                            <p style="font-size: small;">Transmitido también por:
-                                <a href="https://www.youtube.com/watch?v=xxqSXgMgqzA" target="_blank"><img src="./images/speakers/2020/ver_en_youtube.png" width="60px" height="60px"/></a> o
-                                <a href="https://www.facebook.com/events/1517399709033977" target="_blank"><img src="./images/speakers/2020/ver_en_facebook.png" width="60px" height="60px"/></a></p>
-                            </p>
-                            <div class="event-separator"></div>
-                            <h3 class="event-title">Workshop: Construyendo una aplicación serverless en Java con AWS SAM CLI</h3>
-                            <p>Por <a href="#">Lino Espinoza</a>&nbsp;&nbsp; en Sala Workshop</p>
-
-                        </div>
-                    </div>
-                    <!-- /event -->
-
-                    <!-- event -->
-                    <div class="event">
-                        <div class="event-hour"></div>
-                        <div class="event-content">
-                            <p class="event-time"><i class="fa fa-clock-o"></i> 09 : 30 AM - 10 : 30 AM</p>
-                            <h3 class="event-title">Auditorio: Creando Microservicios con Microprofile</h3>
-                            <p>Por <a href="#">Jose Ventura Arteaga</a>&nbsp;&nbsp;</p>
-                            <p style="font-size: small;">Transmitido también por:
-                                <a href="https://www.youtube.com/watch?v=j-rDhTWuWSg" target="_blank"><img src="./images/speakers/2020/ver_en_youtube.png" width="60px" height="60px"/></a> o
-                                <a href="https://www.facebook.com/events/1394978221115315" target="_blank"><img src="./images/speakers/2020/ver_en_facebook.png" width="60px" height="60px"/></a></p>
-                            </p>
-                            <div class="event-separator"></div>
-                            <h3 class="event-title">Workshop: Documenta tu Java App usando Sphinx</h3>
-                            <p>Por <a href="#">David Dali Susanibar Arce</a>&nbsp;&nbsp;en Sala Workshop</p>
-                        </div>
-                    </div>
-                    <!-- /event -->
-
-                    <!-- event -->
-                    <div class="event">
-                        <div class="event-hour"></div>
-                        <div class="event-content">
-                            <p class="event-time"><i class="fa fa-clock-o"></i> 10 : 30 AM - 11 : 30 AM</p>
-                            <h3 class="event-title">Auditorio: From serverful to serverless Java with AWS Lambda</h3>
-                            <p>Por <a href="#">Ytalo Elías Borja Mori</a>&nbsp;&nbsp;</p>
-                            <p style="font-size: small;">Transmitido también por: 
-                                <a href="https://www.youtube.com/watch?v=F2ZeYsNW3fM" target="_blank"><img src="./images/speakers/2020/ver_en_youtube.png" width="60px" height="60px"/></a> o
-                                <a href="https://www.facebook.com/events/1815182845590136" target="_blank"><img src="./images/speakers/2020/ver_en_facebook.png" width="60px" height="60px"/></a></p>
-                            </p>
-                            <div class="event-separator"></div>
-                            <h3 class="event-title">Workshop: Integración de Spring Boot y Paypal</h3>
-                            <p>Por <a href="#">Geovanny Mendoza</a>&nbsp;&nbsp;en Sala Workshop</p>
-                        </div>
-                    </div>
-                    <!-- /event -->
-
-                    <!-- event -->
-                    <div class="event">
-                        <div class="event-hour"></div>
-                        <div class="event-content">
-                            <p class="event-time"><i class="fa fa-clock-o"></i> 11 : 30 AM - 12 : 30 AM</p>
-                            <h3 class="event-title">Auditorio: Desplegando Eficiencia, Creando Aplicaciones Serverless con Quarkus y Knative</h3>
-                            <p>Por <a href="#">Jean Paul López</a>&nbsp;&nbsp;</p>
-                            <p style="font-size: small;">Transmitido también por:
-                                <a href="https://www.youtube.com/watch?v=sNSNwf_zgyY" target="_blank"><img src="./images/speakers/2020/ver_en_youtube.png" width="60px" height="60px"/></a> o
-                                <a href="https://www.facebook.com/events/672072244912829" target="_blank"><img src="./images/speakers/2020/ver_en_facebook.png" width="60px" height="60px"/></a></p>
-                            </p>
-                            <div class="event-separator"></div>
-                            <h3 class="event-title">Workshop: Usando Virtual Threads para incrementar dramáticamente la paralelización de tu aplicación</h3>
-                            <p>Por <a href="#">Andrés Alcarraz</a>&nbsp;&nbsp;en Sala Workshop</p>
-                        </div>
-                    </div>
-                    <!-- /event -->
-
-                    <!-- event -->
-                    <div class="event">
-                        <div class="event-hour"></div>
-                        <div class="event-content">
-                            <p class="event-time"><i class="fa fa-clock-o"></i> 12 : 30 AM - 1 : 30 PM</p>
-                            <h3 class="event-title">ALMUERZO</h3>
-                        </div>
-                    </div>
-                    <!-- /event -->
-
-
-                    <!-- event -->
-                    <div class="event">
-                        <div class="event-hour"></div>
-                        <div class="event-content">
-                            <p class="event-time"><i class="fa fa-clock-o"></i> 1 : 30 PM - 2 : 30 PM</p>
-                            <h3 class="event-title">Auditorio: Core Banking Modernization with Kafka connect framework</h3>
-                            <p>Por <a href="#">Dennis Paitan, Oscar Pando</a>&nbsp;&nbsp;</p>
-                            <p style="font-size: small;">Transmitido también por:
-                                <a href="https://www.youtube.com/watch?v=EWEfXBRJ_Z0" target="_blank"><img src="./images/speakers/2020/ver_en_youtube.png" width="60px" height="60px"/></a> o
-                                <a href="https://www.facebook.com/events/881633500285027" target="_blank"><img src="./images/speakers/2020/ver_en_facebook.png" width="60px" height="60px"/></a></p>
-                            </p>
-                            <div class="event-separator"></div>
-                            <h3 class="event-title">Keynote: EventSourcing con Java</h3>
-                            <p>Por <a href="#">Helard Joel Gomez</a>&nbsp;&nbsp;en Sala Keynote</p>
-
-                            <div class="event-separator"></div>
-                            <h3 class="event-title">Workshop: OAuth2 y JWT con Spring Authorization Server y Spring Security </h3>
-                            <p>Por <a href="#">Juan Cabello</a>&nbsp;&nbsp;en Sala Workshop </p>
-                        </div>
-                    </div>
-                    <!-- /event -->
-
-
-                    <!-- event -->
-                    <div class="event">
-                        <div class="event-hour"></div>
-                        <div class="event-content">
-                            <p class="event-time"><i class="fa fa-clock-o"></i> 2 : 30 PM - 3 : 30 PM</p>
-                            <h3 class="event-title">Auditorio: Database Multitenant: qué y cómo implementarlo</h3>
-                            <p>Por <a href="#">Edgar Rios Navarro</a>&nbsp;&nbsp;</p>
-                            <p style="font-size: small;">Transmitido también por:
-                                <a href="https://www.youtube.com/watch?v=6Z3Z4Z6Z5Z4" target="_blank"><img src="./images/speakers/2020/ver_en_youtube.png" width="60px" height="60px"/></a>
-                                o
-                                <a href="https://www.facebook.com/events/1532871984151234" target="_blank"><img src="./images/speakers/2020/ver_en_facebook.png" width="60px" height="60px"/></a>
-                            </p>
-                            <div class="event-separator"></div>
-                            <h3 class="event-title">Keynote: Red Hat y el Ecosistema Java</h3>
-                            <p>Por <a href="#">Jose Luis Bugarin</a>&nbsp;&nbsp; en Sala  Keynote</p>
-                               
-                            <div class="event-separator"></div>
-                            <h3 class="event-title">Workshop: Records y Sealed Classes de Java </h3>
-                            <p>Por <a href="#">Almendra Paz Rodriguez</a>&nbsp;&nbsp;en Sala Workshop</p>
-
-                        </div>
-                    </div>
-                    <!-- /event -->
-
-
-                    <!-- event -->
-                    <div class="event">
-                        <div class="event-hour"></div>
-                        <div class="event-content">
-                            <p class="event-time"><i class="fa fa-clock-o"></i> 3 : 30 PM - 4 : 30 PM</p>
-                            <h3 class="event-title">Auditorio: Tecnologías de Hoy y del Futuro: El impacto de la IA y un nuevo mindset</h3>
-                            <p>Por <a href="#">Maribel Maza</a>&nbsp;&nbsp;</p>
-                            <p style="font-size: small;">Transmitido también por:
-                                <a href="https://www.youtube.com/watch?v=nEyn-hMkodg" target="_blank"><img src="./images/speakers/2020/ver_en_youtube.png" width="60px" height="60px"/></a> o
-                                <a href="https://www.facebook.com/events/1532871984151234" target="_blank"><img src="./images/speakers/2020/ver_en_facebook.png" width="60px" height="60px"/></a>
-                            </p>
-                            <div class="event-separator"></div>
-                            <h3 class="event-title">Keynote: Java 21 Collections: Deep Review</h3>
-                            <p>Por <a href="#">Jean Pierre Mandujano</a>&nbsp;&nbsp;en Sala Keynote</p>
-
-                            <div class="event-separator"></div>
-                            <h3 class="event-title">Workshop: Arquitectura hexagonal en Springboot </h3>
-                            <p>Por <a href="#">Abel Roy Sanchez</a>&nbsp;&nbsp;en Sala Workshop</p>
-
-                        </div>
-                    </div>
-                    <!-- /event -->
-
-                    <!-- event -->
-                    <div class="event">
-                        <div class="event-hour"></div>
-                        <div class="event-content">
-                            <p class="event-time"><i class="fa fa-clock-o"></i> 4 : 30 PM - 5 : 30 PM</p>
-                            <h3 class="event-title">Auditorio: Empathic Mentoring for Developers - Why Should You care, and How?</h3>
-                            <p>Por <a href="#">Dervis Mansuroglu</a>&nbsp;&nbsp;</p>
-                            <p style="font-size: small;">Transmitido también por:
-                                <a href="https://www.youtube.com/watch?v=nEyn-hMkodg" target="_blank"><img src="./images/speakers/2020/ver_en_youtube.png" width="60px" height="60px"/></a> o
-                                <a href="https://www.facebook.com/events/1532871984151234" target="_blank"><img src="./images/speakers/2020/ver_en_facebook.png" width="60px" height="60px"/></a></p>
-
-                            <div class="event-separator"></div>
-                            <h3 class="event-title">Keynote: Kakfa API Consumer Exactly Once Processing: Banks Transactions</h3>
-                            <p>Por <a href="#">Villegas Bottoni, Alor Morales</a>&nbsp;&nbsp;en Sala Keynote</p>
-
-                            <div class="event-separator"></div>
-                            <h3 class="event-title">Workshop: Micronaut con Kotlin Coroutines </h3>
-                            <p>Por <a href="#">Geovanny Mendoza</a>&nbsp;&nbsp;en Sala Workshop</p>
-                                
-                        </div>
-                    </div>
-                    <!-- /event -->
-
-                    <!-- event -->
-                    <div class="event">
-                        <div class="event-hour"></div>
-                        <div class="event-content">
-                            <p class="event-time"><i class="fa fa-clock-o"></i> 5 : 30 PM - 6 : 00 PM</p>
-                            <h3 class="event-title">Auditorio: Cierre del Evento</h3>
-                            <p>By <a href="#">Organizadores</a>&nbsp;&nbsp;por
-                                <a href="https://www.youtube.com/watch?v=z5pVQXQqZt8" target="_blank"><img src="./images/speakers/2020/ver_en_youtube.png" width="60px" height="60px"/></a> o
-                                <a href="https://www.facebook.com/events/855414736277912" target="_blank"><img src="./images/speakers/2020/ver_en_facebook.png" width="60px" height="60px"/></a></p>
-
-
-                        </div>
-                    </div>
-                    <!-- /event -->
-
-                    <!-- event -->
-<!--                    <div class="event">-->
-<!--                        <div class="event-day">-->
-<!--                            <div>-->
-<!--                                <span class="day">05</span>-->
-<!--                                <span class="year">SEPTIEMBRE, 2023</span>-->
-<!--                            </div>-->
-<!--                        </div>-->
-<!--                        <div class="event-content">-->
-<!--                            <p class="event-time">-->
-<!--                                <i class="fa fa-clock-o"></i> 00:00-->
-<!--                            </p>-->
-<!--                            <h3 class="event-title">Inicio de Call For Papers.</h3>-->
-<!--                            <a class="c4p-link" href="https://sessionize.com/jconf-peru-2023/" target="_blank">-->
-<!--                                Inscr&iacute;te aqu&iacute;-->
-<!--                            </a>-->
-<!--                            <p></p>-->
-<!--                        </div>-->
-<!--                    </div>-->
-                    <!-- /event -->
-                    <!-- event -->
-<!--                    <div class="event">-->
-<!--                        <div class="event-day">-->
-<!--                            <div>-->
-<!--                                <span class="day">04</span>-->
-<!--                                <span class="year">NOVIEMBRE, 2023</span>-->
-<!--                            </div>-->
-<!--                        </div>-->
-<!--                        <div class="event-content">-->
-<!--                            <p class="event-time">-->
-<!--                                <i class="fa fa-clock-o"></i> 23:00-->
-<!--                            </p>-->
-<!--                            <h3 class="event-title">Fin de Call For Papers.</h3>-->
-<!--                            <p></p>-->
-<!--                        </div>-->
-<!--                    </div>-->
-                    <!-- /event -->
-
+                <div class="about-content">
+                    <h3>Muy pronto...</h3>
                 </div>
             </div>
         </div>
@@ -584,30 +342,28 @@
             </div>
         </div>
         <!-- /organizador -->
-
-
+        
         <!-- organizador -->
         <div class="col-md-4 col-sm-6">
             <div class="speaker" data-toggle="modal" data-target="#speaker-modal-1">
                 <div class="speaker-img">
-                    <img src="./images/organizers/ytalo-borja.jpg" alt=""/>
+                    <img src="./images/organizers/jdluna.jpeg" alt=""/>
                 </div>
                 <div class="speaker-body">
                     <div class="speaker-social">
-                        <a href="https://twitter.com/ytachi0026" target="_blank"><i class="fa fa-twitter"></i></a>
-                        <a href="https://www.linkedin.com/in/ytaloborjamori/" target="_blank"><i
+                        <a href="https://twitter.com/jdluna" target="_blank"><i class="fa fa-twitter"></i></a>
+                        <a href="https://www.linkedin.com/in/jdluna/" target="_blank"><i
                                 class="fa fa fa-linkedin"></i></a>
                     </div>
                     <div class="speaker-content">
-                        <h2>Ytalo Borja</h2>
-                        <span>Cloud Application Architect, AWS Per&uacute;</span>
+                        <h2>Jhosep Luna</h2>
+                        <span>Senior Solution Architect Consultant</span>
                     </div>
                 </div>
             </div>
         </div>
         <!-- /organizador -->
 
-       
         <!-- section title -->
         <!-- FIRST ROW -->
         <!-- speaker -->
@@ -661,19 +417,14 @@
                     <span style="color: #dd0a37;">Speakers</span>
                 </h3>
             </div>
-<!--            <div class="col-md-8 col-md-offset-2 text-center">-->
-<!--                &lt;!&ndash; about content &ndash;&gt;-->
-<!--                <div class="about-content">-->
-<!--                    <p>Estamos en b&uacute;squeda de speakers, presenta tu charla y nos contactaremos contigo: </p>-->
-<!--                    <a class="c4p-link" href="https://sessionize.com/jconf-peru-2023/" target="_blank">-->
-<!--                        Inscr&iacute;te aqu&iacute;-->
-<!--                    </a>-->
-<!--                </div>-->
-<!--            </div>-->
-
-        </div>
-        <div class="row speaker-row ">
-            <img class="banner-speakers" src="./images/speakers/2023/speakers2023-v2.png"/>
+            <div class="col-md-8 col-md-offset-2 text-center">
+                <div class="about-content">
+                    <p>Estamos en b&uacute;squeda de speakers, presenta tu charla y nos contactaremos contigo: </p>
+                    <a class="c4p-link" href="https://sessionize.com/jconf-peru-2023/" target="_blank">
+                        Inscr&iacute;te aqu&iacute;
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
     <!-- /container -->
@@ -697,7 +448,7 @@
         </div>    
     </div>
     <div class="section-content">
-        <div class="content">
+        <div class="container">
             <div class="row inline-columns text-center">
                 <div id="service-0" class="col-md-2">
                 </div>
@@ -718,7 +469,7 @@
                 <div id="service-2" class="col-md-3 col-sm-8">
                     <div class="service" data-service-color="#f18b6d">
                         <div>
-                            <h3 style="color: rgb(241, 210, 4);"">Gold</h3>
+                            <h3 style="color: rgb(241, 210, 4);">Gold</h3>
                         </div>
                         <div class="service-entry">
                             "Ofrece branding y logo en redes sociales, banners publicitarios y mencion de agradecimiento presencial en el evento. Adem&aacute;s de un stand peque&ntilde;o en el evento y reel entre pausas."
@@ -749,97 +500,7 @@
         </div>
     </div>
 </div>
-<div id="sponsors" class="section">
-    <div class="section-header">
-        <div class="container">
-            <div class="row">
-                <!-- section title -->
-                <div class="section-title">
-                    <h3 class="title">
-                        <span>Platinum</span>
-                        <span style="color: #dd0a37;">Sponsor</span>
-                    </h3>
-                </div>
-                <div class="col-md-offset-2 col-sm-4 col-xs-4">
-                    <a href="https://www.viabcp.com/" target="_blank" class="sponsor">
-                        <img src="./images/sponsors/bcp-4.svg" alt="Jetbrains"/>
-                    </a>
-                </div>
-<!--                <div class="col-md-3 col-sm-4 col-xs-6">-->
-<!--                    <a href="https://open.pucp.edu.pe/" target="_blank" class="sponsor">-->
-<!--                        <img src="./images/sponsors/PUCP-log.png" alt="pucp"/>-->
-<!--                    </a>-->
-<!--                </div>-->
-            </div>
-
-            <div class="row">
-                <!-- section title -->
-                <div class="section-title">
-                    <h3 class="title">
-                        <span>Silver</span>
-                        <span style="color: #dd0a37;">Sponsor</span>
-                    </h3>
-                </div>
-                <div class="col-md-3 col-sm-4 col-xs-6">
-                    <a href="https://www.jetbrains.com/" target="_blank" class="sponsor">
-                        <img src="./images/sponsors/jetbrains-icon.png" alt="bcp"/>
-                    </a>
-                </div>
-                <div class="col-md-3 col-sm-4 col-xs-6">
-                   <a href="https://www.quadim.org/" target="_blank" class="sponsor">
-                    <img src="./images/sponsors/quadim.svg" alt="quadim"/>
-                   </a>
-                </div>
-            </div>
-        </div>    
-    </div>
-    <!-- container -->
-    <div class="container">
-        <!-- row -->
-        <div class="row">
-            <div id="galery-owl" class="owl-carousel owl-theme">
-                <!-- cta content -->
-                <div class="galery-item">
-                    <a href="https://www.viabcp.com/" target="_blank">
-                        <img src="./images/sponsors/logobcp.png" alt="bcp"/>
-                    </a>
-                </div>
-
-            </div>
-        </div>
-        <!-- /row -->
-    </div>
-    <!-- /container -->
-</div>
 <!-- /Sponsors -->
-
-<!-- CTA -->
-<div id="cta" class="section">
-    <!-- background image -->
-    <div class="section-bg" style="background-image:url(./images/background03.jpg)" data-stellar-background-ratio="0.5">
-    </div>
-    <!-- /background image -->
-
-    <!-- container -->
-    <div class="container">
-        <!-- container -->
-        <div class="row">
-            <!-- cta content -->
-            <div class="cta-content text-center">
-                <h2>Inscripciones</h2>
-                <p class="lead">No te pierdas la mejor conferencia para desarrolladores de software del Per&uacute;</p>
-                <a href="https://www.meetup.com/peru-java-user-group/events/296799025/?utm_medium=referral&utm_campaign=share-btn_savedevents_share_modal&utm_source=link"
-                        target="_blank"
-                        class="main-btn"
-                        >Registro</a>
-            </div>
-            <!-- /cta content -->
-        </div>
-        <!-- /row -->
-    </div>
-    <!-- /container -->
-</div>
-<!-- /CTA -->
 
 <!-- Contact -->
 <div id="contact" class="section">
@@ -859,7 +520,7 @@
             <div class="col-sm-4">
                 <div class="contact">
                     <h3>Direcci&otilde;n</h3>
-                    <p>Edificio SOHO+, Tomas Ramsey 930, Magdalena del Mar, Lima-Per&uacute;.</p>
+                    <p>Av. El Derby 055 Piso 5 Of. 502 · Centro de Negocios Cronos Torre 1 · Santiago de Surco, Lima-Per&uacute;.</p>
                 </div>
             </div>
             <!-- contact -->
@@ -894,12 +555,18 @@
             <div class="col-md-push-4">
                 <div class="contact">
                     <h3>Contacto para Sponsor</h3>
-                    <li>
-                        <a href="mailto:jose.diaz@joedayz.pe" target="_blank">Jose Diaz</a>
-                    </li>
-                    <li
-                        <a href="mailto:c.zelabueno@gmail.com" target="_blank">Carlos Zela</a>
-                    </li>
+                    <ul>
+                        <li>
+                            <a href="mailto:jose.diaz@joedayz.pe" target="_blank">Jose Diaz</a>
+                        </li>
+                        <li>
+                            <a href="mailto:c.zelabueno@gmail.com" target="_blank">Carlos Zela</a>
+                        </li>
+                        <li>
+                            <a href="mailto:jhosep.dario@gmail.com" target="_blank">Jhosep Luna</a>
+                        </li>
+                    </ul>
+
                 </div>
             </div>
             <!-- /contact -->
@@ -924,7 +591,7 @@
             <div class="col-md-4 col-md-push-4">
                 <div class="footer-brand">
                     <a href="index.html">
-                        <img src="./images/perujug/logo-grande.png" alt="logo" style="max-height: 100px"/>
+                        <img src="./images/perujug/logo-2024.png" alt="logo" style="max-height: 200px"/>
                     </a>
                     <p>&nbsp;</p>
                     <p>Peru JUG</p>

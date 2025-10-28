@@ -3,12 +3,16 @@
 # separate terms of service, privacy policy, and support
 # documentation.
 
-# Workflow for building JCONF website and deploying a Jekyll site to FTP
-name: Deploy JCONF website to FTP
+# Workflow for building JCONF website and deploying a Jekyll site to Vercel
+name: Deploy JCONF website to Vercel
 
 on:
   # Runs on pushes targeting the default branch
   push:
+    branches: ["master"]
+  
+  # Runs on pull requests for preview deployments
+  pull_request:
     branches: ["master"]
 
   # Allows you to run this workflow manually from the Actions tab
@@ -20,9 +24,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Setup Ruby
-        uses: ruby/setup-ruby@55283cc23133118229fd3f97f9336ee23a179fcf # v1.146.0
+        uses: ruby/setup-ruby@v1
         with:
           ruby-version: '3.1' # Not needed with a .ruby-version file
           bundler-cache: true # runs 'bundle install' and caches installed gems automatically
@@ -34,7 +38,7 @@ jobs:
           JEKYLL_ENV: production
       - name: Upload artifact
         # Automatically uploads an artifact from the './_site' directory by default
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: jconfwebsite
           path: _site
@@ -45,17 +49,158 @@ jobs:
     needs: build
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Download Artifact
-        uses: actions/download-artifact@v4.1.7
+        uses: actions/download-artifact@v4
         with:
           name: jconfwebsite
           path: _site
-      - name: FTP to Host
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+      - name: Debug _site directory
+        if: github.event_name == 'pull_request'
+        run: |
+          echo "Contents of _site directory:"
+          ls -la _site/
+          echo "Checking for index.html:"
+          ls -la _site/index.html || echo "index.html not found"
+          echo "Checking for other files:"
+          find _site -name "*.html" | head -5
+          echo "Checking _site directory size:"
+          du -sh _site/
+          echo "First few lines of index.html:"
+          head -10 _site/index.html || echo "Cannot read index.html"
+      - name: Deploy to Vercel (Production)
+        if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+        uses: amondnet/vercel-action@v25
         with:
-          server: ${{ secrets.JCONF_FTP_CICD_SERVER }}
-          username: ${{ secrets.JCONF_FTP_CICD_USERNAME }}
-          password: ${{ secrets.JCONF_FTP_CICD_PASSWORD }}
-          dry-run: false
-          local-dir: ./_site/
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          working-directory: ./
+          vercel-args: '--prod'
+      - name: Install Vercel CLI
+        if: github.event_name == 'pull_request'
+        run: npm install -g vercel@latest
+      - name: Verify Vercel Configuration
+        if: github.event_name == 'pull_request'
+        run: |
+          # Check Vercel CLI version
+          echo "Vercel CLI version:"
+          vercel --version
+          
+          # Check if vercel.json exists
+          if [ -f "vercel.json" ]; then
+            echo "vercel.json found:"
+            cat vercel.json
+          else
+            echo "WARNING: vercel.json not found"
+          fi
+          
+          # Check if package.json exists
+          if [ -f "package.json" ]; then
+            echo "package.json found:"
+            cat package.json
+          else
+            echo "WARNING: package.json not found"
+          fi
+      - name: Deploy to Vercel (Preview)
+        if: github.event_name == 'pull_request'
+        id: deploy
+        run: |
+          echo "Deploying to Vercel..."
+          echo "Contents of _site directory:"
+          ls -la _site/
+          
+          # Check if _site directory has content
+          if [ ! -f "_site/index.html" ]; then
+            echo "ERROR: index.html not found in _site directory"
+            exit 1
+          fi
+          
+          echo "index.html found, proceeding with deployment..."
+          
+          # Copy _site contents to root for deployment
+          echo "Copying _site contents to root..."
+          cp -r _site/* .
+          
+          # Verify files are in root
+          echo "Root directory contents:"
+          ls -la
+          
+          # Check if index.html is now in root
+          if [ ! -f "index.html" ]; then
+            echo "ERROR: index.html not found in root directory after copy"
+            exit 1
+          fi
+          
+          echo "Files ready for deployment!"
+          
+          # Deploy using Vercel CLI
+          echo "Deploying with Vercel CLI..."
+          
+          # Deploy without scope to create new project (public by default)
+          if vercel --token ${{ secrets.VERCEL_TOKEN }} --yes > deploy_output.txt 2>&1; then
+            echo "Deployment successful!"
+            
+            # Extract deployment URL from output
+            DEPLOY_URL=$(grep -o 'https://[^[:space:]]*\.vercel\.app' deploy_output.txt | head -1)
+            echo "Deployment URL: $DEPLOY_URL"
+            echo "deploy_url=$DEPLOY_URL" >> $GITHUB_OUTPUT
+            
+            # Show deployment details
+            echo "Deployment details:"
+            cat deploy_output.txt
+          else
+            echo "Deployment failed!"
+            echo "Error details:"
+            cat deploy_output.txt
+            exit 1
+          fi
+      - name: Comment PR with Preview URL
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            
+            const botComment = comments.find(comment => 
+              comment.user.type === 'Bot' && comment.body.includes('🚀 Preview deployment')
+            );
+            
+            // Get the preview URL from the deployment step
+            const previewUrl = '${{ steps.deploy.outputs.deploy_url }}' || `https://jconfperu-pr-${context.issue.number}-dario-lunas-projects.vercel.app`;
+            
+            const body = `🚀 **Preview deployment ready!**
+            
+            **Unique Preview URL:** ${previewUrl}
+            
+            This is a unique preview deployment for PR #${context.issue.number}.
+            The preview will be automatically updated when you push new commits to this PR.
+            
+            **Features:**
+            - ✅ Unique URL for this PR
+            - ✅ Automatic updates on new commits
+            - ✅ Safe testing environment
+            - ✅ Automatic cleanup when PR is closed
+            
+            ---
+            *This is an automated preview deployment for testing purposes.*`;
+            
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: body
+              });
+            }
