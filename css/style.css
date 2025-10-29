@@ -459,6 +459,13 @@ textarea.input {
   }
 }
 
+/* Para pantallas cortas, asegurar que el contenido no se solape con el menú */
+@media only screen and (max-height: 350px) {
+  .home-content h1 {
+    padding-top: 250px;
+  }
+}
+
 /* Mobile nav */
 
 @media only screen and (max-width: 767px) {
@@ -540,6 +547,7 @@ textarea.input {
 #home {
   height: 100vh;
   position: relative;
+  padding-top: 80px;
 }
 
 #home .home-wrapper {
