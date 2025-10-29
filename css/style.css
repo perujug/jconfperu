@@ -1270,6 +1270,12 @@ textarea.input {
   color: white !important;
 }
 
+a.text-white {
+  font-weight: bolder;
+  /* para diferenciar los links de los otros campos con string y class text-white*/
+  text-decoration: underline;  
+}
+
 .bg-warning {
   background-color: white;
   color: black;
