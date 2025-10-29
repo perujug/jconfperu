@@ -270,6 +270,13 @@ textarea.input {
   }
 }
 
+/*Hacer que el ícono no ocupe una fila entera cuando se achica la pantalla*/
+#header .container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
 .main-nav li a {
   position: relative;
   padding: 30px 15px;
@@ -431,6 +438,33 @@ textarea.input {
   background-color: rgba(221,10,55,0.1);
 }
 
+/* En pantallas intermedias, el menú se divide en dos filas
+   Disminuimos el espaciamiento para que no se vea raro 
+*/
+@media only screen and (min-width: 768px) and (max-width: 1199px) {
+  .main-nav li a {
+    padding: 15px 6px;
+  }
+
+  .main-nav .dropdown .dropdown-toggle {
+    padding: 15px 6px;
+  }
+
+  .navbar-brand {
+    margin: 8px 0px;
+  }
+
+  .navbar-brand .logo>img {
+    max-height: 40px;
+  }
+}
+
+/* Para pantallas cortas, asegurar que el contenido no se solape con el menú */
+@media only screen and (max-height: 350px) {
+  .home-content h1 {
+    padding-top: 250px;
+  }
+}
 
 /* Mobile nav */
 
@@ -513,6 +547,7 @@ textarea.input {
 #home {
   height: 100vh;
   position: relative;
+  padding-top: 80px;
 }
 
 #home .home-wrapper {
