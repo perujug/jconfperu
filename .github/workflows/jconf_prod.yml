@@ -39,7 +39,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: jconfwebsite
-          path: dist
+          path: _site
 
   # Deployment job
   deploy:
@@ -52,7 +52,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: jconfwebsite
-          path: dist
+          path: _site
       - name: Debug _site directory
         if: github.event_name == 'pull_request'
         run: |
