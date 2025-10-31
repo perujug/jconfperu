@@ -469,13 +469,36 @@ textarea.input {
 /* Mobile nav */
 
 @media only screen and (max-width: 767px) {
+  /* Asegurar que el header sea una columna flexible en móvil */
+  #header .container {
+    flex-direction: column;
+    align-items: stretch;
+    position: relative;
+  }
+
+  /* Mantener el navbar header en la parte superior */
+  .navbar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    position: relative;
+    z-index: 100;
+  }
+
+  /* Solo agregar fondo blanco cuando el menú está abierto */
+  #header.main-nav-open .navbar-header {
+    background-color: #FFF;
+  }
+
   .main-nav {
-    margin: 0px -15px;
+    margin: 0;
     max-height: 0;
-    overflow-y: scroll;
+    overflow-y: auto;
     background-color: #FFF;
     -webkit-transition: 0.3s all;
     transition: 0.3s all;
+    width: 100%;
   }
   .main-nav.open {
     max-height: 500px;
@@ -505,8 +528,18 @@ textarea.input {
   
   .navbar-toggle {
     display: block;
+    flex-shrink: 0;
   }
-  
+
+  /* Estilos para navegación móvil */
+  .main-nav li {
+    border-bottom: 1px solid #f0f0f0;
+  }
+
+  .main-nav li:last-child {
+    border-bottom: none;
+  }
+
   /* Mobile dropdown styles */
   .main-nav .dropdown .dropdown-menu {
     position: static;
@@ -518,25 +551,47 @@ textarea.input {
     margin: 0;
     padding: 0;
   }
-  
+
   .main-nav .dropdown.open .dropdown-menu {
     display: block;
   }
-  
+
   .main-nav .dropdown .dropdown-menu li a {
     padding: 15px 30px;
     color: #0b0f28;
     border-left: 3px solid transparent;
   }
-  
+
   .main-nav .dropdown .dropdown-menu li a:hover {
     background-color: #dd0a37;
     color: #fff;
     border-left-color: #dd0a37;
   }
-  
+
   .main-nav .dropdown .dropdown-toggle {
     padding: 30px 15px;
+  }
+
+  /* Asegurar que el header tenga fondo cuando el menú está abierto */
+  #header.main-nav-open {
+    background-color: #FFF;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Solo dar fondo blanco al ícono hamburguesa cuando el menú está abierto */
+  #header.main-nav-open .navbar-toggle {
+    background-color: #FFF;
+    color: #0b0f28 !important;
+  }
+
+  /* Mantener el ícono hamburguesa visible con color oscuro */
+  #header.transparent-navbar .navbar-toggle {
+    color: #FFF;
+  }
+
+  /* Solo dar fondo al navbar-brand cuando el menú está abierto */
+  #header.main-nav-open .navbar-brand {
+    background-color: #FFF;
   }
 }
 
