@@ -1329,24 +1329,26 @@ textarea.input {
 
   /* Countdown responsive styles */
   .event-date h3 {
-    font-size: 22px;
+    font-size: 18px;
   }
 
   .countdown {
-    gap: 10px;
+    gap: 6px;
   }
 
   .countdown-item {
-    padding: 15px 20px;
-    min-width: 70px;
+    padding: 10px 6px;
+    min-width: 55px;
   }
 
   .countdown-number {
-    font-size: 32px;
+    font-size: 24px;
+    margin-bottom: 4px;
   }
 
   .countdown-label {
-    font-size: 12px;
+    font-size: 10px;
+    letter-spacing: 0.5px;
   }
   .event .event-day {
     width: 90px;
