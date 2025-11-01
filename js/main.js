@@ -13,6 +13,7 @@
 	// Mobile nav toggle
 	$('.navbar-toggle').on('click',function() {
 		$('.main-nav').toggleClass('open');
+		$('#header').toggleClass('main-nav-open');
 	});
 
 	// Dropdown toggle
