@@ -102,3 +102,6 @@ vendor/
 # End of https://www.toptal.com/developers/gitignore/api/macos,windows,vim,visualstudiocode
 
 node_modules/
+dist/
+_site/
+package-lock.json
