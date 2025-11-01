@@ -629,6 +629,72 @@ textarea.input {
   font-weight: 600;
 }
 
+/* Event Location Styles */
+.event-location {
+  margin: 20px auto;
+  max-width: 600px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  padding: 20px;
+  transition: all 0.3s ease;
+}
+
+.event-location:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.location-info {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 15px;
+  color: #FFF;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.location-info i {
+  font-size: 18px;
+  color: #dd0a37;
+  flex-shrink: 0;
+}
+
+.location-info a {
+  color: #FFF;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.location-info a:hover {
+  color: #dd0a37;
+  text-decoration: underline;
+}
+
+.event-map {
+  position: relative;
+  width: 100%;
+  max-width: 450px;
+  margin: 0 auto;
+  padding-bottom: 30%; /* Smaller aspect ratio */
+  height: 0;
+  overflow: hidden;
+  border-radius: 8px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.event-map iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
 #page-wrapper {
   background-color: #F9F9FA;
 }
@@ -1308,6 +1374,23 @@ textarea.input {
 	RESPONSIVE
 ===========================================================*/
 
+/*
+Esto es para que el mapa no se muestre en pantallas cortas.
+En caso contrario, el contenido se solapa con el menú
+*/
+@media only screen and (max-height: 900px) {
+  .event-map {
+    display: none;
+  }
+  .event-location {
+    padding: 15px 20px;
+    margin: 15px auto;
+  }
+  .location-info {
+    margin-bottom: 0;
+  }
+}
+
 @media only screen and (max-width: 991px) {
   .contact-social {
     text-align: center;
@@ -1348,6 +1431,28 @@ textarea.input {
   .countdown-label {
     font-size: 12px;
   }
+
+  /* Event Location responsive styles */
+  .event-location {
+    padding: 15px;
+    margin: 15px 0;
+  }
+
+  .location-info {
+    font-size: 12px;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .location-info i {
+    font-size: 16px;
+  }
+
+  .event-map {
+    max-width: 100%;
+    padding-bottom: 50%;
+  }
+
   .event .event-day {
     width: 90px;
     height: 90px;
