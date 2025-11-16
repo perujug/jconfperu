@@ -1792,6 +1792,11 @@ html, body {
 
 .sz-session__title {
   color: white;
+  text-align: center;
+}
+
+.sz-session__tags {
+  text-align: center;
 }
 
 #sessionize.sessionize-wrapper .sz-session__speakers  {
