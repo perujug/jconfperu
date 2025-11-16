@@ -1738,12 +1738,21 @@ html, body {
   }
 
   #agendaFrame {
-      height: 1700px !important;
+      height: 2182px !important;
+  }
+
+}
+
+@media (max-width: 560px) {
+
+  #agendaFrame {
+      height: 1525px !important;
   }
 
   #speakerWallFrame {
-      height: 430 !important;
+      height: 430px !important;
   }
+
 }
 
 /* Z-Index Utility Classes */
@@ -1783,9 +1792,6 @@ html, body {
 
 .sz-session__title {
   color: white;
-  text-decoration: underline;
-  text-decoration-color: white;
-  text-underline-offset: 2px;
 }
 
 #sessionize.sessionize-wrapper .sz-session__speakers  {
@@ -1813,9 +1819,9 @@ iframe {
 }
 
 #agendaFrame {
-  height: 2200px;
+  height: 2160px;
 }
 
 #speakerWallFrame {
-  height: 550px;
+  height: 250px;
 }
