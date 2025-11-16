@@ -1736,4 +1736,86 @@ html, body {
     padding-left: 10px;
     padding-right: 10px;
   }
+
+  #agendaFrame {
+      height: 1700px !important;
+  }
+
+  #speakerWallFrame {
+      height: 430 !important;
+  }
+}
+
+/* Z-Index Utility Classes */
+.z-0 {
+  z-index: 0;
+  position: relative;
+}
+
+.z-1 {
+  z-index: 1;
+  position: relative;
+}
+
+.z-auto {
+  z-index: auto;
+}
+
+/* Sessionize fallback styling */
+.sessionize-fallback{
+  background: rgba(221,10,55,0.95);
+  color: #fff;
+  padding: 12px 16px;
+  border-radius: 6px;
+  margin-top: 12px;
+  text-align: center;
+}
+
+/* Small status log used by the sessionize loader */
+.sessionize-log{
+  color: #222;
+  background: rgba(255,255,255,0.9);
+  display: inline-block;
+  padding: 6px 10px;
+  border-radius: 4px;
+  margin-top: 6px;
+}
+
+.sz-session__title {
+  color: white;
+  text-decoration: underline;
+  text-decoration-color: white;
+  text-underline-offset: 2px;
+}
+
+#sessionize.sessionize-wrapper .sz-session__speakers  {
+  display: flex;
+  justify-content: center;
+  align-items: center;    
+  flex-wrap: wrap;        
+  gap: 16px;             
+  text-align: center;     
+}
+
+#sessionize.sessionize-wrapper .sz-session__speakers  > * {
+  display: inline-block;
+}
+
+@media (max-width: 767px) {
+  #sessionize.sessionize-wrapper .sz-session__speakers  {
+    gap: 10px;
+  }
+}
+
+iframe {
+  width: 100%;
+  border: none;
+}
+
+#agendaFrame {
+  height: 2200px;
+}
+
+#speakerWallFrame {
+  height: 550px;
 }

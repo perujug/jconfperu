@@ -262,7 +262,7 @@
         <!-- row -->
         <div class="row">
             <!-- galery owl -->
-            <div id="galery-owl" class="owl-carousel owl-theme">
+            <div id="galery-owl" class="owl-carousel owl-theme z-1">
                 <!-- galery item -->
                 <div class="galery-item">
                     <img src="./images/gallery/galery01.jpg" alt=""/>
@@ -302,12 +302,14 @@
                 </h3>
             </div>
             <!-- /section title -->
-
-            <div class="col-md-8 col-md-offset-2 text-center">
-
-                <div class="about-content">
-                    <h3>Muy pronto...</h3>
-                </div>
+            <div class="col-md-8 col-md-offset-2 text-center z-0">
+                <iframe 
+                    id="agendaFrame"
+                    src="agenda.html" 
+                    width="100%"
+                    frameborder="0"
+                    scrolling="no">
+                </iframe>
             </div>
         </div>
         <!-- /row -->
@@ -317,7 +319,7 @@
 <!-- /Event Schedule -->
 
 <!-- Organizadores -->
-<div id="organizers" class="section">
+<div id="organizers" class="section z-1"></div>
     <!-- container -->
     <div class="container">
         <!-- section title -->
@@ -462,12 +464,13 @@
                 </h3>
             </div>
             <div class="col-md-8 col-md-offset-2 text-center">
-                <div class="about-content">
-                    <p>Estamos en b&uacute;squeda de speakers, presenta tu charla y nos contactaremos contigo: </p>
-                    <a class="c4p-link" href="https://sessionize.com/jconf-peru-2025/" target="_blank">
-                        Inscr&iacute;te aqu&iacute;
-                    </a>
-                </div>
+                <iframe 
+                    id="speakerWallFrame"
+                    src="speakerWall.html" 
+                    width="100%"
+                    frameborder="0"
+                    scrolling="no">
+                </iframe>
             </div>
         </div>
     </div>
