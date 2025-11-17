@@ -1746,11 +1746,11 @@ html, body {
 @media (max-width: 560px) {
 
   #agendaFrame {
-      height: 1525px !important;
+      height: 1740px !important;
   }
 
   #speakerWallFrame {
-      height: 430px !important;
+      height: 1115px !important;
   }
 
 }
@@ -1828,5 +1828,5 @@ iframe {
 }
 
 #speakerWallFrame {
-  height: 250px;
+  height: 450px;
 }
