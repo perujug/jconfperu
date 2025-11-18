@@ -1737,22 +1737,6 @@ html, body {
     padding-right: 10px;
   }
 
-  #agendaFrame {
-      height: 2182px !important;
-  }
-
-}
-
-@media (max-width: 560px) {
-
-  #agendaFrame {
-      height: 1740px !important;
-  }
-
-  #speakerWallFrame {
-      height: 1115px !important;
-  }
-
 }
 
 /* Z-Index Utility Classes */
@@ -1824,9 +1808,31 @@ iframe {
 }
 
 #agendaFrame {
-  height: 2160px;
+    width: 100%;
+    border: 0;
+    display: block;
 }
 
-#speakerWallFrame {
-  height: 450px;
+@media (min-width: 1024px) {
+  #agendaFrame { height: 2165px; }
+}
+
+@media (min-width: 769px) and (max-width: 1023px) {
+  #agendaFrame { height: 2270px; }
+}
+
+@media (min-width: 481px) and (max-width: 768px) {
+  #agendaFrame { height: 2270px; }
+}
+
+@media (max-width: 480px) {
+  #agendaFrame { height: 2750px; }
+}
+
+@media (max-width: 375px) {
+  #agendaFrame { height: 2870px; }
+}
+
+@media (max-width: 320px) {
+  #agendaFrame { height: 3100px; }
 }
