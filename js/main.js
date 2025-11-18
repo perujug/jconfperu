@@ -159,9 +159,56 @@
 		}
 	}
 
+
+	function promoteTopSpeakers(selector = '.sz-speakers--wall') {
+		const wall = document.querySelector(selector);
+		if (!wall) return false;
+
+		const items = Array.from(wall.children);
+		const topItems = items.filter(li => li.classList.contains('sessionize-top-speaker'));
+		
+		if (!topItems.length) return false;
+
+		if (wall.firstElementChild === topItems[0]) return true;
+
+		const frag = document.createDocumentFragment();
+		topItems.forEach(li => frag.appendChild(li));
+
+		wall.insertBefore(frag, wall.firstChild);
+		return true;
+	}
+
+	function observeAndPromote(selector = '.sz-speakers--wall') {
+		let wall = document.querySelector(selector);
+
+		if (wall) {
+			const ob = new MutationObserver(() => {
+				if (promoteTopSpeakers(selector)) {
+					ob.disconnect(); // Done, stop observing
+				}
+			});
+
+			ob.observe(wall, { childList: true, subtree: true });
+			promoteTopSpeakers(selector);
+			return ob;
+		}
+
+		const boot = new MutationObserver(() => {
+			wall = document.querySelector(selector);
+			if (wall) {
+				boot.disconnect();
+				observeAndPromote(selector);
+			}
+		});
+
+		boot.observe(document.body, { childList: true, subtree: true });
+		return boot;
+	}
+
 	// Initialize event date display
 	displayEventDate();
 	// Initial call
 	updateCountdown();
-
+	// Auto-run order by sessionize-top-speaker
+	observeAndPromote();
 })(jQuery);
