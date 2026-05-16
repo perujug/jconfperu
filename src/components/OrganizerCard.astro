@@ -1,0 +1,38 @@
+---
+import { Image } from 'astro:assets';
+import type { CollectionEntry } from 'astro:content';
+import SocialIcon from '@components/SocialIcon.astro';
+
+interface Props {
+  organizer: CollectionEntry<'organizers'>;
+}
+
+const { organizer } = Astro.props;
+const { data } = organizer;
+---
+
+<article
+  class="group rounded-card overflow-hidden border bg-[color:var(--bg-elevated)] shadow-sm hover:shadow-lg transition"
+  style="border-color: var(--border-subtle);"
+>
+  <div class="aspect-square overflow-hidden bg-coffee-cream-soft">
+    <Image
+      src={data.photo}
+      alt={`Foto de ${data.name}`}
+      width={400}
+      height={400}
+      class="h-full w-full object-cover transition group-hover:scale-105"
+      loading="lazy"
+    />
+  </div>
+  <div class="p-5">
+    <h3 class="font-display text-xl font-bold">{data.name}</h3>
+    <p class="text-sm mt-1" style="color: var(--fg-muted);">{data.role}</p>
+    <div class="flex gap-2 mt-3">
+      {data.linkedin && <SocialIcon href={data.linkedin} name={`LinkedIn de ${data.name}`} kind="linkedin" />}
+      {data.twitter && <SocialIcon href={data.twitter} name={`Twitter de ${data.name}`} kind="twitter" />}
+      {data.github && <SocialIcon href={data.github} name={`GitHub de ${data.name}`} kind="github" />}
+      {data.website && <SocialIcon href={data.website} name={`Web de ${data.name}`} kind="website" />}
+    </div>
+  </div>
+</article>

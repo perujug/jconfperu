@@ -1,0 +1,21 @@
+---
+import Layout from '@layouts/Layout.astro';
+---
+
+<Layout title="Página no encontrada" description="La página que buscas no existe.">
+  <section class="max-w-2xl mx-auto px-4 sm:px-6 py-24 text-center">
+    <p class="font-display text-7xl font-extrabold text-java-orange">404</p>
+    <h1 class="font-display text-3xl font-bold mt-4">Esta página se nos perdió en el JVM</h1>
+    <p class="mt-4" style="color: var(--fg-muted);">
+      Posiblemente esté hibernando, o nunca existió.
+    </p>
+    <div class="mt-8 flex flex-wrap gap-3 justify-center">
+      <a class="px-6 py-3 rounded-full bg-peru-red text-white font-semibold hover:bg-peru-red-dark transition" href="/">
+        Ir al inicio
+      </a>
+      <a class="px-6 py-3 rounded-full border font-semibold hover:bg-coffee-cream-soft dark:hover:bg-andes-slate-soft transition" style="border-color: var(--border-subtle);" href="/anteriores">
+        Ver ediciones anteriores
+      </a>
+    </div>
+  </section>
+</Layout>

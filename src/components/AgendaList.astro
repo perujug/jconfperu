@@ -1,0 +1,112 @@
+---
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  sessions: CollectionEntry<'sessions'>[];
+}
+
+const { sessions } = Astro.props;
+
+const sorted = [...sessions].sort(
+  (a, b) =>
+    a.data.order - b.data.order ||
+    a.data.startTime.localeCompare(b.data.startTime),
+);
+
+function groupByTime(items: CollectionEntry<'sessions'>[]) {
+  const map = new Map<string, CollectionEntry<'sessions'>[]>();
+  for (const s of items) {
+    const key = `${s.data.startTime} – ${s.data.endTime}`;
+    const list = map.get(key) ?? [];
+    list.push(s);
+    map.set(key, list);
+  }
+  return Array.from(map.entries());
+}
+
+const grouped = groupByTime(sorted);
+---
+
+<ol class="grid gap-5">
+  {
+    grouped.map(([slot, items]) => (
+      <li
+        class="rounded-card border bg-[color:var(--bg-elevated)] p-5 shadow-sm"
+        style="border-color: var(--border-subtle);"
+      >
+        <p class="text-sm font-mono uppercase tracking-wide text-java-orange">
+          {slot} (GMT-5)
+        </p>
+        <div class="grid gap-4 mt-3 md:grid-cols-2">
+          {items.map((s) => (
+            <article class="border-l-2 pl-4 py-1" style="border-color: var(--border-subtle);">
+              {s.data.room && (
+                <p class="text-xs uppercase tracking-wide" style="color: var(--fg-muted);">
+                  {s.data.room}
+                </p>
+              )}
+              <h3 class="font-display text-lg font-bold mt-0.5">{s.data.title}</h3>
+              {(s.data.speakerProfiles?.length || s.data.speakerNames?.length) && (
+                <p class="text-sm mt-1" style="color: var(--fg-muted);">
+                  Por{' '}
+                  {s.data.speakerProfiles?.length ? (
+                    s.data.speakerProfiles.map((p, i) => (
+                      <>
+                        {i > 0 && ', '}
+                        {p.url ? (
+                          <a class="underline hover:text-peru-red" href={p.url} target="_blank" rel="noopener noreferrer">
+                            {p.name}
+                          </a>
+                        ) : (
+                          p.name
+                        )}
+                      </>
+                    ))
+                  ) : (
+                    s.data.speakerNames.join(', ')
+                  )}
+                </p>
+              )}
+              {(s.data.youtubeUrl || s.data.facebookUrl || s.data.linkedinUrl) && (
+                <div class="flex gap-2 mt-2 text-xs">
+                  {s.data.youtubeUrl && (
+                    <a
+                      class="inline-flex items-center gap-1 text-peru-red hover:underline"
+                      href={s.data.youtubeUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      ▶ YouTube
+                    </a>
+                  )}
+                  {s.data.facebookUrl && (
+                    <a
+                      class="inline-flex items-center gap-1 hover:underline"
+                      style="color: #1877f2;"
+                      href={s.data.facebookUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      ▶ Facebook
+                    </a>
+                  )}
+                  {s.data.linkedinUrl && (
+                    <a
+                      class="inline-flex items-center gap-1 hover:underline"
+                      style="color: #0a66c2;"
+                      href={s.data.linkedinUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      ▶ LinkedIn
+                    </a>
+                  )}
+                </div>
+              )}
+            </article>
+          ))}
+        </div>
+      </li>
+    ))
+  }
+</ol>

@@ -1,0 +1,190 @@
+---
+import Layout from '@layouts/Layout.astro';
+import Hero from '@components/Hero.astro';
+import StatsBar from '@components/StatsBar.astro';
+import SectionTitle from '@components/SectionTitle.astro';
+import OrganizerCard from '@components/OrganizerCard.astro';
+import SponsorTier from '@components/SponsorTier.astro';
+import EditionCard from '@components/EditionCard.astro';
+import { getCollection, render } from 'astro:content';
+import { getFeaturedEdition, getPastEditions } from '@lib/editions';
+
+const edition = await getFeaturedEdition();
+const { Content: BodyContent } = await render(edition);
+
+const allOrganizers = await getCollection('organizers');
+const organizersForEdition = allOrganizers
+  .filter((o) => o.data.editions.includes(edition.data.year))
+  .sort((a, b) => a.data.order - b.data.order);
+
+const allSponsors = await getCollection('sponsors');
+const sponsorsForEdition = allSponsors.filter((s) =>
+  s.data.editions.includes(edition.data.year),
+);
+const platinum = sponsorsForEdition.filter((s) => s.data.tier === 'platinum');
+const gold = sponsorsForEdition.filter((s) => s.data.tier === 'gold');
+const silver = sponsorsForEdition.filter((s) => s.data.tier === 'silver');
+
+const pastEditions = (await getPastEditions()).slice(0, 3);
+
+// JSON-LD del evento.
+const eventJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Event',
+  name: edition.data.title,
+  description: edition.data.tagline,
+  eventStatus:
+    edition.data.status === 'upcoming'
+      ? 'https://schema.org/EventScheduled'
+      : 'https://schema.org/EventScheduled',
+  eventAttendanceMode: edition.data.venue.online
+    ? 'https://schema.org/OnlineEventAttendanceMode'
+    : 'https://schema.org/OfflineEventAttendanceMode',
+  ...(edition.data.date && { startDate: edition.data.date.toISOString() }),
+  location: edition.data.venue.online
+    ? {
+        '@type': 'VirtualLocation',
+        url: 'https://jconfperu.com',
+      }
+    : {
+        '@type': 'Place',
+        name: edition.data.venue.name,
+        address: {
+          '@type': 'PostalAddress',
+          streetAddress: edition.data.venue.address,
+          addressLocality: edition.data.venue.city,
+          addressCountry: edition.data.venue.country,
+        },
+      },
+  organizer: {
+    '@type': 'Organization',
+    name: 'Peru JUG',
+    url: 'https://perujug.org/',
+  },
+};
+---
+
+<Layout
+  title={edition.data.title}
+  description={`${edition.data.title}: ${edition.data.tagline} Organizada por Peru JUG.`}
+  jsonLd={eventJsonLd}
+>
+  <Hero edition={edition} />
+
+  <section class="max-w-5xl mx-auto px-4 sm:px-6 py-16">
+    <SectionTitle eyebrow="Sobre el evento" title="Acerca de" highlight="JConf Perú" />
+    <div class="prose-content text-base sm:text-lg leading-relaxed max-w-3xl mx-auto" style="color: var(--fg-base);">
+      <BodyContent />
+    </div>
+    <StatsBar stats={edition.data.stats} />
+  </section>
+
+  {
+    organizersForEdition.length > 0 && (
+      <section
+        id="organizers"
+        class="border-t bg-andean-pattern py-16"
+        style="border-color: var(--border-subtle);"
+      >
+        <div class="max-w-6xl mx-auto px-4 sm:px-6">
+          <SectionTitle eyebrow="Quiénes hacemos esto posible" title="Organizadores" />
+          <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {organizersForEdition.map((o) => (
+              <OrganizerCard organizer={o} />
+            ))}
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  <section
+    id="speakers"
+    class="border-t py-16 max-w-6xl mx-auto px-4 sm:px-6"
+    style="border-color: var(--border-subtle);"
+  >
+    <SectionTitle eyebrow="Conferencistas" title="Nuestros" highlight="speakers" />
+    {
+      edition.data.status === 'upcoming' ? (
+        <div class="text-center max-w-xl mx-auto">
+          <p class="text-lg" style="color: var(--fg-muted);">
+            <span class="text-2xl">🎤</span>{' '}
+            <strong>Speakers por anunciar.</strong>
+          </p>
+          <p class="mt-3" style="color: var(--fg-muted);">
+            Estamos preparando un line-up internacional. Si quieres exponer en JConf Perú {edition.data.year},
+            sigue a Peru JUG en redes para enterarte cuando abra el Call for Papers.
+          </p>
+        </div>
+      ) : (
+        <p class="text-center" style="color: var(--fg-muted);">
+          Revisa el listado completo en{' '}
+          <a class="underline text-peru-red" href="/speakers">
+            /speakers
+          </a>
+          .
+        </p>
+      )
+    }
+  </section>
+
+  <section
+    id="sponsors"
+    class="border-t bg-[color:var(--bg-elevated)] py-16"
+    style="border-color: var(--border-subtle);"
+  >
+    <div class="max-w-6xl mx-auto px-4 sm:px-6">
+      <SectionTitle eyebrow="Patrocinadores" title="Nuestros" highlight="sponsors" />
+      {
+        sponsorsForEdition.length === 0 ? (
+          <div class="text-center max-w-xl mx-auto">
+            <p class="text-lg font-semibold">¿Quieres ser sponsor?</p>
+            <p class="mt-3" style="color: var(--fg-muted);">
+              Contáctanos y te enviamos los paquetes Platinum, Gold y Silver con beneficios para tu marca.
+            </p>
+            <a
+              href="mailto:jose.diaz@joedayz.pe?subject=Sponsor%20JConf%20Per%C3%BA"
+              class="inline-block mt-5 px-6 py-3 rounded-full bg-peru-red text-white font-semibold hover:bg-peru-red-dark transition"
+            >
+              Contáctanos
+            </a>
+          </div>
+        ) : (
+          <div class="grid gap-10">
+            <SponsorTier tier="platinum" sponsors={platinum} />
+            <SponsorTier tier="gold" sponsors={gold} />
+            <SponsorTier tier="silver" sponsors={silver} />
+            <p class="text-center text-sm" style="color: var(--fg-muted);">
+              ¿Quieres unirte? Escríbenos a{' '}
+              <a class="underline text-peru-red" href="mailto:jose.diaz@joedayz.pe">
+                jose.diaz@joedayz.pe
+              </a>
+              .
+            </p>
+          </div>
+        )
+      }
+    </div>
+  </section>
+
+  {
+    pastEditions.length > 0 && (
+      <section
+        class="border-t py-16 max-w-6xl mx-auto px-4 sm:px-6"
+        style="border-color: var(--border-subtle);"
+      >
+        <SectionTitle eyebrow="Archivo" title="Ediciones" highlight="anteriores" />
+        <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {pastEditions.map((e) => (
+            <EditionCard edition={e} />
+          ))}
+        </div>
+        <div class="text-center mt-8">
+          <a class="underline text-peru-red" href="/anteriores">
+            Ver todas las ediciones →
+          </a>
+        </div>
+      </section>
+    )
+  }
+</Layout>

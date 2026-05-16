@@ -1,0 +1,102 @@
+---
+import { Image } from 'astro:assets';
+import logo from '@/assets/images/perujug/logo.png';
+import { NAV_ITEMS, SITE } from '@lib/site';
+import ThemeToggle from '@components/ThemeToggle.astro';
+
+const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
+---
+
+<header
+  class="sticky top-0 z-40 backdrop-blur bg-[color:var(--bg-base)]/85 border-b"
+  style="border-color: var(--border-subtle);"
+>
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-4">
+    <a href="/" class="flex items-center gap-2 font-display font-bold tracking-tight" aria-label={`Inicio · ${SITE.name}`}>
+      <Image
+        src={logo}
+        alt=""
+        width={36}
+        height={36}
+        loading="eager"
+        decoding="async"
+        class="h-9 w-9"
+      />
+      <span class="text-lg sm:text-xl">JConf <span class="text-java-orange">Perú</span></span>
+    </a>
+
+    <nav aria-label="Principal" class="hidden md:flex items-center gap-1">
+      {
+        NAV_ITEMS.map((item) => {
+          const isActive =
+            item.href === '/'
+              ? currentPath === '/'
+              : currentPath === item.href || currentPath.startsWith(item.href + '/');
+          return (
+            <a
+              href={item.href}
+              class:list={[
+                'px-3 py-1.5 rounded-md text-sm font-medium transition-colors',
+                isActive
+                  ? 'text-white bg-peru-red'
+                  : 'hover:bg-coffee-cream-soft dark:hover:bg-andes-slate-soft',
+              ]}
+              aria-current={isActive ? 'page' : undefined}
+            >
+              {item.label}
+            </a>
+          );
+        })
+      }
+    </nav>
+
+    <div class="flex items-center gap-2">
+      <ThemeToggle />
+      <button
+        type="button"
+        id="mobile-menu-toggle"
+        aria-controls="mobile-menu"
+        aria-expanded="false"
+        class="md:hidden inline-flex items-center justify-center h-9 w-9 rounded-md hover:bg-coffee-cream-soft dark:hover:bg-andes-slate-soft"
+      >
+        <span class="sr-only">Abrir menú</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-5 w-5" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <nav
+    id="mobile-menu"
+    aria-label="Móvil"
+    class="md:hidden hidden border-t"
+    style="border-color: var(--border-subtle);"
+  >
+    <ul class="px-4 py-3 flex flex-col gap-1">
+      {
+        NAV_ITEMS.map((item) => (
+          <li>
+            <a
+              href={item.href}
+              class="block px-3 py-2 rounded-md text-sm font-medium hover:bg-coffee-cream-soft dark:hover:bg-andes-slate-soft"
+            >
+              {item.label}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </nav>
+</header>
+
+<script>
+  const btn = document.getElementById('mobile-menu-toggle');
+  const menu = document.getElementById('mobile-menu');
+  if (btn && menu) {
+    btn.addEventListener('click', () => {
+      const open = menu.classList.toggle('hidden') === false;
+      btn.setAttribute('aria-expanded', String(open));
+    });
+  }
+</script>

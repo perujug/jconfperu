@@ -1,0 +1,14 @@
+{
+  "framework": "astro",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "installCommand": "npm install",
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "redirects": [
+    { "source": "/2024.html", "destination": "/anteriores/2024", "permanent": true },
+    { "source": "/index.html", "destination": "/", "permanent": true },
+    { "source": "/agenda.html", "destination": "/agenda", "permanent": true },
+    { "source": "/payment-info.html", "destination": "/contacto", "permanent": true }
+  ]
+}

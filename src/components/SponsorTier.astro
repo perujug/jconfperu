@@ -1,0 +1,50 @@
+---
+import { Image } from 'astro:assets';
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  tier: 'platinum' | 'gold' | 'silver' | 'community';
+  sponsors: CollectionEntry<'sponsors'>[];
+}
+
+const { tier, sponsors } = Astro.props;
+
+const tierMeta: Record<Props['tier'], { label: string; color: string }> = {
+  platinum: { label: 'Platinum', color: 'text-peru-red' },
+  gold: { label: 'Gold', color: 'text-inca-gold' },
+  silver: { label: 'Silver', color: 'text-andes-slate-soft' },
+  community: { label: 'Community', color: 'text-jug-violet' },
+};
+
+const meta = tierMeta[tier];
+---
+
+{
+  sponsors.length > 0 && (
+    <div class="grid gap-4">
+      <h3 class:list={['font-display text-2xl font-bold', meta.color]}>{meta.label}</h3>
+      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6 items-center">
+        {sponsors.map((sponsor) => (
+          <a
+            href={sponsor.data.website}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="group rounded-card border p-4 flex items-center justify-center bg-white transition hover:shadow-md"
+            style="border-color: var(--border-subtle);"
+            aria-label={`Visitar sitio web de ${sponsor.data.name}`}
+            title={sponsor.data.name}
+          >
+            <Image
+              src={sponsor.data.logo}
+              alt={`Logo de ${sponsor.data.name}`}
+              width={240}
+              height={120}
+              class="max-h-16 w-auto object-contain transition group-hover:scale-105"
+              loading="lazy"
+            />
+          </a>
+        ))}
+      </div>
+    </div>
+  )
+}

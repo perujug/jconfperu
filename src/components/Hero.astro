@@ -1,0 +1,85 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import Countdown from '@components/Countdown.astro';
+
+interface Props {
+  edition: CollectionEntry<'editions'>;
+}
+
+const { edition } = Astro.props;
+const { data } = edition;
+
+const dateLabel =
+  data.date != null
+    ? new Intl.DateTimeFormat('es-PE', {
+        weekday: 'long',
+        day: '2-digit',
+        month: 'long',
+        year: 'numeric',
+      }).format(data.date)
+    : (data.dateLabel ?? 'Fecha por anunciar');
+---
+
+<section
+  class="relative overflow-hidden text-white bg-brand-gradient"
+  aria-labelledby="hero-title"
+>
+  <div class="absolute inset-0 opacity-25 bg-andean-pattern" aria-hidden="true"></div>
+
+  <div class="relative max-w-5xl mx-auto px-4 sm:px-6 py-20 sm:py-28 grid gap-8 text-center">
+    <p class="uppercase tracking-[0.3em] text-xs sm:text-sm font-semibold opacity-90">
+      {data.status === 'upcoming' ? 'Próxima edición' : `Edición ${data.year}`}
+    </p>
+
+    <h1
+      id="hero-title"
+      class="font-display text-4xl sm:text-6xl lg:text-7xl font-extrabold leading-tight"
+    >
+      {data.title}
+    </h1>
+
+    <p class="text-lg sm:text-2xl max-w-2xl mx-auto opacity-95">
+      {data.tagline}
+    </p>
+
+    <div class="flex flex-col items-center gap-2 mt-2">
+      <p class="text-base sm:text-lg font-medium capitalize">
+        <span aria-hidden="true">📅</span>&nbsp;{dateLabel}
+      </p>
+      {
+        data.venue?.name && (
+          <p class="text-sm opacity-90">
+            <span aria-hidden="true">📍</span>&nbsp;
+            {data.venue.online
+              ? `Online · ${data.venue.country}`
+              : `${data.venue.name}, ${data.venue.city}, ${data.venue.country}`}
+          </p>
+        )
+      }
+    </div>
+
+    <div class="mx-auto w-full max-w-2xl">
+      <Countdown target={data.date} placeholder={data.dateLabel ?? 'Fecha por anunciar'} />
+    </div>
+
+    {
+      data.cta && (
+        <div class="mt-4">
+          <a
+            href={data.cta.href}
+            class:list={[
+              'inline-block px-8 py-3 rounded-full font-semibold transition shadow-lg',
+              data.cta.disabled
+                ? 'bg-white/40 cursor-not-allowed pointer-events-none'
+                : 'bg-white text-andes-slate hover:bg-coffee-cream-soft',
+            ]}
+            aria-disabled={data.cta.disabled ? 'true' : undefined}
+          >
+            {data.cta.label}
+          </a>
+          {data.cta.note && <p class="text-xs opacity-80 mt-2">{data.cta.note}</p>}
+        </div>
+      )
+    }
+  </div>
+</section>

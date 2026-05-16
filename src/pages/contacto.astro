@@ -1,0 +1,92 @@
+---
+import Layout from '@layouts/Layout.astro';
+import SectionTitle from '@components/SectionTitle.astro';
+import SocialIcon from '@components/SocialIcon.astro';
+import { CONTACT_EMAILS, SITE, SOCIAL } from '@lib/site';
+import { getFeaturedEdition } from '@lib/editions';
+
+const edition = await getFeaturedEdition();
+---
+
+<Layout
+  title="Contacto"
+  description="Datos de contacto, comunidad Peru JUG y correos para sponsors de JConf Perú."
+>
+  <section class="max-w-5xl mx-auto px-4 sm:px-6 py-16">
+    <SectionTitle eyebrow="Hablemos" title="Información de" highlight="contacto" />
+
+    <div class="grid gap-8 md:grid-cols-2">
+      <article
+        class="rounded-card border p-6 bg-[color:var(--bg-elevated)]"
+        style="border-color: var(--border-subtle);"
+      >
+        <h3 class="font-display text-xl font-bold mb-3">Comunidad Peru JUG</h3>
+        <p class="text-sm" style="color: var(--fg-muted);">
+          Únete a la comunidad oficial de desarrolladores Java del Perú. Organizamos
+          meetups mensuales, talleres y la conferencia anual JConf Perú.
+        </p>
+        <div class="flex flex-wrap gap-2 mt-4">
+          <SocialIcon href={SOCIAL.facebook} name="Facebook" kind="facebook" />
+          <SocialIcon href={SOCIAL.twitter} name="Twitter" kind="twitter" />
+          <SocialIcon href={SOCIAL.linkedin} name="LinkedIn" kind="linkedin" />
+          <SocialIcon href={SOCIAL.whatsapp} name="WhatsApp" kind="whatsapp" />
+          <SocialIcon href={SOCIAL.meetup} name="Meetup" kind="meetup" />
+        </div>
+        <ul class="mt-4 grid gap-2 text-sm">
+          <li>
+            <a class="underline hover:text-peru-red" href={SITE.organizationUrl} target="_blank" rel="noopener noreferrer">
+              Sitio web Peru JUG
+            </a>
+          </li>
+          <li>
+            <a class="underline hover:text-peru-red" href={SOCIAL.meetup} target="_blank" rel="noopener noreferrer">
+              Próximos meetups en Meetup
+            </a>
+          </li>
+          <li>
+            <a class="underline hover:text-peru-red" href={SOCIAL.whatsapp} target="_blank" rel="noopener noreferrer">
+              Grupo de WhatsApp
+            </a>
+          </li>
+        </ul>
+      </article>
+
+      <article
+        class="rounded-card border p-6 bg-[color:var(--bg-elevated)]"
+        style="border-color: var(--border-subtle);"
+      >
+        <h3 class="font-display text-xl font-bold mb-3">Sponsors y prensa</h3>
+        <p class="text-sm" style="color: var(--fg-muted);">
+          ¿Tu empresa quiere participar como sponsor de {edition.data.title}? Escríbenos
+          directamente a alguno de estos correos.
+        </p>
+        <ul class="mt-4 grid gap-2">
+          {
+            CONTACT_EMAILS.map((c) => (
+              <li>
+                <a class="underline hover:text-peru-red" href={`mailto:${c.email}`}>
+                  {c.name} · {c.email}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </article>
+
+      {
+        !edition.data.venue.online && edition.data.venue.address && (
+          <article
+            class="rounded-card border p-6 bg-[color:var(--bg-elevated)] md:col-span-2"
+            style="border-color: var(--border-subtle);"
+          >
+            <h3 class="font-display text-xl font-bold mb-3">Ubicación de {edition.data.title}</h3>
+            <p>{edition.data.venue.name}</p>
+            <p class="text-sm" style="color: var(--fg-muted);">
+              {edition.data.venue.address}, {edition.data.venue.city}, {edition.data.venue.country}
+            </p>
+          </article>
+        )
+      }
+    </div>
+  </section>
+</Layout>

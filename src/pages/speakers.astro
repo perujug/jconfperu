@@ -1,0 +1,98 @@
+---
+import Layout from '@layouts/Layout.astro';
+import SectionTitle from '@components/SectionTitle.astro';
+import SpeakerCard from '@components/SpeakerCard.astro';
+import { getCollection } from 'astro:content';
+import { getFeaturedEdition } from '@lib/editions';
+import { fetchSpeakers } from '@lib/sessionize';
+
+const edition = await getFeaturedEdition();
+
+let sessionizeSpeakers: Awaited<ReturnType<typeof fetchSpeakers>> = [];
+if (edition.data.sessionizeEventId) {
+  sessionizeSpeakers = await fetchSpeakers(edition.data.sessionizeEventId);
+}
+
+const allLocalSpeakers = await getCollection('speakers');
+const localSpeakers = allLocalSpeakers.filter((s) =>
+  s.data.editions.includes(edition.data.year),
+);
+---
+
+<Layout
+  title={`Speakers · ${edition.data.title}`}
+  description={`Conferencistas confirmados para ${edition.data.title}.`}
+>
+  <section class="max-w-6xl mx-auto px-4 sm:px-6 py-16">
+    <SectionTitle eyebrow={edition.data.title} title="Nuestros" highlight="speakers" />
+
+    {
+      sessionizeSpeakers.length > 0 ? (
+        <ul class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {sessionizeSpeakers.map((sp) => (
+            <li
+              class="rounded-card border bg-[color:var(--bg-elevated)] p-5 shadow-sm"
+              style="border-color: var(--border-subtle);"
+            >
+              <div class="flex gap-4 items-start">
+                {sp.profilePicture ? (
+                  <img
+                    src={sp.profilePicture}
+                    alt={`Foto de ${sp.fullName}`}
+                    width="80"
+                    height="80"
+                    class="h-20 w-20 rounded-full object-cover ring-2 ring-java-orange shrink-0"
+                    loading="lazy"
+                  />
+                ) : (
+                  <div
+                    class="h-20 w-20 rounded-full flex items-center justify-center font-display font-bold text-2xl text-white bg-brand-gradient shrink-0"
+                    aria-hidden="true"
+                  >
+                    {sp.fullName
+                      .split(' ')
+                      .filter(Boolean)
+                      .slice(0, 2)
+                      .map((p) => p[0]?.toUpperCase() ?? '')
+                      .join('')}
+                  </div>
+                )}
+                <div class="min-w-0 flex-1">
+                  <h3 class="font-display text-lg font-bold">{sp.fullName}</h3>
+                  {sp.tagLine && (
+                    <p class="text-sm" style="color: var(--fg-muted);">
+                      {sp.tagLine}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </li>
+          ))}
+        </ul>
+      ) : localSpeakers.length > 0 ? (
+        <ul class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {localSpeakers.map((sp) => (
+            <li>
+              <SpeakerCard speaker={sp} />
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <div class="text-center max-w-xl mx-auto">
+          <p class="text-lg" style="color: var(--fg-muted);">
+            <span class="text-2xl">🎤</span>{' '}
+            <strong>Speakers por anunciar.</strong>
+          </p>
+          <p class="mt-3" style="color: var(--fg-muted);">
+            El Call for Papers de {edition.data.title} se anunciará pronto. Si quieres exponer
+            en JConf Perú, escríbenos a{' '}
+            <a class="underline text-peru-red" href="mailto:jose.diaz@joedayz.pe">
+              jose.diaz@joedayz.pe
+            </a>
+            .
+          </p>
+        </div>
+      )
+    }
+  </section>
+</Layout>

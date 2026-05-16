@@ -1,0 +1,106 @@
+---
+import Layout from '@layouts/Layout.astro';
+import SectionTitle from '@components/SectionTitle.astro';
+import SponsorTier from '@components/SponsorTier.astro';
+import { getCollection } from 'astro:content';
+import { getFeaturedEdition } from '@lib/editions';
+
+const edition = await getFeaturedEdition();
+const allSponsors = await getCollection('sponsors');
+const current = allSponsors.filter((s) => s.data.editions.includes(edition.data.year));
+const platinum = current.filter((s) => s.data.tier === 'platinum');
+const gold = current.filter((s) => s.data.tier === 'gold');
+const silver = current.filter((s) => s.data.tier === 'silver');
+const community = current.filter((s) => s.data.tier === 'community');
+
+const tierBenefits: Array<{
+  tier: 'platinum' | 'gold' | 'silver';
+  color: string;
+  blurb: string;
+}> = [
+  {
+    tier: 'platinum',
+    color: 'text-peru-red',
+    blurb:
+      'Un paquete exclusivo. Branding y logo en sitio web, redes, banners y presentaciones de speakers. Stand en el evento y contacto directo con speakers internacionales.',
+  },
+  {
+    tier: 'gold',
+    color: 'text-inca-gold',
+    blurb:
+      'Branding y logo en redes y banners publicitarios, mención de agradecimiento presencial. Stand pequeño en el evento y reel entre pausas.',
+  },
+  {
+    tier: 'silver',
+    color: 'text-andes-slate-soft',
+    blurb: 'Branding y logo en redes sociales y banners publicitarios en el evento.',
+  },
+];
+---
+
+<Layout
+  title={`Sponsors · ${edition.data.title}`}
+  description={`Patrocinadores oficiales de ${edition.data.title}. Conoce los paquetes Platinum, Gold y Silver.`}
+>
+  <section class="max-w-6xl mx-auto px-4 sm:px-6 py-16">
+    <SectionTitle eyebrow={edition.data.title} title="Nuestros" highlight="sponsors" />
+
+    {
+      current.length > 0 ? (
+        <div class="grid gap-12">
+          <SponsorTier tier="platinum" sponsors={platinum} />
+          <SponsorTier tier="gold" sponsors={gold} />
+          <SponsorTier tier="silver" sponsors={silver} />
+          <SponsorTier tier="community" sponsors={community} />
+        </div>
+      ) : (
+        <div class="rounded-card border bg-[color:var(--bg-elevated)] p-8 text-center max-w-2xl mx-auto" style="border-color: var(--border-subtle);">
+          <p class="font-display text-2xl font-bold">¿Quieres ser sponsor?</p>
+          <p class="mt-3" style="color: var(--fg-muted);">
+            Aún no hay patrocinadores confirmados para {edition.data.title}.
+            Contáctanos y te enviamos los paquetes con beneficios para tu marca.
+          </p>
+          <a
+            href="mailto:jose.diaz@joedayz.pe?subject=Sponsor%20JConf%20Per%C3%BA"
+            class="inline-block mt-5 px-6 py-3 rounded-full bg-peru-red text-white font-semibold hover:bg-peru-red-dark transition"
+          >
+            Quiero ser sponsor
+          </a>
+        </div>
+      )
+    }
+  </section>
+
+  <section
+    class="border-t bg-[color:var(--bg-elevated)] py-16"
+    style="border-color: var(--border-subtle);"
+  >
+    <div class="max-w-6xl mx-auto px-4 sm:px-6">
+      <SectionTitle eyebrow="Patrocinio" title="Sé" highlight="sponsor" />
+
+      <div class="grid gap-6 md:grid-cols-3">
+        {
+          tierBenefits.map((t) => (
+            <article
+              class="rounded-card border p-6 flex flex-col gap-3 bg-[color:var(--bg-base)]"
+              style="border-color: var(--border-subtle);"
+            >
+              <h3 class:list={['font-display text-2xl font-bold', t.color]}>
+                {t.tier === 'platinum' ? 'Platinum' : t.tier === 'gold' ? 'Gold' : 'Silver'}
+              </h3>
+              <p class="text-sm flex-1" style="color: var(--fg-muted);">
+                {t.blurb}
+              </p>
+              <a
+                href="mailto:jose.diaz@joedayz.pe"
+                class="self-start mt-2 px-5 py-2 rounded-full bg-peru-red text-white font-semibold hover:bg-peru-red-dark transition"
+              >
+                Contáctanos
+              </a>
+            </article>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+</Layout>

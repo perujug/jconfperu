@@ -1,0 +1,57 @@
+---
+import { Image } from 'astro:assets';
+import logo from '@/assets/images/perujug/logo-grande.png';
+import { SITE, SOCIAL } from '@lib/site';
+import SocialIcon from '@components/SocialIcon.astro';
+
+const year = new Date().getFullYear();
+---
+
+<footer
+  class="mt-24 border-t bg-[color:var(--bg-elevated)]"
+  style="border-color: var(--border-subtle);"
+>
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 py-12 grid gap-10 md:grid-cols-3">
+    <div class="flex flex-col gap-3">
+      <a href="/" class="flex items-center gap-2 font-display font-bold">
+        <Image src={logo} alt="" width={48} height={48} class="h-12 w-12" loading="lazy" />
+        <span class="text-xl">JConf <span class="text-java-orange">Perú</span></span>
+      </a>
+      <p class="text-sm" style="color: var(--fg-muted);">
+        Organizado por <a class="underline hover:text-peru-red" href={SITE.organizationUrl}>{SITE.organization}</a>,
+        comunidad oficial de desarrolladores Java del Perú.
+      </p>
+    </div>
+
+    <nav aria-label="Enlaces del sitio" class="text-sm">
+      <h2 class="font-semibold mb-3 text-base">Sitio</h2>
+      <ul class="grid grid-cols-2 gap-1.5">
+        <li><a class="hover:text-peru-red" href="/">Inicio</a></li>
+        <li><a class="hover:text-peru-red" href="/agenda">Agenda</a></li>
+        <li><a class="hover:text-peru-red" href="/speakers">Speakers</a></li>
+        <li><a class="hover:text-peru-red" href="/sponsors">Sponsors</a></li>
+        <li><a class="hover:text-peru-red" href="/organizadores">Organizadores</a></li>
+        <li><a class="hover:text-peru-red" href="/anteriores">Anteriores</a></li>
+        <li><a class="hover:text-peru-red" href="/contacto">Contacto</a></li>
+      </ul>
+    </nav>
+
+    <div>
+      <h2 class="font-semibold mb-3 text-base">Comunidad Peru JUG</h2>
+      <div class="flex flex-wrap gap-2">
+        <SocialIcon href={SOCIAL.facebook} name="Facebook" kind="facebook" />
+        <SocialIcon href={SOCIAL.twitter} name="Twitter / X" kind="twitter" />
+        <SocialIcon href={SOCIAL.linkedin} name="LinkedIn" kind="linkedin" />
+        <SocialIcon href={SOCIAL.whatsapp} name="WhatsApp" kind="whatsapp" />
+        <SocialIcon href={SOCIAL.meetup} name="Meetup" kind="meetup" />
+      </div>
+    </div>
+  </div>
+
+  <div
+    class="border-t text-center text-xs py-4"
+    style="border-color: var(--border-subtle); color: var(--fg-muted);"
+  >
+    Copyright © {year} {SITE.organization}. Todos los derechos reservados.
+  </div>
+</footer>

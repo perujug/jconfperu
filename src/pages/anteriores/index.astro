@@ -1,0 +1,28 @@
+---
+import Layout from '@layouts/Layout.astro';
+import SectionTitle from '@components/SectionTitle.astro';
+import EditionCard from '@components/EditionCard.astro';
+import { getPastEditions } from '@lib/editions';
+
+const editions = await getPastEditions();
+---
+
+<Layout
+  title="Ediciones anteriores"
+  description="Archivo de ediciones pasadas de JConf Perú: speakers, agendas y sponsors de cada año."
+>
+  <section class="max-w-6xl mx-auto px-4 sm:px-6 py-16">
+    <SectionTitle
+      eyebrow="Archivo histórico"
+      title="Ediciones"
+      highlight="anteriores"
+    />
+    <p class="text-center max-w-2xl mx-auto -mt-4 mb-10" style="color: var(--fg-muted);">
+      Cada año reunimos a la comunidad Java en una nueva edición de JConf Perú.
+      Aquí puedes revisar las ediciones pasadas con su agenda, speakers y sponsors.
+    </p>
+    <ul class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      {editions.map((e) => <li><EditionCard edition={e} /></li>)}
+    </ul>
+  </section>
+</Layout>

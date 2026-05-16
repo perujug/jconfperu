@@ -1,0 +1,94 @@
+---
+interface Props {
+  /** Fecha objetivo en ISO 8601. Si es null se muestra el `placeholder`. */
+  target: Date | null;
+  /** Texto a mostrar cuando target es null o el evento ya pasó. */
+  placeholder?: string;
+}
+
+const { target, placeholder = 'Fecha por anunciar' } = Astro.props;
+const targetIso = target ? target.toISOString() : '';
+---
+
+<div class="grid gap-3" data-countdown-target={targetIso} data-countdown-placeholder={placeholder}>
+  {
+    targetIso ? (
+      <div
+        class="grid grid-cols-4 gap-2 sm:gap-4 text-center"
+        role="timer"
+        aria-live="polite"
+        aria-label="Cuenta regresiva al evento"
+      >
+        {[
+          ['days', 'días'],
+          ['hours', 'horas'],
+          ['minutes', 'min'],
+          ['seconds', 'seg'],
+        ].map(([id, label]) => (
+          <div class="rounded-2xl px-2 py-3 sm:px-3 sm:py-4 bg-[color:var(--bg-elevated)] shadow-sm border" style="border-color: var(--border-subtle);">
+            <div
+              data-countdown-unit={id}
+              class="text-3xl sm:text-5xl font-display font-bold tabular-nums text-java-orange"
+            >
+              --
+            </div>
+            <div class="text-xs sm:text-sm uppercase tracking-wide" style="color: var(--fg-muted);">
+              {label}
+            </div>
+          </div>
+        ))}
+      </div>
+    ) : (
+      <p
+        class="inline-block self-start px-4 py-2 rounded-full text-sm font-medium border"
+        style="border-color: var(--border-subtle); color: var(--fg-muted);"
+      >
+        {placeholder}
+      </p>
+    )
+  }
+</div>
+
+<script>
+  function pad(n: number) {
+    return String(n).padStart(2, '0');
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-countdown-target]').forEach((root) => {
+    const iso = root.dataset.countdownTarget;
+    if (!iso) return;
+    const target = new Date(iso).getTime();
+    if (Number.isNaN(target)) return;
+
+    const els = {
+      days: root.querySelector<HTMLElement>('[data-countdown-unit="days"]'),
+      hours: root.querySelector<HTMLElement>('[data-countdown-unit="hours"]'),
+      minutes: root.querySelector<HTMLElement>('[data-countdown-unit="minutes"]'),
+      seconds: root.querySelector<HTMLElement>('[data-countdown-unit="seconds"]'),
+    };
+
+    function update() {
+      const now = Date.now();
+      const diff = target - now;
+      if (diff <= 0) {
+        if (els.days) els.days.textContent = '00';
+        if (els.hours) els.hours.textContent = '00';
+        if (els.minutes) els.minutes.textContent = '00';
+        if (els.seconds) els.seconds.textContent = '00';
+        return;
+      }
+      const d = Math.floor(diff / 86_400_000);
+      const h = Math.floor((diff % 86_400_000) / 3_600_000);
+      const m = Math.floor((diff % 3_600_000) / 60_000);
+      const s = Math.floor((diff % 60_000) / 1000);
+      if (els.days) els.days.textContent = pad(d);
+      if (els.hours) els.hours.textContent = pad(h);
+      if (els.minutes) els.minutes.textContent = pad(m);
+      if (els.seconds) els.seconds.textContent = pad(s);
+    }
+
+    update();
+    const id = window.setInterval(update, 1000);
+    window.addEventListener('beforeunload', () => clearInterval(id));
+  });
+</script>

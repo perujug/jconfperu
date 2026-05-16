@@ -1,0 +1,42 @@
+{
+  "name": "jconfperu",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Sitio web de JConf Perú — la conferencia anual de Java organizada por Peru JUG.",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "check": "astro check",
+    "typecheck": "astro check"
+  },
+  "dependencies": {
+    "@astrojs/check": "^0.9.4",
+    "@astrojs/mdx": "^4.3.6",
+    "@astrojs/sitemap": "^3.6.0",
+    "@tailwindcss/vite": "^4.1.16",
+    "astro": "^5.15.0",
+    "tailwindcss": "^4.1.16",
+    "typescript": "^5.9.3"
+  },
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/perujug/jconfperu.git"
+  },
+  "keywords": [
+    "java",
+    "conference",
+    "peru",
+    "perujug",
+    "jconf",
+    "astro"
+  ],
+  "author": "Peru JUG",
+  "license": "MIT"
+}

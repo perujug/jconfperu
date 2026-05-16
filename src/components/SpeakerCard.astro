@@ -1,0 +1,55 @@
+---
+import { Image } from 'astro:assets';
+import type { CollectionEntry } from 'astro:content';
+import SocialIcon from '@components/SocialIcon.astro';
+
+interface Props {
+  speaker: CollectionEntry<'speakers'>;
+}
+
+const { speaker } = Astro.props;
+const { data } = speaker;
+---
+
+<article
+  class="rounded-card border bg-[color:var(--bg-elevated)] p-5 shadow-sm transition hover:shadow-lg"
+  style="border-color: var(--border-subtle);"
+>
+  <div class="flex gap-4 items-start">
+    {
+      data.photo ? (
+        <Image
+          src={data.photo}
+          alt={`Foto de ${data.name}`}
+          width={96}
+          height={96}
+          class="h-20 w-20 rounded-full object-cover shrink-0 ring-2 ring-java-orange"
+          loading="lazy"
+        />
+      ) : (
+        <div
+          class="h-20 w-20 rounded-full shrink-0 flex items-center justify-center font-display font-bold text-2xl text-white bg-brand-gradient"
+          aria-hidden="true"
+        >
+          {data.name
+            .split(' ')
+            .filter(Boolean)
+            .slice(0, 2)
+            .map((p) => p[0]?.toUpperCase() ?? '')
+            .join('')}
+        </div>
+      )
+    }
+    <div class="min-w-0 flex-1">
+      <h3 class="font-display text-lg font-bold truncate">{data.name}</h3>
+      {data.role && <p class="text-sm" style="color: var(--fg-muted);">{data.role}</p>}
+      {data.company && <p class="text-xs" style="color: var(--fg-muted);">{data.company}</p>}
+      <div class="flex gap-2 mt-3 flex-wrap">
+        {data.website && <SocialIcon href={data.website} name={`Web de ${data.name}`} kind="website" />}
+        {data.twitter && <SocialIcon href={data.twitter} name={`Twitter de ${data.name}`} kind="twitter" />}
+        {data.linkedin && <SocialIcon href={data.linkedin} name={`LinkedIn de ${data.name}`} kind="linkedin" />}
+        {data.github && <SocialIcon href={data.github} name={`GitHub de ${data.name}`} kind="github" />}
+      </div>
+    </div>
+  </div>
+</article>
