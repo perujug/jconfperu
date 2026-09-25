@@ -34,7 +34,7 @@ const defaultJsonLd: Array<Record<string, unknown>> = [
     '@type': 'Organization',
     name: SITE.organization,
     url: SITE.organizationUrl,
-    logo: new URL('/favicon.ico', SITE.url).toString(),
+    logo: new URL('/apple-touch-icon.png', SITE.url).toString(),
     sameAs: [
       'https://www.facebook.com/groups/perujug/',
       'https://twitter.com/perujug',
@@ -71,7 +71,7 @@ const allJsonLd = jsonLd
 
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
-    <link rel="apple-touch-icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 
     <!-- Theme color (mejora la barra de navegador en móviles) -->
     <meta name="theme-color" content="#f89820" media="(prefers-color-scheme: light)" />

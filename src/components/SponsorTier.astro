@@ -10,8 +10,8 @@ interface Props {
 const { tier, sponsors } = Astro.props;
 
 const tierMeta: Record<Props['tier'], { label: string; color: string }> = {
-  platinum: { label: 'Platinum', color: 'text-peru-red' },
-  gold: { label: 'Gold', color: 'text-inca-gold' },
+  platinum: { label: 'Platinum', color: 'text-brand-red' },
+  gold: { label: 'Gold', color: 'text-tier-gold' },
   silver: { label: 'Silver', color: 'text-andes-slate-soft' },
   community: { label: 'Community', color: 'text-jug-violet' },
 };

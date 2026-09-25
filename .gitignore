@@ -33,3 +33,11 @@ Thumbs.db
 
 # Astro
 .astro/
+
+# browser test artifacts
+/test-results/
+/playwright-report/
+/blob-report/
+
+# Kiro local runtime settings (specs remain versioned)
+/.kiro/settings/

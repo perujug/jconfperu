@@ -34,17 +34,17 @@ const edition = await getFeaturedEdition();
         </div>
         <ul class="mt-4 grid gap-2 text-sm">
           <li>
-            <a class="underline hover:text-peru-red" href={SITE.organizationUrl} target="_blank" rel="noopener noreferrer">
+            <a class="underline hover-brand-red" href={SITE.organizationUrl} target="_blank" rel="noopener noreferrer">
               Sitio web Peru JUG
             </a>
           </li>
           <li>
-            <a class="underline hover:text-peru-red" href={SOCIAL.meetup} target="_blank" rel="noopener noreferrer">
+            <a class="underline hover-brand-red" href={SOCIAL.meetup} target="_blank" rel="noopener noreferrer">
               Próximos meetups en Meetup
             </a>
           </li>
           <li>
-            <a class="underline hover:text-peru-red" href={SOCIAL.whatsapp} target="_blank" rel="noopener noreferrer">
+            <a class="underline hover-brand-red" href={SOCIAL.whatsapp} target="_blank" rel="noopener noreferrer">
               Grupo de WhatsApp
             </a>
           </li>
@@ -64,7 +64,7 @@ const edition = await getFeaturedEdition();
           {
             CONTACT_EMAILS.map((c) => (
               <li>
-                <a class="underline hover:text-peru-red" href={`mailto:${c.email}`}>
+                <a class="underline hover-brand-red" href={`mailto:${c.email}`}>
                   {c.name} · {c.email}
                 </a>
               </li>

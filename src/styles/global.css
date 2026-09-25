@@ -39,6 +39,11 @@
   --fg-base: var(--color-andes-slate);
   --fg-muted: #4b5563;
   --border-subtle: rgba(31, 42, 55, 0.12);
+  --accent-text: #9a4d00;
+  --gold-text: #7a4600;
+  --facebook-text: #0b5fcc;
+  --linkedin-text: #075b9b;
+  --red-text: #a30b1a;
 }
 
 [data-theme="dark"] {
@@ -47,6 +52,36 @@
   --fg-base: #e5e7eb;
   --fg-muted: #9ca3af;
   --border-subtle: rgba(229, 231, 235, 0.12);
+  --accent-text: #fbbf24;
+  --gold-text: #fcd34d;
+  --facebook-text: #8ab4ff;
+  --linkedin-text: #7dd3fc;
+  --red-text: #ff7b86;
+}
+
+.text-brand-accent {
+  color: var(--accent-text);
+}
+
+.text-brand-red {
+  color: var(--red-text);
+}
+
+.hover-brand-red:hover,
+.group:hover .group-hover-brand-red {
+  color: var(--red-text);
+}
+
+.text-tier-gold {
+  color: var(--gold-text);
+}
+
+.text-facebook {
+  color: var(--facebook-text);
+}
+
+.text-linkedin {
+  color: var(--linkedin-text);
 }
 
 html {

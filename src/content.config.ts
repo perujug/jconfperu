@@ -1,5 +1,6 @@
-import { defineCollection, z, reference } from 'astro:content';
+import { defineCollection, reference } from 'astro:content';
 import { glob } from 'astro/loaders';
+import { z } from 'astro/zod';
 
 /* ──────────────────────────────────────────────────────────────────────
  *  EDITIONS
@@ -28,7 +29,6 @@ const editions = defineCollection({
         city: z.string().default('Lima'),
         country: z.string().default('Perú'),
         mapsQuery: z.string().optional(),
-        mapsEmbedUrl: z.string().url().optional(),
         online: z.boolean().default(false),
       }),
       // Estadísticas mostradas en el About (counters).
@@ -60,7 +60,7 @@ const editions = defineCollection({
       // Recap / resumen tras el evento.
       recap: z
         .object({
-          videoUrl: z.string().url().optional(),
+          videoUrl: z.url().optional(),
           notes: z.string().optional(),
         })
         .optional(),
@@ -81,11 +81,11 @@ const speakers = defineCollection({
       company: z.string().optional(),
       country: z.string().optional(),
       photo: image().optional(),
-      website: z.string().url().optional(),
-      twitter: z.string().url().optional(),
-      linkedin: z.string().url().optional(),
-      github: z.string().url().optional(),
-      youtube: z.string().url().optional(),
+      website: z.url().optional(),
+      twitter: z.url().optional(),
+      linkedin: z.url().optional(),
+      github: z.url().optional(),
+      youtube: z.url().optional(),
       editions: z.array(z.number().int()).default([]),
       featured: z.boolean().default(false),
     }),
@@ -102,10 +102,10 @@ const organizers = defineCollection({
       name: z.string(),
       role: z.string(),
       photo: image(),
-      twitter: z.string().url().optional(),
-      linkedin: z.string().url().optional(),
-      github: z.string().url().optional(),
-      website: z.string().url().optional(),
+      twitter: z.url().optional(),
+      linkedin: z.url().optional(),
+      github: z.url().optional(),
+      website: z.url().optional(),
       editions: z.array(z.number().int()).default([]),
       order: z.number().int().default(99),
     }),
@@ -122,7 +122,7 @@ const sponsors = defineCollection({
       name: z.string(),
       tier: z.enum(['platinum', 'gold', 'silver', 'community']),
       logo: image(),
-      website: z.string().url(),
+      website: z.url(),
       editions: z.array(z.number().int()),
     }),
 });
@@ -142,7 +142,7 @@ const sessions = defineCollection({
       .array(
         z.object({
           name: z.string(),
-          url: z.string().url().optional(),
+          url: z.url().optional(),
         }),
       )
       .default([]),
@@ -152,9 +152,9 @@ const sessions = defineCollection({
     endTime: z.string().describe('HH:MM en hora de Lima (GMT-5)'),
     timezone: z.string().default('GMT-5'),
     order: z.number().int().default(0),
-    youtubeUrl: z.string().url().optional(),
-    facebookUrl: z.string().url().optional(),
-    linkedinUrl: z.string().url().optional(),
+    youtubeUrl: z.url().optional(),
+    facebookUrl: z.url().optional(),
+    linkedinUrl: z.url().optional(),
     type: z.enum(['talk', 'break', 'keynote', 'panel', 'opening', 'closing']).default('talk'),
   }),
 });

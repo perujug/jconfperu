@@ -7,23 +7,28 @@
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",
-    "build": "astro build",
+    "generate:assets": "node scripts/generate-social-assets.mjs",
+    "build": "npm run generate:assets && astro build",
     "preview": "astro preview",
     "astro": "astro",
     "check": "astro check",
-    "typecheck": "astro check"
+    "typecheck": "astro check",
+    "validate:site": "node scripts/validate-built-site.mjs",
+    "test:site": "playwright test",
+    "test": "npm run audit && npm run check && npm run build && npm run validate:site && npm run test:site",
+    "audit": "npm audit --audit-level=high"
   },
   "dependencies": {
-    "@astrojs/check": "^0.9.4",
-    "@astrojs/mdx": "^4.3.6",
-    "@astrojs/sitemap": "^3.6.0",
-    "@tailwindcss/vite": "^4.1.16",
-    "astro": "^5.15.0",
-    "tailwindcss": "^4.1.16",
-    "typescript": "^5.9.3"
+    "@astrojs/check": "0.9.10",
+    "@astrojs/mdx": "8.0.2",
+    "@astrojs/sitemap": "3.7.4",
+    "@tailwindcss/vite": "4.3.3",
+    "astro": "7.3.5",
+    "tailwindcss": "4.3.3",
+    "typescript": "5.9.3"
   },
   "engines": {
-    "node": ">=20.19.0"
+    "node": ">=22.12.0 <23"
   },
   "repository": {
     "type": "git",
@@ -38,5 +43,10 @@
     "astro"
   ],
   "author": "Peru JUG",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "@axe-core/playwright": "4.13.0",
+    "@playwright/test": "1.63.0",
+    "sharp": "0.35.4"
+  }
 }

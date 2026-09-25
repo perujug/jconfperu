@@ -5,7 +5,7 @@ Sitio oficial de **JConf Perú**, la conferencia anual organizada por
 arquitecturas nativas en la nube y temas afines.
 
 - 🌐 Producción: <https://jconfperu.com>
-- 🛠️ Stack: [Astro 5](https://astro.build) + [Tailwind CSS 4](https://tailwindcss.com) + Content Collections + TypeScript estricto
+- 🛠️ Stack: [Astro 7](https://astro.build) + [Tailwind CSS 4](https://tailwindcss.com) + Content Collections + TypeScript estricto
 - 🚀 Deploy: Vercel (Git Integration — preview deploys automáticos por PR)
 
 ---
@@ -27,19 +27,21 @@ arquitecturas nativas en la nube y temas afines.
 
 ## ✅ Pre-requisitos
 
-- **Node.js** ≥ 20.19 (recomendado 22 LTS — está en `.nvmrc`)
-- npm 10+ (viene con Node 22)
+- **Node.js 22 LTS** (mínimo 22.12; versión recomendada en `.mise.toml` y `.nvmrc`)
+- npm 10+
 
-Si usas `fnm` o `nvm`:
+Con `mise`:
 
 ```bash
-fnm use   # o:  nvm use
+mise install
 ```
+
+También puedes usar `fnm` o `nvm` con `.nvmrc`.
 
 ## 🚀 Correr el sitio localmente
 
 ```bash
-npm install
+npm ci
 npm run dev
 ```
 
@@ -192,8 +194,24 @@ linkedinUrl: https://...
 ---
 ```
 
-> Para la edición vigente (con `sessionizeEventId`), la agenda se obtiene de
-> Sessionize en build time. No es necesario crear `sessions/*.md` ese año.
+> Para la edición vigente, `sessionizeEventId` debe ser el ID de un endpoint
+> **JSON** creado en **API / Embed** de Sessionize, no el ID de un embed visual.
+> La agenda se consulta durante el build y usa contenido local como respaldo.
+
+### Archivar una edición de Sessionize
+
+Cuando termine el evento:
+
+1. Exporta speakers y agenda desde el endpoint JSON de Sessionize.
+2. Crea los registros en `src/content/speakers/<año>/` y
+   `src/content/sessions/<año>/`.
+3. Elimina `sessionizeEventId` de la edición histórica para que el archivo no
+   dependa de un servicio externo.
+4. Cambia la edición a `status: past` y `featured: false`.
+5. Instala Chromium una vez con `npx playwright install chromium`, ejecuta
+   `npm test` y revisa `/anteriores/<año>` en el preview.
+
+La edición 2025 ya está archivada localmente siguiendo este proceso.
 
 ## 👥 Cómo agregar un organizador
 
@@ -215,32 +233,53 @@ Bio breve opcional.
 
 ## 🛠️ Comandos útiles
 
-| Comando             | Para qué sirve                                       |
-| ------------------- | ---------------------------------------------------- |
-| `npm run dev`       | Servidor de desarrollo en <http://localhost:4321>     |
-| `npm run build`     | Genera el sitio estático en `dist/`                   |
-| `npm run preview`   | Sirve `dist/` localmente para verificar producción    |
-| `npm run check`     | `astro check` — typecheck + valida content collections |
-| `npm run astro -- add <integración>` | Agrega integraciones de Astro          |
+| Comando | Para qué sirve |
+| --- | --- |
+| `npm run dev` | Servidor de desarrollo en <http://localhost:4321> |
+| `npm run check` | Typecheck y validación de Content Collections |
+| `npm run build` | Genera activos sociales y el sitio estático en `dist/` |
+| `npm run validate:site` | Valida enlaces, activos, metadata y redirects generados |
+| `npm run test:site` | Smoke tests y Axe sobre el preview local |
+| `npm test` | Ejecuta el gate local completo |
+| `npm run audit` | Rechaza vulnerabilidades high/critical conocidas |
+
+La primera ejecución de los tests de navegador requiere Chromium:
+
+```bash
+npx playwright install chromium
+```
 
 ## 🚢 Despliegue
 
-El sitio se despliega con la **Git Integration nativa de Vercel**, conectada a
-este repositorio:
+El sitio se despliega mediante la **Git Integration nativa de Vercel**:
 
 - **Producción**: cada merge a `master` despliega a <https://jconfperu.com>.
-- **Preview deploys**: cada Pull Request recibe automáticamente una URL
-  única (`*.vercel.app`) y un comentario en el PR con el enlace.
+- **Preview**: cada Pull Request debe recibir una URL `*.vercel.app`.
+- **Build**: Vercel instala con `npm ci` y publica `dist/`.
 
-El workflow de GitHub Actions (`.github/workflows/ci.yml`) **solo** corre
-typecheck + build como gate de calidad. **No** despliega — eso lo hace Vercel
-de forma directa al detectar cambios en el repositorio.
+GitHub Actions no despliega. Ejecuta auditoría, typecheck, build, validación del
+sitio generado, pruebas de navegador y accesibilidad.
+
+### Gate de aprobación
+
+Antes de mergear una edición o rediseño:
+
+1. CI debe estar completamente verde y sin vulnerabilidades high/critical no aceptadas.
+2. Un maintainer técnico revisa navegación, responsive, tema y fallback de Sessionize.
+3. Un organizador valida fecha, sede, agenda, speakers, sponsors, registro y textos.
+4. Se prueban mobile y desktop, social cards y las rutas históricas en el preview.
+5. La credencial antigua de Google Maps debe estar rotada o restringida por API y referrer.
+
+### Verificación y rollback
+
+Después del merge, verifica `/`, `/agenda`, `/speakers`, `/anteriores/2025`,
+`sitemap-index.xml`, los redirects y la tarjeta social. Si falla un gate,
+restaura inmediatamente el deployment anterior desde Vercel y revierte el merge.
 
 ### URLs antiguas
 
-Los enlaces de versiones previas (`/2024.html`, `/agenda.html`,
-`/payment-info.html`) están redirigidos vía `vercel.json` a sus equivalentes
-modernos.
+`/2024.html`, `/agenda.html`, `/payment-info.html` e `/index.html` se redirigen
+permanentemente desde `vercel.json`.
 
 ## 📜 Licencia
 

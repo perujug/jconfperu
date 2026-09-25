@@ -1,6 +1,5 @@
-# CI mínimo: verifica que el sitio compile y pase el typecheck.
-# El despliegue (producción y previews por PR) lo hace la
-# Git Integration nativa de Vercel — no se manejan tokens aquí.
+# CI valida dependencias, contenido, build estático, enlaces y accesibilidad.
+# Vercel Git Integration gestiona previews y producción; no se usan tokens aquí.
 name: CI
 
 on:
@@ -10,17 +9,24 @@ on:
     branches: [master]
   workflow_dispatch:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
-    name: Typecheck + build
+    name: Check, build and test
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
           cache: npm
@@ -28,14 +34,26 @@ jobs:
       - name: Install dependencies
         run: npm ci --no-audit --no-fund
 
-      - name: Astro check (typecheck + content schema)
-        run: npx astro check
+      - name: Audit dependencies
+        run: npm run audit
 
-      - name: Astro build
+      - name: Astro check
+        run: npm run check
+
+      - name: Build static site
         run: npm run build
 
+      - name: Validate generated site
+        run: npm run validate:site
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run browser and accessibility tests
+        run: npm run test:site
+
       - name: Upload build artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: dist
           path: dist

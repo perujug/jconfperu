@@ -49,12 +49,24 @@ async function fetchJson<T>(url: string): Promise<T | null> {
   try {
     const res = await fetch(url, {
       signal: controller.signal,
-      headers: { 'user-agent': 'jconfperu-build (+https://jconfperu.com)' },
+      headers: {
+        accept: 'application/json',
+        'user-agent': 'jconfperu-build (+https://jconfperu.com)',
+      },
     });
     if (!res.ok) {
       console.warn(`[sessionize] ${url} respondió ${res.status}`);
       return null;
     }
+
+    const contentType = res.headers.get('content-type') ?? '';
+    if (!contentType.includes('json')) {
+      console.warn(
+        '[sessionize] el endpoint no devuelve JSON; crea un endpoint JSON en API / Embed de Sessionize',
+      );
+      return null;
+    }
+
     return (await res.json()) as T;
   } catch (err) {
     console.warn('[sessionize] error consultando', url, err);

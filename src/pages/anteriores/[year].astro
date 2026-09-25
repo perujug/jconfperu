@@ -96,7 +96,18 @@ const eventJsonLd = {
             📍{' '}
             {edition.data.venue.online
               ? 'Online'
-              : `${edition.data.venue.name}, ${edition.data.venue.city}, ${edition.data.venue.country}`}
+              : edition.data.venue.mapsQuery
+                ? (
+                    <a
+                      class="underline decoration-white/60 hover:decoration-white"
+                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(edition.data.venue.mapsQuery)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {edition.data.venue.name}, {edition.data.venue.city}, {edition.data.venue.country}
+                    </a>
+                  )
+                : `${edition.data.venue.name}, ${edition.data.venue.city}, ${edition.data.venue.country}`}
           </p>
         )
       }
@@ -192,7 +203,7 @@ const eventJsonLd = {
     style="border-color: var(--border-subtle);"
     aria-label="Navegación entre ediciones"
   >
-    <a class="underline text-peru-red" href="/anteriores">← Volver a ediciones anteriores</a>
-    <a class="underline text-peru-red" href="/">Edición actual →</a>
+    <a class="underline text-brand-red" href="/anteriores">← Volver a ediciones anteriores</a>
+    <a class="underline text-brand-red" href="/">Edición actual →</a>
   </nav>
 </Layout>

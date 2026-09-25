@@ -8,11 +8,19 @@ export async function getAllEditions(): Promise<Edition[]> {
   return editions.sort((a, b) => b.data.year - a.data.year);
 }
 
-/** Devuelve la edición destacada (featured: true) o, en su defecto, la más reciente. */
+/** Devuelve la única edición destacada. La build falla si el contenido es ambiguo. */
 export async function getFeaturedEdition(): Promise<Edition> {
   const editions = await getAllEditions();
-  const featured = editions.find((e) => e.data.featured);
-  return featured ?? editions[0];
+  const featured = editions.filter((edition) => edition.data.featured);
+
+  if (featured.length !== 1) {
+    const years = featured.map((edition) => edition.data.year).join(', ') || 'ninguna';
+    throw new Error(
+      `[content] Debe existir exactamente una edición con featured: true; encontradas: ${years}.`,
+    );
+  }
+
+  return featured[0];
 }
 
 /** Devuelve sólo las ediciones pasadas, ordenadas más recientes primero. */

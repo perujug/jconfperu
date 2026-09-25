@@ -18,7 +18,6 @@ export default defineConfig({
     }),
   ],
   vite: {
-    // @ts-expect-error: tailwindcss-vite y astro pueden traer tipos de Vite distintos.
     plugins: [tailwindcss()],
   },
   image: {
