@@ -1,14 +1,34 @@
 {
-  "name": "jconf-peru",
-  "version": "1.0.0",
-  "description": "JCONF Peru - Java Conference Peru",
+  "name": "jconfperu",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Sitio web de JConf Perú — la conferencia anual de Java organizada por Peru JUG.",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
+    "dev": "astro dev",
+    "start": "astro dev",
+    "generate:assets": "node scripts/generate-social-assets.mjs",
+    "build": "npm run generate:assets && astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "check": "astro check",
+    "typecheck": "astro check",
+    "validate:site": "node scripts/validate-built-site.mjs",
+    "test:site": "playwright test",
+    "test": "npm run audit && npm run check && npm run build && npm run validate:site && npm run test:site",
+    "audit": "npm audit --audit-level=high"
   },
-  "devDependencies": {
-    "vite": "^7.1.7"
+  "dependencies": {
+    "@astrojs/check": "0.9.10",
+    "@astrojs/mdx": "8.0.2",
+    "@astrojs/sitemap": "3.7.4",
+    "@tailwindcss/vite": "4.3.3",
+    "astro": "7.3.5",
+    "tailwindcss": "4.3.3",
+    "typescript": "5.9.3"
+  },
+  "engines": {
+    "node": ">=22.12.0 <23"
   },
   "repository": {
     "type": "git",
@@ -18,9 +38,15 @@
     "java",
     "conference",
     "peru",
-    "jekyll"
+    "perujug",
+    "jconf",
+    "astro"
   ],
-  "author": "PeruJUG",
-  "license": "MIT"
+  "author": "Peru JUG",
+  "license": "MIT",
+  "devDependencies": {
+    "@axe-core/playwright": "4.13.0",
+    "@playwright/test": "1.63.0",
+    "sharp": "0.35.4"
+  }
 }
-

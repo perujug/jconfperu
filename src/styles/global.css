@@ -1,0 +1,128 @@
+@import "tailwindcss";
+
+/*
+ * Tokens de marca JConf Perú
+ * - Identidad Java (naranja Duke + azul logo)
+ * - Acentos Perú (rojo bandera + oro inca)
+ * - Sobrios para texto y fondos andes-slate / coffee-cream
+ */
+@theme {
+  --color-java-orange: #f89820;
+  --color-java-orange-dark: #cf7a14;
+  --color-java-blue: #5382a1;
+  --color-java-blue-dark: #2c5170;
+  --color-peru-red: #d91023;
+  --color-peru-red-dark: #a30b1a;
+  --color-inca-gold: #e8a33d;
+  --color-jug-violet: #7c3aed;
+  --color-andes-slate: #1f2a37;
+  --color-andes-slate-soft: #2c3e50;
+  --color-coffee-cream: #faf6f0;
+  --color-coffee-cream-soft: #f1e9dc;
+
+  --font-sans: "Inter", "Poppins", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Poppins", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+  --radius-card: 1rem;
+  --radius-pill: 9999px;
+}
+
+/* Modo oscuro mediante atributo data-theme="dark" en <html>. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+:root {
+  color-scheme: light dark;
+
+  --bg-base: var(--color-coffee-cream);
+  --bg-elevated: #ffffff;
+  --fg-base: var(--color-andes-slate);
+  --fg-muted: #4b5563;
+  --border-subtle: rgba(31, 42, 55, 0.12);
+  --accent-text: #9a4d00;
+  --gold-text: #7a4600;
+  --facebook-text: #0b5fcc;
+  --linkedin-text: #075b9b;
+  --red-text: #a30b1a;
+}
+
+[data-theme="dark"] {
+  --bg-base: #0f172a;
+  --bg-elevated: var(--color-andes-slate);
+  --fg-base: #e5e7eb;
+  --fg-muted: #9ca3af;
+  --border-subtle: rgba(229, 231, 235, 0.12);
+  --accent-text: #fbbf24;
+  --gold-text: #fcd34d;
+  --facebook-text: #8ab4ff;
+  --linkedin-text: #7dd3fc;
+  --red-text: #ff7b86;
+}
+
+.text-brand-accent {
+  color: var(--accent-text);
+}
+
+.text-brand-red {
+  color: var(--red-text);
+}
+
+.hover-brand-red:hover,
+.group:hover .group-hover-brand-red {
+  color: var(--red-text);
+}
+
+.text-tier-gold {
+  color: var(--gold-text);
+}
+
+.text-facebook {
+  color: var(--facebook-text);
+}
+
+.text-linkedin {
+  color: var(--linkedin-text);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--bg-base);
+  color: var(--fg-base);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Foco accesible visible (WCAG AA). */
+:where(a, button, input, textarea, select, [tabindex]):focus-visible {
+  outline: 2px solid var(--color-java-orange);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* Patrón geométrico sutil inspirado en textiles andinos para fondos. */
+.bg-andean-pattern {
+  background-image:
+    linear-gradient(135deg, rgba(248, 152, 32, 0.06) 25%, transparent 25%),
+    linear-gradient(225deg, rgba(217, 16, 35, 0.05) 25%, transparent 25%),
+    linear-gradient(45deg, rgba(83, 130, 161, 0.05) 25%, transparent 25%);
+  background-size: 24px 24px;
+}
+
+/* Gradiente principal Java-Perú. */
+.bg-brand-gradient {
+  background: linear-gradient(120deg, var(--color-java-orange) 0%, var(--color-peru-red) 60%, var(--color-jug-violet) 100%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

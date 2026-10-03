@@ -1,0 +1,111 @@
+---
+import Layout from '@layouts/Layout.astro';
+import SectionTitle from '@components/SectionTitle.astro';
+import AgendaList from '@components/AgendaList.astro';
+import { getCollection } from 'astro:content';
+import { getFeaturedEdition } from '@lib/editions';
+import { fetchGrid } from '@lib/sessionize';
+
+const edition = await getFeaturedEdition();
+
+// Para la edición destacada, intentamos obtener el grid real desde Sessionize en build time.
+let sessionizeGrid: Awaited<ReturnType<typeof fetchGrid>> = [];
+if (edition.data.sessionizeEventId) {
+  sessionizeGrid = await fetchGrid(edition.data.sessionizeEventId);
+}
+
+// Fallback: mostramos las sesiones del repo (collection) si las hubiera.
+const allSessions = await getCollection('sessions');
+const sessionsForEdition = allSessions.filter(
+  (s) => s.data.edition.id === edition.id,
+);
+---
+
+<Layout
+  title={`Agenda · ${edition.data.title}`}
+  description={`Agenda completa de ${edition.data.title} con horarios, charlas y speakers.`}
+>
+  <section class="max-w-5xl mx-auto px-4 sm:px-6 py-16">
+    <SectionTitle
+      eyebrow={edition.data.title}
+      title="Nuestra"
+      highlight="agenda"
+    />
+
+    {
+      sessionizeGrid.length > 0 ? (
+        <div class="grid gap-10">
+          {sessionizeGrid.map((day) => (
+            <article>
+              <h3 class="font-display text-2xl font-bold mb-4">
+                {new Intl.DateTimeFormat('es-PE', {
+                  weekday: 'long',
+                  day: '2-digit',
+                  month: 'long',
+                  year: 'numeric',
+                }).format(new Date(day.date))}
+              </h3>
+              <ul class="grid gap-4">
+                {day.timeSlots.map((slot) => (
+                  <li
+                    class="rounded-card border bg-[color:var(--bg-elevated)] p-5 shadow-sm"
+                    style="border-color: var(--border-subtle);"
+                  >
+                    <p class="text-sm font-mono uppercase tracking-wide text-brand-accent">
+                      {slot.slotStart}
+                    </p>
+                    <div class="grid gap-3 mt-2 md:grid-cols-2">
+                      {slot.rooms.map((room) => (
+                        <div
+                          class="border-l-2 pl-4 py-1"
+                          style="border-color: var(--border-subtle);"
+                        >
+                          <p
+                            class="text-xs uppercase"
+                            style="color: var(--fg-muted);"
+                          >
+                            {room.name}
+                          </p>
+                          <h4 class="font-display text-lg font-bold mt-0.5">
+                            {room.session.title}
+                          </h4>
+                          {room.session.speakers.length > 0 && (
+                            <p
+                              class="text-sm mt-1"
+                              style="color: var(--fg-muted);"
+                            >
+                              {room.session.speakers
+                                .map((s) => s.name)
+                                .join(', ')}
+                            </p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </article>
+          ))}
+        </div>
+      ) : sessionsForEdition.length > 0 ? (
+        <AgendaList sessions={sessionsForEdition} />
+      ) : (
+        <div class="text-center max-w-xl mx-auto">
+          <p class="text-lg" style="color: var(--fg-muted);">
+            <span class="text-2xl">📅</span>{' '}
+            <strong>Agenda por anunciar.</strong>
+          </p>
+          <p class="mt-3" style="color: var(--fg-muted);">
+            Estamos terminando de cerrar la grilla de {edition.data.title}.
+            Mientras tanto, puedes revisar las agendas completas de las{' '}
+            <a class="underline text-brand-red" href="/anteriores">
+              ediciones anteriores
+            </a>
+            .
+          </p>
+        </div>
+      )
+    }
+  </section>
+</Layout>

@@ -1,0 +1,209 @@
+---
+import { Image } from 'astro:assets';
+import { getCollection, render } from 'astro:content';
+import Layout from '@layouts/Layout.astro';
+import SectionTitle from '@components/SectionTitle.astro';
+import StatsBar from '@components/StatsBar.astro';
+import AgendaList from '@components/AgendaList.astro';
+import SpeakerCard from '@components/SpeakerCard.astro';
+import OrganizerCard from '@components/OrganizerCard.astro';
+import SponsorTier from '@components/SponsorTier.astro';
+import { getPastEditions } from '@lib/editions';
+
+export async function getStaticPaths() {
+  const editions = await getPastEditions();
+  return editions.map((edition) => ({
+    params: { year: String(edition.data.year) },
+    props: { edition },
+  }));
+}
+
+const { edition } = Astro.props;
+const { Content } = await render(edition);
+
+const allOrganizers = await getCollection('organizers');
+const organizers = allOrganizers
+  .filter((o) => o.data.editions.includes(edition.data.year))
+  .sort((a, b) => a.data.order - b.data.order);
+
+const allSpeakers = await getCollection('speakers');
+const speakers = allSpeakers.filter((s) => s.data.editions.includes(edition.data.year));
+
+const allSessions = await getCollection('sessions');
+const sessions = allSessions.filter((s) => s.data.edition.id === edition.id);
+
+const allSponsors = await getCollection('sponsors');
+const sponsors = allSponsors.filter((s) => s.data.editions.includes(edition.data.year));
+const platinum = sponsors.filter((s) => s.data.tier === 'platinum');
+const gold = sponsors.filter((s) => s.data.tier === 'gold');
+const silver = sponsors.filter((s) => s.data.tier === 'silver');
+
+const dateLabel =
+  edition.data.date != null
+    ? new Intl.DateTimeFormat('es-PE', {
+        weekday: 'long',
+        day: '2-digit',
+        month: 'long',
+        year: 'numeric',
+      }).format(edition.data.date)
+    : (edition.data.dateLabel ?? '');
+
+const eventJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Event',
+  name: edition.data.title,
+  description: edition.data.tagline,
+  eventStatus: 'https://schema.org/EventScheduled',
+  eventAttendanceMode: edition.data.venue.online
+    ? 'https://schema.org/OnlineEventAttendanceMode'
+    : 'https://schema.org/OfflineEventAttendanceMode',
+  ...(edition.data.date && { startDate: edition.data.date.toISOString() }),
+  location: edition.data.venue.online
+    ? { '@type': 'VirtualLocation', url: 'https://jconfperu.com' }
+    : {
+        '@type': 'Place',
+        name: edition.data.venue.name,
+        address: {
+          '@type': 'PostalAddress',
+          streetAddress: edition.data.venue.address,
+          addressLocality: edition.data.venue.city,
+          addressCountry: edition.data.venue.country,
+        },
+      },
+  organizer: { '@type': 'Organization', name: 'Peru JUG', url: 'https://perujug.org/' },
+};
+---
+
+<Layout
+  title={edition.data.title}
+  description={`Resumen de ${edition.data.title}: agenda, speakers y sponsors.`}
+  jsonLd={eventJsonLd}
+>
+  <section class="bg-brand-gradient text-white relative overflow-hidden">
+    <div class="absolute inset-0 bg-andean-pattern opacity-25" aria-hidden="true"></div>
+    <div class="relative max-w-5xl mx-auto px-4 sm:px-6 py-16 grid gap-4 text-center">
+      <p class="uppercase tracking-[0.3em] text-xs font-semibold opacity-90">
+        Edición {edition.data.year} · Archivo
+      </p>
+      <h1 class="font-display text-4xl sm:text-6xl font-extrabold">{edition.data.title}</h1>
+      <p class="text-lg sm:text-xl opacity-95">{edition.data.tagline}</p>
+      <p class="text-sm opacity-90 capitalize">
+        📅 {dateLabel}
+      </p>
+      {
+        edition.data.venue?.name && (
+          <p class="text-sm opacity-90">
+            📍{' '}
+            {edition.data.venue.online
+              ? 'Online'
+              : edition.data.venue.mapsQuery
+                ? (
+                    <a
+                      class="underline decoration-white/60 hover:decoration-white"
+                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(edition.data.venue.mapsQuery)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {edition.data.venue.name}, {edition.data.venue.city}, {edition.data.venue.country}
+                    </a>
+                  )
+                : `${edition.data.venue.name}, ${edition.data.venue.city}, ${edition.data.venue.country}`}
+          </p>
+        )
+      }
+    </div>
+  </section>
+
+  <section class="max-w-4xl mx-auto px-4 sm:px-6 py-12">
+    <article class="prose-content text-base sm:text-lg leading-relaxed">
+      <Content />
+    </article>
+    <StatsBar stats={edition.data.stats} />
+  </section>
+
+  {
+    organizers.length > 0 && (
+      <section class="border-t py-12 bg-andean-pattern" style="border-color: var(--border-subtle);">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6">
+          <SectionTitle eyebrow="Equipo" title="Organizadores" />
+          <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {organizers.map((o) => <OrganizerCard organizer={o} />)}
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  {
+    edition.data.speakersBanner && (
+      <section
+        class="border-t py-12 max-w-5xl mx-auto px-4 sm:px-6"
+        style="border-color: var(--border-subtle);"
+      >
+        <SectionTitle eyebrow="Lineup" title="Speakers" />
+        <Image
+          src={edition.data.speakersBanner}
+          alt={`Speakers de ${edition.data.title}`}
+          class="w-full h-auto rounded-card"
+          loading="lazy"
+        />
+      </section>
+    )
+  }
+
+  {
+    speakers.length > 0 && (
+      <section
+        class="border-t py-12 max-w-6xl mx-auto px-4 sm:px-6"
+        style="border-color: var(--border-subtle);"
+      >
+        {!edition.data.speakersBanner && (
+          <SectionTitle eyebrow="Lineup" title="Speakers" />
+        )}
+        <ul class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {speakers.map((sp) => (
+            <li>
+              <SpeakerCard speaker={sp} />
+            </li>
+          ))}
+        </ul>
+      </section>
+    )
+  }
+
+  {
+    sessions.length > 0 && (
+      <section class="border-t py-12 max-w-5xl mx-auto px-4 sm:px-6" style="border-color: var(--border-subtle);">
+        <SectionTitle eyebrow="Programa" title="Agenda" />
+        <AgendaList sessions={sessions} />
+      </section>
+    )
+  }
+
+  {
+    sponsors.length > 0 && (
+      <section
+        class="border-t py-12 bg-[color:var(--bg-elevated)]"
+        style="border-color: var(--border-subtle);"
+      >
+        <div class="max-w-6xl mx-auto px-4 sm:px-6">
+          <SectionTitle eyebrow="Patrocinaron" title="Sponsors" />
+          <div class="grid gap-10">
+            <SponsorTier tier="platinum" sponsors={platinum} />
+            <SponsorTier tier="gold" sponsors={gold} />
+            <SponsorTier tier="silver" sponsors={silver} />
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  <nav
+    class="max-w-5xl mx-auto px-4 sm:px-6 py-12 flex justify-between border-t"
+    style="border-color: var(--border-subtle);"
+    aria-label="Navegación entre ediciones"
+  >
+    <a class="underline text-brand-red" href="/anteriores">← Volver a ediciones anteriores</a>
+    <a class="underline text-brand-red" href="/">Edición actual →</a>
+  </nav>
+</Layout>

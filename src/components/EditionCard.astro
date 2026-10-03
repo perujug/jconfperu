@@ -1,0 +1,65 @@
+---
+import { Image } from 'astro:assets';
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  edition: CollectionEntry<'editions'>;
+}
+
+const { edition } = Astro.props;
+const { data } = edition;
+
+const dateLabel =
+  data.date != null
+    ? new Intl.DateTimeFormat('es-PE', {
+        day: '2-digit',
+        month: 'long',
+        year: 'numeric',
+      }).format(data.date)
+    : (data.dateLabel ?? 'Fecha por anunciar');
+---
+
+<a
+  href={`/anteriores/${data.year}`}
+  class="group block rounded-card overflow-hidden border bg-[color:var(--bg-elevated)] shadow-sm hover:shadow-lg transition"
+  style="border-color: var(--border-subtle);"
+>
+  <div class="aspect-video bg-brand-gradient relative overflow-hidden">
+    {
+      data.cover ? (
+        <Image
+          src={data.cover}
+          alt=""
+          width={800}
+          height={450}
+          class="h-full w-full object-cover opacity-90"
+          loading="lazy"
+        />
+      ) : (
+        <div class="absolute inset-0 bg-andean-pattern opacity-30" aria-hidden="true" />
+      )
+    }
+    <span
+      class="absolute top-3 right-3 bg-white/90 text-andes-slate text-xs font-bold px-3 py-1 rounded-full"
+    >
+      {data.year}
+    </span>
+  </div>
+  <div class="p-5">
+    <h3 class="font-display text-xl font-bold group-hover-brand-red">{data.title}</h3>
+    <p class="text-sm mt-1 capitalize" style="color: var(--fg-muted);">
+      {dateLabel}
+    </p>
+    {
+      data.venue?.name && (
+        <p class="text-xs mt-1" style="color: var(--fg-muted);">
+          {data.venue.online ? 'Online' : data.venue.name}
+          {!data.venue.online && data.venue.city ? ` · ${data.venue.city}` : ''}
+        </p>
+      )
+    }
+    <p class="mt-3 text-sm font-semibold text-brand-accent group-hover-brand-red">
+      Ver edición →
+    </p>
+  </div>
+</a>

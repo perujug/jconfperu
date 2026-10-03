@@ -1,0 +1,29 @@
+---
+import Layout from '@layouts/Layout.astro';
+import SectionTitle from '@components/SectionTitle.astro';
+import OrganizerCard from '@components/OrganizerCard.astro';
+import { getCollection } from 'astro:content';
+import { getFeaturedEdition } from '@lib/editions';
+
+const edition = await getFeaturedEdition();
+const all = await getCollection('organizers');
+const current = all
+  .filter((o) => o.data.editions.includes(edition.data.year))
+  .sort((a, b) => a.data.order - b.data.order);
+---
+
+<Layout
+  title="Organizadores"
+  description={`Equipo organizador de ${edition.data.title}. Comunidad Peru JUG.`}
+>
+  <section class="max-w-6xl mx-auto px-4 sm:px-6 py-16">
+    <SectionTitle
+      eyebrow="Comunidad Peru JUG"
+      title="Nuestro equipo"
+      highlight="organizador"
+    />
+    <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      {current.map((o) => <OrganizerCard organizer={o} />)}
+    </div>
+  </section>
+</Layout>

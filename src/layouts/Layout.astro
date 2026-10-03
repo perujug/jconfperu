@@ -1,0 +1,146 @@
+---
+import '@/styles/global.css';
+import { SITE } from '@lib/site';
+import Header from '@components/Header.astro';
+import Footer from '@components/Footer.astro';
+
+interface Props {
+  title?: string;
+  description?: string;
+  /** Imagen para Open Graph / Twitter Card. */
+  image?: string;
+  /** JSON-LD adicional (Event, BreadcrumbList, etc.). Se inserta tal cual. */
+  jsonLd?: Record<string, unknown> | Array<Record<string, unknown>>;
+  /** Excluir de robots (ej. páginas de admin). */
+  noindex?: boolean;
+}
+
+const {
+  title,
+  description = SITE.description,
+  image = SITE.ogImage,
+  jsonLd,
+  noindex = false,
+} = Astro.props;
+
+const pageTitle = title ? `${title} · ${SITE.name}` : SITE.name;
+const canonical = new URL(Astro.url.pathname, Astro.site ?? SITE.url).toString();
+const ogImageAbsolute = new URL(image, Astro.site ?? SITE.url).toString();
+
+// JSON-LD por defecto: Organization + WebSite.
+const defaultJsonLd: Array<Record<string, unknown>> = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: SITE.organization,
+    url: SITE.organizationUrl,
+    logo: new URL('/apple-touch-icon.png', SITE.url).toString(),
+    sameAs: [
+      'https://www.facebook.com/groups/perujug/',
+      'https://twitter.com/perujug',
+      'https://www.linkedin.com/company/perujug/',
+      'https://www.meetup.com/Peru-Java-User-Group/',
+    ],
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    url: SITE.url,
+    name: SITE.name,
+    inLanguage: 'es-PE',
+  },
+];
+
+const allJsonLd = jsonLd
+  ? Array.isArray(jsonLd)
+    ? [...defaultJsonLd, ...jsonLd]
+    : [...defaultJsonLd, jsonLd]
+  : defaultJsonLd;
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>{pageTitle}</title>
+    <meta name="description" content={description} />
+    {noindex && <meta name="robots" content="noindex,nofollow" />}
+    <link rel="canonical" href={canonical} />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+    <!-- Theme color (mejora la barra de navegador en móviles) -->
+    <meta name="theme-color" content="#f89820" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#1f2a37" media="(prefers-color-scheme: dark)" />
+
+    <!-- Tipografía. Se precarga lo crítico y se descargan asíncronas las variantes. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&family=JetBrains+Mono:wght@400;600&display=swap"
+    />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="es_PE" />
+    <meta property="og:site_name" content={SITE.name} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImageAbsolute} />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content={SITE.twitter} />
+    <meta name="twitter:title" content={pageTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImageAbsolute} />
+
+    <!-- JSON-LD -->
+    {
+      allJsonLd.map((schema) => (
+        <script
+          is:inline
+          type="application/ld+json"
+          set:html={JSON.stringify(schema)}
+        />
+      ))
+    }
+
+    <!-- Tema persistido. Se ejecuta antes de pintar para evitar flash. -->
+    <script is:inline>
+      (function () {
+        try {
+          const stored = localStorage.getItem('jconf-theme');
+          const prefers = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          const theme = stored ?? (prefers ? 'dark' : 'light');
+          document.documentElement.setAttribute('data-theme', theme);
+        } catch (_) {
+          /* noop */
+        }
+      })();
+    </script>
+  </head>
+
+  <body class="min-h-screen flex flex-col">
+    <a
+      href="#main"
+      class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:px-4 focus:py-2 focus:bg-java-orange focus:text-white focus:rounded"
+    >
+      Saltar al contenido
+    </a>
+
+    <Header />
+
+    <main id="main" class="flex-1">
+      <slot />
+    </main>
+
+    <Footer />
+  </body>
+</html>
