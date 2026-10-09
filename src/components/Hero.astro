@@ -52,7 +52,23 @@ const dateLabel =
             <span aria-hidden="true">📍</span>&nbsp;
             {data.venue.online
               ? `Online · ${data.venue.country}`
-              : `${data.venue.name}, ${data.venue.city}, ${data.venue.country}`}
+              : (() => {
+                  const place = [data.venue.name, data.venue.address, data.venue.city, data.venue.country]
+                    .filter(Boolean)
+                    .join(', ');
+                  return data.venue.mapsQuery ? (
+                    <a
+                      class="underline decoration-white/60 hover:decoration-white"
+                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(data.venue.mapsQuery)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {place}
+                    </a>
+                  ) : (
+                    place
+                  );
+                })()}
           </p>
         )
       }
