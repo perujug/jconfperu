@@ -266,6 +266,26 @@ h1, h2, h3, .font-display {
   }
 }
 
+.edition-copy {
+  color: var(--fg-base);
+}
+
+.edition-copy blockquote {
+  margin: 1.25rem 0;
+  padding: 0;
+  border: 0;
+  font-style: italic;
+}
+
+.edition-copy table {
+  width: auto;
+  margin-inline: auto;
+}
+
+.edition-copy :is(th, td) {
+  text-align: center;
+}
+
 .contact-social-link {
   display: inline-flex;
   align-items: center;

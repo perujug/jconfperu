@@ -114,7 +114,7 @@ const eventJsonLd = {
   </section>
 
   <section class="max-w-4xl mx-auto px-4 sm:px-6 py-12">
-    <article class="prose-content text-base sm:text-lg leading-relaxed">
+    <article class="edition-copy prose-content mx-auto max-w-3xl text-center text-base sm:text-lg leading-relaxed">
       <Content />
     </article>
     <StatsBar stats={edition.data.stats} />
@@ -125,8 +125,20 @@ const eventJsonLd = {
       <section class="border-t py-12 bg-andean-pattern" style="border-color: var(--border-subtle);">
         <div class="max-w-6xl mx-auto px-4 sm:px-6">
           <SectionTitle eyebrow="Equipo" title="Organizadores" />
-          <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {organizers.map((o) => <OrganizerCard organizer={o} />)}
+          <div class="flex flex-wrap justify-center gap-6">
+            {organizers.map((o) => (
+              <div
+                class:list={[
+                  'w-full',
+                  organizers.length === 1 && 'max-w-xs',
+                  organizers.length === 2 && 'sm:w-[calc(50%-0.75rem)] max-w-sm',
+                  organizers.length === 3 && 'sm:w-[calc(50%-0.75rem)] lg:w-[calc(33.333%-1rem)] max-w-sm',
+                  organizers.length >= 4 && 'sm:w-[calc(50%-0.75rem)] lg:w-[calc(25%-1.125rem)]',
+                ]}
+              >
+                <OrganizerCard organizer={o} />
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -159,9 +171,9 @@ const eventJsonLd = {
         {!edition.data.speakersBanner && (
           <SectionTitle eyebrow="Lineup" title="Speakers" />
         )}
-        <ul class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <ul class="flex flex-wrap justify-center gap-4">
           {speakers.map((sp) => (
-            <li>
+            <li class="w-full sm:w-[calc(50%-0.5rem)] lg:w-[calc(33.333%-0.75rem)]">
               <SpeakerCard speaker={sp} />
             </li>
           ))}

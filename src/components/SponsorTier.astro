@@ -22,14 +22,14 @@ const meta = tierMeta[tier];
 {
   sponsors.length > 0 && (
     <div class="grid gap-4">
-      <h3 class:list={['font-display text-2xl font-bold', meta.color]}>{meta.label}</h3>
-      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6 items-center">
+      <h3 class:list={['font-display text-2xl font-bold text-center', meta.color]}>{meta.label}</h3>
+      <div class="flex flex-wrap items-center justify-center gap-6">
         {sponsors.map((sponsor) => (
           <a
             href={sponsor.data.website}
             target="_blank"
             rel="noopener noreferrer"
-            class="group rounded-card border p-4 flex items-center justify-center bg-white transition hover:shadow-md"
+            class="group w-44 sm:w-52 rounded-card border p-4 flex items-center justify-center bg-white transition hover:shadow-md"
             style="border-color: var(--border-subtle);"
             aria-label={`Visitar sitio web de ${sponsor.data.name}`}
             title={sponsor.data.name}
