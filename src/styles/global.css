@@ -106,11 +106,20 @@ h1, h2, h3, .font-display {
 }
 
 .tier-gold {
+  /* Darkened from #f1d204 so 24px bold text clears 3:1 on white. */
+  color: #9a8600;
+}
+
+[data-theme="dark"] .tier-gold {
   color: #f1d204;
 }
 
 .tier-silver {
   color: #5d5c56;
+}
+
+[data-theme="dark"] .tier-silver {
+  color: #7d7c76;
 }
 
 .contact-heading {
