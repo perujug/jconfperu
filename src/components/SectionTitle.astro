@@ -10,16 +10,16 @@ const { eyebrow, title, highlight, align = 'center' } = Astro.props;
 const alignment = align === 'center' ? 'text-center mx-auto' : 'text-left';
 ---
 
-<header class:list={['max-w-3xl mb-10', alignment]}>
+<header class:list={['section-title max-w-3xl mb-10', alignment]}>
   {
     eyebrow && (
-      <p class="uppercase tracking-[0.3em] text-xs font-semibold text-brand-accent mb-3">
+      <p class="uppercase tracking-[0.2em] text-xs font-bold mb-3" style="color: var(--fg-strong);">
         {eyebrow}
       </p>
     )
   }
-  <h2 class="font-display text-3xl sm:text-4xl font-bold leading-tight">
+  <h2 class="font-display text-4xl sm:text-[42px] font-black leading-tight capitalize" style="color: var(--fg-strong);">
     {title}{' '}
-    {highlight && <span class="text-brand-red">{highlight}</span>}
+    {highlight && <span style="color: #dd0a37;">{highlight}</span>}
   </h2>
 </header>

@@ -1,57 +1,35 @@
 ---
 import { Image } from 'astro:assets';
-import logo from '@/assets/images/perujug/logo-grande.png';
+import logo from '@/assets/images/perujug/logo-2024.png';
 import { SITE, SOCIAL } from '@lib/site';
 import SocialIcon from '@components/SocialIcon.astro';
 
 const year = new Date().getFullYear();
 ---
 
-<footer
-  class="mt-24 border-t bg-[color:var(--bg-elevated)]"
-  style="border-color: var(--border-subtle);"
->
-  <div class="max-w-6xl mx-auto px-4 sm:px-6 py-12 grid gap-10 md:grid-cols-3">
-    <div class="flex flex-col gap-3">
-      <a href="/" class="flex items-center gap-2 font-display font-bold">
-        <Image src={logo} alt="" width={48} height={48} class="h-12 w-12" loading="lazy" />
-        <span class="text-xl">JConf <span class="text-brand-accent">Perú</span></span>
-      </a>
-      <p class="text-sm" style="color: var(--fg-muted);">
-        Organizado por <a class="underline hover-brand-red" href={SITE.organizationUrl}>{SITE.organization}</a>,
-        comunidad oficial de desarrolladores Java del Perú.
+<footer id="footer" class="py-14" style="background: var(--bg-base);">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 grid gap-10 md:grid-cols-3 items-center">
+    <div class="text-center md:text-left text-sm" style="color: var(--fg-base);">
+      <p>Copyright © {year} All rights reserved</p>
+      <p class="mt-4 text-xs">
+        This template is made with <i class="fa fa-heart-o" aria-hidden="true"></i> by
+        <a class="contact-link" href="https://colorlib.com" target="_blank" rel="noopener noreferrer">Colorlib</a>
       </p>
     </div>
 
-    <nav aria-label="Enlaces del sitio" class="text-sm">
-      <h2 class="font-semibold mb-3 text-base">Sitio</h2>
-      <ul class="grid grid-cols-2 gap-1.5">
-        <li><a class="hover-brand-red" href="/">Inicio</a></li>
-        <li><a class="hover-brand-red" href="/agenda">Agenda</a></li>
-        <li><a class="hover-brand-red" href="/speakers">Speakers</a></li>
-        <li><a class="hover-brand-red" href="/sponsors">Sponsors</a></li>
-        <li><a class="hover-brand-red" href="/organizadores">Organizadores</a></li>
-        <li><a class="hover-brand-red" href="/anteriores">Anteriores</a></li>
-        <li><a class="hover-brand-red" href="/contacto">Contacto</a></li>
-      </ul>
-    </nav>
-
-    <div>
-      <h2 class="font-semibold mb-3 text-base">Comunidad Peru JUG</h2>
-      <div class="flex flex-wrap gap-2">
-        <SocialIcon href={SOCIAL.facebook} name="Facebook" kind="facebook" />
-        <SocialIcon href={SOCIAL.twitter} name="Twitter / X" kind="twitter" />
-        <SocialIcon href={SOCIAL.linkedin} name="LinkedIn" kind="linkedin" />
-        <SocialIcon href={SOCIAL.whatsapp} name="WhatsApp" kind="whatsapp" />
-        <SocialIcon href={SOCIAL.meetup} name="Meetup" kind="meetup" />
-      </div>
+    <div class="flex flex-col items-center gap-3">
+      <a href="/" aria-label={`Inicio · ${SITE.name}`}>
+        <Image src={logo} alt="" width={180} height={180} class="h-32 w-auto" loading="lazy" />
+      </a>
+      <p class="font-bold" style="color: var(--fg-strong);">{SITE.organization}</p>
     </div>
-  </div>
 
-  <div
-    class="border-t text-center text-xs py-4"
-    style="border-color: var(--border-subtle); color: var(--fg-muted);"
-  >
-    Copyright © {year} {SITE.organization}. Todos los derechos reservados.
+    <div class="contact-social flex flex-wrap justify-center md:justify-end gap-4">
+      <SocialIcon href={SOCIAL.facebook} name="Facebook" kind="facebook" />
+      <SocialIcon href={SOCIAL.twitter} name="Twitter" kind="twitter" />
+      <SocialIcon href={SOCIAL.google} name="Google Group" kind="google" />
+      <SocialIcon href={SOCIAL.linkedin} name="LinkedIn" kind="linkedin" />
+      <SocialIcon href={SOCIAL.whatsapp} name="WhatsApp" kind="whatsapp" />
+    </div>
   </div>
 </footer>

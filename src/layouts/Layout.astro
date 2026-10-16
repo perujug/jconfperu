@@ -80,10 +80,8 @@ const allJsonLd = jsonLd
     <!-- Tipografía. Se precarga lo crítico y se descargan asíncronas las variantes. -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&family=JetBrains+Mono:wght@400;600&display=swap"
-    />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700;900&display=swap" />
+    <link rel="stylesheet" href="/css/font-awesome.min.css" />
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
@@ -117,9 +115,9 @@ const allJsonLd = jsonLd
       (function () {
         try {
           const stored = localStorage.getItem('jconf-theme');
-          const prefers = window.matchMedia('(prefers-color-scheme: dark)').matches;
-          const theme = stored ?? (prefers ? 'dark' : 'light');
-          document.documentElement.setAttribute('data-theme', theme);
+          if (stored === 'dark' || stored === 'light') {
+            document.documentElement.setAttribute('data-theme', stored);
+          }
         } catch (_) {
           /* noop */
         }

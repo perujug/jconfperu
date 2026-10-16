@@ -1,0 +1,163 @@
+---
+import { Image } from 'astro:assets';
+import galery01 from '@/assets/images/gallery/galery01.jpg';
+import galery02 from '@/assets/images/gallery/galery02.jpg';
+import galery03 from '@/assets/images/gallery/galery03.jpg';
+
+const slides = [
+  {
+    src: galery01,
+    alt: 'Conferencista en el escenario de JConf Perú frente al público',
+  },
+  {
+    src: galery02,
+    alt: 'Auditorio iluminado durante una edición de JConf Perú',
+  },
+  {
+    src: galery03,
+    alt: 'Sillas del auditorio listas para la conferencia',
+  },
+];
+---
+
+<div class="gallery" data-gallery>
+  <div class="gallery-stage">
+    {
+      slides.map((slide) => (
+        <figure class="gallery-slide" data-slide>
+          <Image
+            src={slide.src}
+            alt={slide.alt}
+            widths={[480, 800, 1200]}
+            sizes="(min-width: 1024px) 70vw, 90vw"
+            class="gallery-photo"
+          />
+        </figure>
+      ))
+    }
+  </div>
+  <button type="button" class="gallery-nav gallery-prev" data-prev aria-label="Foto anterior">
+    <i class="fa fa-angle-left" aria-hidden="true"></i>
+  </button>
+  <button type="button" class="gallery-nav gallery-next" data-next aria-label="Foto siguiente">
+    <i class="fa fa-angle-right" aria-hidden="true"></i>
+  </button>
+</div>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-gallery]').forEach((root) => {
+    const slides = [...root.querySelectorAll<HTMLElement>('[data-slide]')];
+    const prev = root.querySelector<HTMLButtonElement>('[data-prev]');
+    const next = root.querySelector<HTMLButtonElement>('[data-next]');
+    if (slides.length === 0 || !prev || !next) return;
+
+    let index = 0;
+
+    const render = () => {
+      const total = slides.length;
+      slides.forEach((slide, i) => {
+        let offset = (i - index + total) % total;
+        if (offset > total / 2) offset -= total;
+        slide.dataset.pos = String(Math.abs(offset) > 1 ? 2 : offset);
+      });
+    };
+
+    prev.addEventListener('click', () => {
+      index = (index - 1 + slides.length) % slides.length;
+      render();
+    });
+    next.addEventListener('click', () => {
+      index = (index + 1) % slides.length;
+      render();
+    });
+    render();
+  });
+</script>
+
+<style>
+  .gallery {
+    position: relative;
+    max-width: 1140px;
+    margin: 3.5rem auto 0;
+    padding: 0 1rem;
+  }
+
+  .gallery-stage {
+    position: relative;
+    height: clamp(220px, 46vw, 480px);
+    overflow: hidden;
+  }
+
+  .gallery-slide {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: min(72%, 820px);
+    height: 100%;
+    margin: 0;
+    opacity: 0;
+    z-index: 0;
+    transform: translateX(-50%) scale(0.9);
+    transition: transform 0.6s ease, opacity 0.6s ease;
+  }
+
+  .gallery-slide[data-pos='0'] {
+    opacity: 1;
+    z-index: 2;
+    transform: translateX(-50%) scale(1);
+  }
+
+  .gallery-slide[data-pos='-1'] {
+    opacity: 0.5;
+    z-index: 1;
+    transform: translateX(-118%) scale(0.9);
+    transform-origin: 100% 100%;
+  }
+
+  .gallery-slide[data-pos='1'] {
+    opacity: 0.5;
+    z-index: 1;
+    transform: translateX(18%) scale(0.9);
+    transform-origin: 0% 100%;
+  }
+
+  .gallery-photo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .gallery-nav {
+    position: absolute;
+    top: 50%;
+    z-index: 3;
+    transform: translateY(-50%);
+    width: 72px;
+    height: 72px;
+    border: 0;
+    background: transparent;
+    color: #dd0a37;
+    font-size: 48px;
+    line-height: 1;
+    cursor: pointer;
+  }
+
+  .gallery-prev {
+    left: 0.25rem;
+  }
+
+  .gallery-next {
+    right: 0.25rem;
+  }
+
+  @media (max-width: 640px) {
+    .gallery-slide[data-pos='-1'],
+    .gallery-slide[data-pos='1'] {
+      opacity: 0;
+    }
+
+    .gallery-slide[data-pos='0'] {
+      width: 100%;
+    }
+  }
+</style>

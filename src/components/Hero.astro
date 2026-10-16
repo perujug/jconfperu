@@ -9,91 +9,82 @@ interface Props {
 const { edition } = Astro.props;
 const { data } = edition;
 
-const dateLabel =
+const formattedDate =
   data.date != null
     ? new Intl.DateTimeFormat('es-PE', {
         weekday: 'long',
-        day: '2-digit',
+        day: 'numeric',
         month: 'long',
         year: 'numeric',
       }).format(data.date)
-    : (data.dateLabel ?? 'Fecha por anunciar');
+    : null;
+
+const dateLabel = formattedDate
+  ? data.dateLabel
+    ? `${formattedDate} · ${data.dateLabel}`
+    : formattedDate
+  : (data.dateLabel ?? 'Fecha por anunciar');
+
+const locationLabel = data.venue?.online
+  ? `Online · ${data.venue.country}`
+  : [data.venue?.address, data.venue?.name, data.venue?.city, data.venue?.country]
+      .filter(Boolean)
+      .join(' · ');
+
+const mapsHref = data.venue?.mapsQuery
+  ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(data.venue.mapsQuery)}`
+  : undefined;
 ---
 
-<section
-  class="relative overflow-hidden text-white bg-brand-gradient"
-  aria-labelledby="hero-title"
->
-  <div class="absolute inset-0 opacity-25 bg-andean-pattern" aria-hidden="true"></div>
-
-  <div class="relative max-w-5xl mx-auto px-4 sm:px-6 py-20 sm:py-28 grid gap-8 text-center">
-    <p class="uppercase tracking-[0.3em] text-xs sm:text-sm font-semibold opacity-90">
-      {data.status === 'upcoming' ? 'Próxima edición' : `Edición ${data.year}`}
-    </p>
-
+<section class="relative overflow-hidden text-white bg-starfield" aria-labelledby="hero-title">
+  <div class="relative max-w-4xl mx-auto px-4 sm:px-6 py-20 sm:py-28 grid gap-6 text-center justify-items-center">
     <h1
       id="hero-title"
-      class="font-display text-4xl sm:text-6xl lg:text-7xl font-extrabold leading-tight"
+      class="font-display text-4xl sm:text-6xl font-black uppercase tracking-wide leading-tight text-white"
     >
       {data.title}
     </h1>
 
-    <p class="text-lg sm:text-2xl max-w-2xl mx-auto opacity-95">
+    <p class="text-base sm:text-xl uppercase tracking-wide text-white">
       {data.tagline}
     </p>
 
-    <div class="flex flex-col items-center gap-2 mt-2">
-      <p class="text-base sm:text-lg font-medium capitalize">
-        <span aria-hidden="true">📅</span>&nbsp;{dateLabel}
-      </p>
-      {
-        data.venue?.name && (
-          <p class="text-sm opacity-90">
-            <span aria-hidden="true">📍</span>&nbsp;
-            {data.venue.online
-              ? `Online · ${data.venue.country}`
-              : (() => {
-                  const place = [data.venue.name, data.venue.address, data.venue.city, data.venue.country]
-                    .filter(Boolean)
-                    .join(', ');
-                  return data.venue.mapsQuery ? (
-                    <a
-                      class="underline decoration-white/60 hover:decoration-white"
-                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(data.venue.mapsQuery)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      {place}
-                    </a>
-                  ) : (
-                    place
-                  );
-                })()}
-          </p>
-        )
-      }
-    </div>
+    {
+      data.date && (
+        <p class="text-xl sm:text-3xl font-bold uppercase text-white">{dateLabel}</p>
+      )
+    }
 
-    <div class="mx-auto w-full max-w-2xl">
-      <Countdown target={data.date} placeholder={data.dateLabel ?? 'Fecha por anunciar'} />
-    </div>
+    <Countdown target={data.date} placeholder={data.date ? '¡Evento en curso!' : dateLabel} />
+
+    {
+      locationLabel && (
+        <div class="event-location-bar">
+          <i class="fa fa-map-marker" aria-hidden="true"></i>
+          {
+            mapsHref ? (
+              <a href={mapsHref} target="_blank" rel="noopener noreferrer">
+                {locationLabel}
+              </a>
+            ) : (
+              <span>{locationLabel}</span>
+            )
+          }
+        </div>
+      )
+    }
 
     {
       data.cta && (
-        <div class="mt-4">
+        <div class="mt-2">
           <a
             href={data.cta.href}
-            class:list={[
-              'inline-block px-8 py-3 rounded-full font-semibold transition shadow-lg',
-              data.cta.disabled
-                ? 'bg-white/40 cursor-not-allowed pointer-events-none'
-                : 'bg-white text-andes-slate hover:bg-coffee-cream-soft',
-            ]}
+            class:list={['main-btn', data.cta.disabled && 'is-disabled']}
             aria-disabled={data.cta.disabled ? 'true' : undefined}
           >
             {data.cta.label}
           </a>
-          {data.cta.note && <p class="text-xs opacity-80 mt-2">{data.cta.note}</p>}
+          {data.cta.note && <p class="text-sm text-white/80 mt-3">{data.cta.note}</p>}
         </div>
       )
     }

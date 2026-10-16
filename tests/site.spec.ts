@@ -8,6 +8,7 @@ const routes = [
   '/sponsors',
   '/organizadores',
   '/contacto',
+  '/payment-info',
   '/anteriores',
   '/anteriores/2025',
   '/anteriores/2024',
@@ -62,4 +63,26 @@ test('mobile navigation opens and exposes the primary links', async ({ page }, t
   await expect(toggle).toHaveAttribute('aria-expanded', 'true');
   await expect(menu).toBeVisible();
   await expect(menu.getByRole('link', { name: 'Agenda' })).toBeVisible();
+});
+
+test('home features JConf Perú 2026', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.getByRole('heading', { level: 1, name: 'JConf Perú 2026' })).toBeVisible();
+});
+
+test('anteriores menu archives the previous edition', async ({ page }, testInfo) => {
+  await page.goto('/');
+  const isMobile = testInfo.project.name === 'mobile-chromium';
+  if (isMobile) {
+    await page.getByRole('button', { name: 'Abrir menú' }).click();
+  }
+
+  const nav = page.getByRole('navigation', { name: isMobile ? 'Móvil' : 'Principal' });
+  await nav.getByRole('button', { name: 'Anteriores' }).click();
+  await expect(nav.getByRole('link', { name: '2025' })).toBeVisible();
+  await expect(nav.getByRole('link', { name: '2024' })).toBeVisible();
+
+  await nav.getByRole('link', { name: '2025' }).click();
+  await expect(page).toHaveURL(/\/anteriores\/2025$/);
+  await expect(page.getByRole('heading', { level: 1, name: 'JConf Perú 2025' })).toBeVisible();
 });
