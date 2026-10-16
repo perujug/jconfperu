@@ -1,0 +1,219 @@
+---
+import { Image } from 'astro:assets';
+import Layout from '@layouts/Layout.astro';
+import SectionTitle from '@components/SectionTitle.astro';
+import { SOCIAL } from '@lib/site';
+import logo from '@/assets/images/perujug/logo-2024.png';
+import yapeQr from '@/assets/images/payments/yape-qr-jconfperu2025.png';
+import interbankLogo from '@/assets/images/payments/Interbank_logo.png';
+import bcpLogo from '@/assets/images/payments/BCP_logo.png';
+
+const accountName = 'José Amadeo Martín Diaz Diaz';
+
+const individualTickets = [
+  {
+    name: 'Individual Early Bird',
+    price: 'S/ 80.00',
+    details: ['Hasta el 31/10/2026'],
+  },
+  {
+    name: 'Individual Regular',
+    price: 'S/ 120.00',
+    details: ['Del 01/11 al 28/11/2026'],
+  },
+];
+
+const groupTickets = [
+  {
+    name: 'Grupal Early Bird',
+    price: 'S/ 70.00',
+    details: ['Por persona (mínimo 5)', 'Hasta el 15/11/2026'],
+  },
+  {
+    name: 'Grupal Regular',
+    price: 'S/ 100.00',
+    details: ['Por persona (mínimo 5)', 'Del 16/11 al 28/11/2026'],
+  },
+];
+---
+
+<Layout
+  title="Información de pago"
+  description="Entradas de JConf Perú 2026: precios, instrucciones y métodos de pago."
+>
+  <section class="bg-starfield text-white">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 py-20 sm:py-24 text-center">
+      <h1 class="font-display text-4xl sm:text-6xl font-black uppercase tracking-wide leading-tight">
+        Entradas<br /><span class="pay-accent">JConf Perú 2026</span>
+      </h1>
+      <p class="mt-4 text-base sm:text-xl uppercase tracking-wide">
+        Selecciona el tipo de entrada que mejor se adapte a tus necesidades
+      </p>
+      <nav class="mt-8 flex flex-wrap justify-center gap-x-6 gap-y-3 text-sm font-bold uppercase tracking-wide" aria-label="Secciones de pago">
+        <a class="pay-nav" href="#instructions">Instrucciones</a>
+        <a class="pay-nav" href="#prices">Precios</a>
+        <a class="pay-nav" href="#payment-methods">Métodos de pago</a>
+        <a class="pay-nav" href="/">Información del evento</a>
+      </nav>
+    </div>
+  </section>
+
+  <section id="instructions" class="py-16">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6">
+      <SectionTitle title="Instrucciones" />
+      <div class="grid gap-10 md:grid-cols-[minmax(0,1fr)_220px] items-center">
+        <div class="text-base sm:text-lg leading-relaxed" style="color: var(--fg-base);">
+          <ol class="grid gap-5 list-decimal pl-6">
+            <li>
+              Elige tu <a class="pay-inline" href="#prices">entrada</a>.
+            </li>
+            <li>
+              Realiza el pago a través de tu <a class="pay-inline" href="#payment-methods">método de preferencia</a>.
+            </li>
+            <li>
+              Completa tu registro en
+              <a class="pay-inline" href={SOCIAL.meetup} target="_blank" rel="noopener noreferrer">
+                <strong>Meetup</strong>
+              </a>.
+            </li>
+            <li>
+              <p>Envía el comprobante de pago a:</p>
+              <ul class="mt-2 grid gap-1 list-disc pl-5">
+                <li>
+                  Jose Diaz:
+                  <a class="pay-inline" href="mailto:jose.diaz@joedayz.pe"><strong>jose.diaz@joedayz.pe</strong></a>
+                </li>
+                <li>
+                  Jhosep Luna:
+                  <a class="pay-inline" href="mailto:jhosep.dario@gmail.com"><strong>jhosep.dario@gmail.com</strong></a>
+                </li>
+              </ul>
+              <p class="mt-3">Incluye en el correo:</p>
+              <ul class="mt-2 grid gap-1 list-disc pl-5">
+                <li><strong>Asunto:</strong> Comprobante de pago JConf Peru 2026</li>
+                <li><strong>Mensaje:</strong> Tu nombre completo y usuario de Meetup</li>
+              </ul>
+            </li>
+            <li>Recibirás la confirmación por Meetup y tu asistencia será marcada como "Pagado".</li>
+          </ol>
+          <p class="mt-8">
+            <strong>Nota:</strong> Los registros sin comprobante de pago serán marcados como "No irá" y se liberará el cupo.
+          </p>
+        </div>
+        <div class="flex justify-center">
+          <Image src={logo} alt="Peru JUG" width={220} height={220} class="h-44 w-auto" />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="prices" class="border-t py-16" style="border-color: var(--border-subtle);">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6">
+      <SectionTitle title="Entradas" highlight="individuales" />
+      <div class="grid gap-6 md:grid-cols-2">
+        {
+          individualTickets.map((ticket) => (
+            <article class="pay-card text-center">
+              <h3 class="font-display text-2xl font-bold">{ticket.name}</h3>
+              <p class="pay-price">{ticket.price}</p>
+              {ticket.details.map((line) => (
+                <p style="color: var(--fg-base);">{line}</p>
+              ))}
+              <a class="main-btn mt-6" href="#payment-methods">Pagar</a>
+            </article>
+          ))
+        }
+      </div>
+
+      <div class="mt-16">
+        <SectionTitle title="Entradas" highlight="grupales" />
+        <p class="text-center text-lg mb-10" style="color: var(--fg-base);">
+          Para grupos de 5 o más personas
+        </p>
+        <div class="grid gap-6 md:grid-cols-2">
+          {
+            groupTickets.map((ticket) => (
+              <article class="pay-card text-center">
+                <h3 class="font-display text-2xl font-bold">{ticket.name}</h3>
+                <p class="pay-price">{ticket.price}</p>
+                {ticket.details.map((line) => (
+                  <p style="color: var(--fg-base);">{line}</p>
+                ))}
+                <a class="main-btn mt-6" href="#payment-methods">Pagar</a>
+              </article>
+            ))
+          }
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="payment-methods" class="border-t py-16" style="border-color: var(--border-subtle);">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6">
+      <SectionTitle title="Métodos de" highlight="pago" />
+      <p class="text-center text-lg mb-10" style="color: var(--fg-base);">
+        Elige el método de pago de tu preferencia
+      </p>
+      <div class="grid gap-6 md:grid-cols-3">
+        <article class="pay-card text-center">
+          <Image src={yapeQr} alt="Código QR de Yape" width={220} height={220} class="mx-auto h-52 w-auto" />
+          <h3 class="font-display text-xl font-bold mt-4">Yape</h3>
+          <p class="mt-2" style="color: var(--fg-base);"><strong>Nombre:</strong> {accountName}</p>
+        </article>
+        <article class="pay-card text-center">
+          <Image src={interbankLogo} alt="Interbank" width={220} height={80} class="mx-auto h-16 w-auto object-contain" />
+          <h3 class="font-display text-xl font-bold mt-4">Transferencia bancaria</h3>
+          <p class="mt-2" style="color: var(--fg-base);"><strong>Cuenta:</strong> 2003116727850</p>
+          <p style="color: var(--fg-base);"><strong>CCI:</strong> 00320001311672785039</p>
+          <p style="color: var(--fg-base);"><strong>Nombre:</strong> {accountName}</p>
+        </article>
+        <article class="pay-card text-center">
+          <Image src={bcpLogo} alt="BCP" width={220} height={80} class="mx-auto h-16 w-auto object-contain" />
+          <h3 class="font-display text-xl font-bold mt-4">Transferencia bancaria</h3>
+          <p class="mt-2" style="color: var(--fg-base);"><strong>Cuenta:</strong> 19130759925029</p>
+          <p style="color: var(--fg-base);"><strong>CCI:</strong> 00219113075992502955</p>
+          <p style="color: var(--fg-base);"><strong>Nombre:</strong> {accountName}</p>
+        </article>
+      </div>
+    </div>
+  </section>
+</Layout>
+
+<style>
+  .pay-accent {
+    color: #dd0a37;
+  }
+
+  .pay-nav {
+    color: #fff;
+  }
+
+  .pay-nav:hover {
+    color: #dd0a37;
+  }
+
+  .pay-inline {
+    color: #dd0a37;
+    font-weight: 700;
+  }
+
+  .pay-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100%;
+    padding: 2rem 1.5rem;
+    border: 1px solid var(--border-subtle);
+    border-radius: 8px;
+    background: var(--bg-base);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  }
+
+  .pay-price {
+    margin: 1rem 0 0.5rem;
+    color: #dd0a37;
+    font-size: 2.5rem;
+    font-weight: 700;
+    line-height: 1.1;
+  }
+</style>

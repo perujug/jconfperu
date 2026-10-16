@@ -1,16 +1,24 @@
 ---
 import { Image } from 'astro:assets';
-import logo from '@/assets/images/perujug/logo.png';
+import logo from '@/assets/images/perujug/logo-2024.png';
 import { NAV_ITEMS, SITE } from '@lib/site';
+import { getPastEditions } from '@lib/editions';
 import ThemeToggle from '@components/ThemeToggle.astro';
 
+const pastEditions = await getPastEditions();
 const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
+
+function isActive(href: string) {
+  const path = href.split('#')[0] || '/';
+  if (path === '/') return false;
+  return currentPath === path || currentPath.startsWith(`${path}/`);
+}
+
+const linkClass =
+  'px-2 py-1.5 text-[11px] lg:text-sm font-bold uppercase tracking-wide text-white whitespace-nowrap transition-colors inline-flex items-center gap-1 hover:text-[#dd0a37]';
 ---
 
-<header
-  class="sticky top-0 z-40 backdrop-blur bg-[color:var(--bg-base)]/85 border-b"
-  style="border-color: var(--border-subtle);"
->
+<header class="site-header sticky top-0 z-40 text-white bg-starfield border-b border-white/20">
   <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-4">
     <a href="/" class="flex items-center gap-2 font-display font-bold tracking-tight" aria-label={`Inicio · ${SITE.name}`}>
       <Image
@@ -22,26 +30,74 @@ const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
         decoding="async"
         class="h-9 w-9"
       />
-      <span class="text-lg sm:text-xl">JConf <span class="text-brand-accent">Perú</span></span>
     </a>
 
-    <nav aria-label="Principal" class="hidden md:flex items-center gap-1">
+    <nav aria-label="Principal" class="hidden lg:flex items-center gap-0.5">
       {
         NAV_ITEMS.map((item) => {
-          const isActive =
-            item.href === '/'
-              ? currentPath === '/'
-              : currentPath === item.href || currentPath.startsWith(item.href + '/');
+          if (item.href === '/anteriores') {
+            return (
+              <div class="relative" data-dropdown>
+                <button
+                  type="button"
+                  data-dropdown-toggle
+                  aria-expanded="false"
+                  aria-haspopup="true"
+                  aria-controls="anteriores-menu"
+                  class:list={[linkClass, isActive(item.href) && 'text-[#dd0a37]']}
+                >
+                  {item.label}
+                  <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" class="h-3.5 w-3.5" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m5 7.5 5 5 5-5" />
+                  </svg>
+                </button>
+                <div
+                  id="anteriores-menu"
+                  data-dropdown-panel
+                  hidden
+                  class="absolute left-0 top-full z-50 mt-2 min-w-40 rounded-xl border border-white/30 bg-black/90 p-2 shadow-lg"
+                >
+                  <ul class="grid" aria-label="Ediciones anteriores">
+                    {
+                      pastEditions.map((edition) => {
+                        const href = `/anteriores/${edition.data.year}`;
+                        const active = currentPath === href;
+                        return (
+                          <li>
+                            <a
+                              href={href}
+                              aria-current={active ? 'page' : undefined}
+                              class:list={[
+                                'block rounded-lg px-4 py-3 text-sm font-semibold text-white hover:text-[#dd0a37]',
+                                active && 'text-[#dd0a37]',
+                              ]}
+                            >
+                              {edition.data.year}
+                            </a>
+                          </li>
+                        );
+                      })
+                    }
+                    <li class="mt-1 border-t border-white/20 pt-1">
+                      <a
+                        href="/anteriores"
+                        class="block rounded-lg px-4 py-2 text-xs font-medium text-white/70 hover:text-[#dd0a37]"
+                      >
+                        Ver todas
+                      </a>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            );
+          }
+
+          const active = isActive(item.href);
           return (
             <a
               href={item.href}
-              class:list={[
-                'px-3 py-1.5 rounded-md text-sm font-medium transition-colors',
-                isActive
-                  ? 'text-white bg-peru-red'
-                  : 'hover:bg-coffee-cream-soft dark:hover:bg-andes-slate-soft',
-              ]}
-              aria-current={isActive ? 'page' : undefined}
+              class:list={[linkClass, active && 'text-[#dd0a37]']}
+              aria-current={active ? 'page' : undefined}
             >
               {item.label}
             </a>
@@ -57,12 +113,10 @@ const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
         id="mobile-menu-toggle"
         aria-controls="mobile-menu"
         aria-expanded="false"
-        class="md:hidden inline-flex items-center justify-center h-9 w-9 rounded-md hover:bg-coffee-cream-soft dark:hover:bg-andes-slate-soft"
+        class="lg:hidden inline-flex items-center justify-center h-9 w-9 text-white"
       >
         <span class="sr-only">Abrir menú</span>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-5 w-5" aria-hidden="true">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-        </svg>
+        <i class="fa fa-bars text-lg" aria-hidden="true"></i>
       </button>
     </div>
   </div>
@@ -70,33 +124,124 @@ const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
   <nav
     id="mobile-menu"
     aria-label="Móvil"
-    class="md:hidden hidden border-t"
-    style="border-color: var(--border-subtle);"
+    class="lg:hidden hidden border-t border-white/15 bg-white text-[#0b0f28]"
   >
     <ul class="px-4 py-3 flex flex-col gap-1">
       {
-        NAV_ITEMS.map((item) => (
-          <li>
-            <a
-              href={item.href}
-              class="block px-3 py-2 rounded-md text-sm font-medium hover:bg-coffee-cream-soft dark:hover:bg-andes-slate-soft"
-            >
-              {item.label}
-            </a>
-          </li>
-        ))
+        NAV_ITEMS.map((item) => {
+          if (item.href === '/anteriores') {
+            return (
+              <li data-dropdown>
+                <button
+                  type="button"
+                  data-dropdown-toggle
+                  aria-expanded="false"
+                  aria-haspopup="true"
+                  aria-controls="anteriores-menu-mobile"
+                  class:list={[
+                    'w-full px-3 py-2 text-sm font-bold uppercase inline-flex items-center justify-between text-[#0b0f28] hover:text-[#dd0a37]',
+                    isActive(item.href) && 'text-[#dd0a37]',
+                  ]}
+                >
+                  {item.label}
+                  <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" class="h-3.5 w-3.5" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m5 7.5 5 5 5-5" />
+                  </svg>
+                </button>
+                <div id="anteriores-menu-mobile" data-dropdown-panel hidden>
+                  <ul
+                    class="mt-1 ml-3 grid gap-1 border-l pl-2"
+                    style="border-color: var(--border-subtle);"
+                    aria-label="Ediciones anteriores"
+                  >
+                    {
+                      pastEditions.map((edition) => {
+                        const href = `/anteriores/${edition.data.year}`;
+                        const active = currentPath === href;
+                        return (
+                          <li>
+                            <a
+                              href={href}
+                              aria-current={active ? 'page' : undefined}
+                              class:list={[
+                                'block px-3 py-2 text-sm font-semibold text-[#0b0f28] hover:text-[#dd0a37]',
+                                active && 'text-[#dd0a37]',
+                              ]}
+                            >
+                              {edition.data.year}
+                            </a>
+                          </li>
+                        );
+                      })
+                    }
+                    <li>
+                      <a
+                        href="/anteriores"
+                        class="block px-3 py-2 text-sm text-[#444] hover:text-[#dd0a37]"
+                      >
+                        Ver todas
+                      </a>
+                    </li>
+                  </ul>
+                </div>
+              </li>
+            );
+          }
+
+          return (
+            <li>
+              <a
+                href={item.href}
+                class="block px-3 py-2 text-sm font-bold uppercase text-[#0b0f28] hover:text-[#dd0a37]"
+              >
+                {item.label}
+              </a>
+            </li>
+          );
+        })
       }
     </ul>
   </nav>
 </header>
 
 <script>
-  const btn = document.getElementById('mobile-menu-toggle');
-  const menu = document.getElementById('mobile-menu');
-  if (btn && menu) {
-    btn.addEventListener('click', () => {
-      const open = menu.classList.toggle('hidden') === false;
-      btn.setAttribute('aria-expanded', String(open));
+  const mobileToggle = document.getElementById('mobile-menu-toggle');
+  const mobileMenu = document.getElementById('mobile-menu');
+  if (mobileToggle && mobileMenu) {
+    mobileToggle.addEventListener('click', () => {
+      const open = mobileMenu.classList.toggle('hidden') === false;
+      mobileToggle.setAttribute('aria-expanded', String(open));
     });
   }
+
+  function setDropdownOpen(root: HTMLElement, open: boolean) {
+    const toggle = root.querySelector('[data-dropdown-toggle]');
+    const panel = root.querySelector('[data-dropdown-panel]');
+    if (toggle instanceof HTMLButtonElement) toggle.setAttribute('aria-expanded', String(open));
+    if (panel instanceof HTMLElement) panel.hidden = !open;
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-dropdown]').forEach((root) => {
+    const toggle = root.querySelector('[data-dropdown-toggle]');
+    if (!(toggle instanceof HTMLButtonElement)) return;
+
+    toggle.addEventListener('click', () => {
+      const open = toggle.getAttribute('aria-expanded') === 'true';
+      setDropdownOpen(root, !open);
+    });
+
+    root.addEventListener('keydown', (event) => {
+      if (event.key !== 'Escape') return;
+      setDropdownOpen(root, false);
+      toggle.focus();
+    });
+  });
+
+  document.addEventListener('click', (event) => {
+    const target = event.target;
+    if (!(target instanceof Node)) return;
+    document.querySelectorAll<HTMLElement>('[data-dropdown]').forEach((root) => {
+      if (!root.contains(target)) setDropdownOpen(root, false);
+    });
+  });
 </script>

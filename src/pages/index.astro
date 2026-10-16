@@ -5,12 +5,13 @@ import StatsBar from '@components/StatsBar.astro';
 import SectionTitle from '@components/SectionTitle.astro';
 import OrganizerCard from '@components/OrganizerCard.astro';
 import SponsorTier from '@components/SponsorTier.astro';
-import EditionCard from '@components/EditionCard.astro';
-import { getCollection, render } from 'astro:content';
-import { getFeaturedEdition, getPastEditions } from '@lib/editions';
+import SponsorPackages from '@components/SponsorPackages.astro';
+import GalleryCarousel from '@components/GalleryCarousel.astro';
+import { getCollection } from 'astro:content';
+import { getFeaturedEdition } from '@lib/editions';
+import { CONTACT_EMAILS, SITE, SOCIAL } from '@lib/site';
 
 const edition = await getFeaturedEdition();
-const { Content: BodyContent } = await render(edition);
 
 const allOrganizers = await getCollection('organizers');
 const organizersForEdition = allOrganizers
@@ -25,7 +26,28 @@ const platinum = sponsorsForEdition.filter((s) => s.data.tier === 'platinum');
 const gold = sponsorsForEdition.filter((s) => s.data.tier === 'gold');
 const silver = sponsorsForEdition.filter((s) => s.data.tier === 'silver');
 
-const pastEditions = (await getPastEditions()).slice(0, 3);
+const addressParts = (edition.data.venue.address ?? '').split(',').map((part) => part.trim());
+const street = addressParts[0];
+const district = addressParts.slice(1).join(', ');
+const directionLine = [
+  street,
+  edition.data.venue.name,
+  district
+    ? `${district}, ${edition.data.venue.city}-${edition.data.venue.country}.`
+    : `${edition.data.venue.city}-${edition.data.venue.country}.`,
+]
+  .filter(Boolean)
+  .join(' · ');
+
+const aboutDate =
+  edition.data.date != null
+    ? new Intl.DateTimeFormat('es-PE', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+      }).format(edition.data.date)
+    : (edition.data.dateLabel ?? 'fecha por anunciar');
 
 // JSON-LD del evento.
 const eventJsonLd = {
@@ -71,12 +93,20 @@ const eventJsonLd = {
 >
   <Hero edition={edition} />
 
-  <section class="max-w-5xl mx-auto px-4 sm:px-6 py-16">
-    <SectionTitle eyebrow="Sobre el evento" title="Acerca de" highlight="JConf Perú" />
-    <div class="prose-content text-base sm:text-lg leading-relaxed max-w-3xl mx-auto" style="color: var(--fg-base);">
-      <BodyContent />
+  <section id="about" class="py-16">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6">
+      <SectionTitle title="Acerca de" highlight="JCONF" />
+      <p class="text-center max-w-3xl mx-auto text-base sm:text-lg leading-relaxed" style="color: var(--fg-base);">
+        <strong>{edition.data.title}</strong> será un Full Day presencial el <strong>{aboutDate}</strong>{edition.data.dateLabel && <>, de <strong>{edition.data.dateLabel}</strong></>}.
+        Busca conectar a desarrolladores y empresas interesadas en las tecnologías alrededor de Java.
+        Contaremos con <strong>expositores de diferentes partes del mundo</strong> que compartirán con nosotros
+        los paradigmas y tecnologías que actualmente están marcando la pauta en el mercado y lo que se viene a
+        futuro con respecto a Java, Jakarta EE, Spring, GraalVM, Microprofile, Cloud Computing, arquitecturas
+        nativas en la nube, Contenedores, DevOps, Inteligencia Artificial, etc.
+      </p>
+      <StatsBar stats={edition.data.stats} />
     </div>
-    <StatsBar stats={edition.data.stats} />
+    <GalleryCarousel />
   </section>
 
   {
@@ -130,61 +160,69 @@ const eventJsonLd = {
 
   <section
     id="sponsors"
-    class="border-t bg-[color:var(--bg-elevated)] py-16"
+    class="border-t py-16"
     style="border-color: var(--border-subtle);"
   >
     <div class="max-w-6xl mx-auto px-4 sm:px-6">
-      <SectionTitle eyebrow="Patrocinadores" title="Nuestros" highlight="sponsors" />
+      <SectionTitle title="Se" highlight="Sponsor" />
+      <SponsorPackages />
       {
-        sponsorsForEdition.length === 0 ? (
-          <div class="text-center max-w-xl mx-auto">
-            <p class="text-lg font-semibold">¿Quieres ser sponsor?</p>
-            <p class="mt-3" style="color: var(--fg-muted);">
-              Contáctanos y te enviamos los paquetes Platinum, Gold y Silver con beneficios para tu marca.
-            </p>
-            <a
-              href="mailto:jose.diaz@joedayz.pe?subject=Sponsor%20JConf%20Per%C3%BA"
-              class="inline-block mt-5 px-6 py-3 rounded-full bg-peru-red text-white font-semibold hover:bg-peru-red-dark transition"
-            >
-              Contáctanos
-            </a>
-          </div>
-        ) : (
-          <div class="grid gap-10">
+        sponsorsForEdition.length > 0 && (
+          <div class="grid gap-10 mt-16">
             <SponsorTier tier="platinum" sponsors={platinum} />
             <SponsorTier tier="gold" sponsors={gold} />
             <SponsorTier tier="silver" sponsors={silver} />
-            <p class="text-center text-sm" style="color: var(--fg-muted);">
-              ¿Quieres unirte? Escríbenos a{' '}
-              <a class="underline text-brand-red" href="mailto:jose.diaz@joedayz.pe">
-                jose.diaz@joedayz.pe
-              </a>
-              .
-            </p>
           </div>
         )
       }
     </div>
   </section>
 
-  {
-    pastEditions.length > 0 && (
-      <section
-        class="border-t py-16 max-w-6xl mx-auto px-4 sm:px-6"
-        style="border-color: var(--border-subtle);"
-      >
-        <SectionTitle eyebrow="Archivo" title="Ediciones" highlight="anteriores" />
-        <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {pastEditions.map((e) => (
-            <EditionCard edition={e} />
-          ))}
+  <section id="contact" class="border-t py-16" style="border-color: var(--border-subtle);">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6">
+      <SectionTitle title="Informacion de" highlight="Contacto" />
+      <div class="grid gap-12 sm:grid-cols-3 text-center">
+        <div>
+          <h3 class="contact-heading text-xl">Dirección</h3>
+          <p style="color: var(--fg-base);">{directionLine}</p>
         </div>
-        <div class="text-center mt-8">
-          <a class="underline text-brand-red" href="/anteriores">
-            Ver todas las ediciones →
-          </a>
+        <div class="grid gap-10 content-start">
+          <div>
+            <h3 class="contact-heading text-xl">Website</h3>
+            <a class="contact-link" href={SITE.organizationUrl} target="_blank" rel="noopener noreferrer">
+              PeruJUG website
+            </a>
+          </div>
+          <div>
+            <h3 class="contact-heading text-xl">MeetUp</h3>
+            <a class="contact-link" href={SOCIAL.meetup} target="_blank" rel="noopener noreferrer">
+              PeruJUG meetup
+            </a>
+          </div>
         </div>
-      </section>
-    )
-  }
+        <div class="grid gap-10 content-start">
+          <div>
+            <h3 class="contact-heading text-xl">Whatsapp</h3>
+            <a class="contact-link" href={SOCIAL.whatsapp} target="_blank" rel="noopener noreferrer">
+              PeruJUG Whatsapp
+            </a>
+          </div>
+          <div>
+            <h3 class="contact-heading text-xl">Contacto para Sponsor</h3>
+            <ul class="grid gap-1">
+              {
+                CONTACT_EMAILS.map((contact) => (
+                  <li>
+                    <a class="contact-link" href={`mailto:${contact.email}`}>
+                      {contact.name}
+                    </a>
+                  </li>
+                ))
+              }
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
 </Layout>

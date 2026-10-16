@@ -10,11 +10,11 @@ const { target, placeholder = 'Fecha por anunciar' } = Astro.props;
 const targetIso = target ? target.toISOString() : '';
 ---
 
-<div class="grid gap-3" data-countdown-target={targetIso} data-countdown-placeholder={placeholder}>
+<div data-countdown-target={targetIso} data-countdown-placeholder={placeholder}>
   {
     targetIso ? (
       <div
-        class="grid grid-cols-4 gap-2 sm:gap-4 text-center"
+        class="grid grid-cols-4 gap-3 sm:gap-4 text-center"
         role="timer"
         aria-live="polite"
         aria-label="Cuenta regresiva al evento"
@@ -22,29 +22,19 @@ const targetIso = target ? target.toISOString() : '';
         {[
           ['days', 'días'],
           ['hours', 'horas'],
-          ['minutes', 'min'],
-          ['seconds', 'seg'],
+          ['minutes', 'minutos'],
+          ['seconds', 'segundos'],
         ].map(([id, label]) => (
-          <div class="rounded-2xl px-2 py-3 sm:px-3 sm:py-4 bg-[color:var(--bg-elevated)] shadow-sm border" style="border-color: var(--border-subtle);">
-            <div
-              data-countdown-unit={id}
-              class="text-3xl sm:text-5xl font-display font-bold tabular-nums text-brand-accent"
-            >
+          <div class="min-w-16 rounded-lg border border-white/25 bg-white/10 px-2 py-3 sm:px-4 sm:py-4">
+            <div data-countdown-unit={id} class="text-3xl sm:text-5xl font-display font-bold tabular-nums text-white">
               --
             </div>
-            <div class="text-xs sm:text-sm uppercase tracking-wide" style="color: var(--fg-muted);">
-              {label}
-            </div>
+            <div class="text-xs sm:text-sm uppercase tracking-wide text-white">{label}</div>
           </div>
         ))}
       </div>
     ) : (
-      <p
-        class="inline-block self-start px-4 py-2 rounded-full text-sm font-medium border"
-        style="border-color: var(--border-subtle); color: var(--fg-muted);"
-      >
-        {placeholder}
-      </p>
+      <p class="event-status">{placeholder}</p>
     )
   }
 </div>

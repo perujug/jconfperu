@@ -28,11 +28,11 @@ export const CONTACT_EMAILS = [
 ];
 
 export const NAV_ITEMS = [
-  { href: '/', label: 'Inicio' },
+  { href: '/#about', label: 'Acerca de' },
   { href: '/agenda', label: 'Agenda' },
-  { href: '/speakers', label: 'Speakers' },
-  { href: '/sponsors', label: 'Sponsors' },
   { href: '/organizadores', label: 'Organizadores' },
+  { href: '/speakers', label: 'Conferencistas' },
   { href: '/anteriores', label: 'Anteriores' },
+  { href: '/sponsors', label: 'Sponsors' },
   { href: '/contacto', label: 'Contacto' },
 ] as const;

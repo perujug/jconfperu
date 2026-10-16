@@ -13,23 +13,30 @@ const items = [
   { value: stats?.hours, label: 'Horas' },
   { value: stats?.sessions, label: 'Sesiones' },
   { value: stats?.countries, label: 'Países' },
-  { value: stats?.speakers, label: 'Speakers' },
-].filter((i) => typeof i.value === 'number');
+  { value: stats?.speakers, label: 'Conferencistas' },
+].filter((item) => typeof item.value === 'number' && item.value > 0);
 ---
 
 {
   items.length > 0 && (
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 my-10">
-      {items.map((i) => (
-        <div
-          class="text-center rounded-card border py-6 bg-[color:var(--bg-elevated)]"
-          style="border-color: var(--border-subtle);"
-        >
-          <p class="font-display text-3xl sm:text-4xl font-extrabold text-brand-accent">
-            {i.value}+
+    <div
+      id="numbers"
+      class:list={[
+        'grid gap-6 mt-14 mb-4 text-center',
+        items.length >= 4
+          ? 'grid-cols-2 sm:grid-cols-4'
+          : items.length === 1
+            ? 'grid-cols-1 max-w-xs mx-auto'
+            : 'grid-cols-2',
+      ]}
+    >
+      {items.map((item) => (
+        <div>
+          <p class="font-display text-5xl font-bold leading-none" style="color: #dd0a37;">
+            {item.value}+
           </p>
-          <p class="uppercase tracking-wide text-xs mt-1" style="color: var(--fg-muted);">
-            {i.label}
+          <p class="mt-2 uppercase tracking-wide text-sm" style="color: var(--fg-strong);">
+            {item.label}
           </p>
         </div>
       ))}

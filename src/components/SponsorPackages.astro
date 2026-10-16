@@ -1,0 +1,37 @@
+---
+const tiers = [
+  {
+    name: 'Platinum',
+    className: 'tier-platinum',
+    blurb:
+      'Un paquete exclusivo. Ofrece branding y logo en el sitio web, redes sociales, banners y en la presentación de los speakers. Además de un stand en el evento y contacto directo con nuestros speakers internacionales y mucho más.',
+  },
+  {
+    name: 'Gold',
+    className: 'tier-gold',
+    blurb:
+      'Ofrece branding y logo en redes sociales, banners publicitarios y mención de agradecimiento presencial en el evento. Además de un stand pequeño en el evento y reel entre pausas.',
+  },
+  {
+    name: 'Silver',
+    className: 'tier-silver',
+    blurb: 'Ofrece branding y logo en redes sociales y banners publicitarios en el evento.',
+  },
+];
+---
+
+<div class="grid gap-12 md:grid-cols-3 text-center">
+  {
+    tiers.map((tier) => (
+      <article class="flex flex-col items-center h-full px-4">
+        <h3 class:list={['font-display text-2xl font-bold', tier.className]}>{tier.name}</h3>
+        <p class="mt-4 flex-1 max-w-sm leading-relaxed" style="color: var(--fg-base);">
+          {tier.blurb}
+        </p>
+        <a class="main-btn mt-8" href="mailto:jose.diaz@joedayz.pe">
+          Contacto
+        </a>
+      </article>
+    ))
+  }
+</div>
