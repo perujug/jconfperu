@@ -47,6 +47,6 @@
   "devDependencies": {
     "@axe-core/playwright": "4.13.0",
     "@playwright/test": "1.63.0",
-    "sharp": "0.35.4"
+    "sharp": "0.35.5"
   }
 }
