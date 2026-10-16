@@ -6,7 +6,7 @@ arquitecturas nativas en la nube y temas afines.
 
 - 🌐 Producción: <https://jconfperu.com>
 - 🛠️ Stack: [Astro 7](https://astro.build) + [Tailwind CSS 4](https://tailwindcss.com) + Content Collections + TypeScript estricto
-- 🚀 Deploy: Vercel (Git Integration — preview deploys automáticos por PR)
+- 🚀 Deploy: Vercel, publicado por GitHub Actions al hacer push a `master`
 
 ---
 
@@ -251,14 +251,15 @@ npx playwright install chromium
 
 ## 🚢 Despliegue
 
-El sitio se despliega mediante la **Git Integration nativa de Vercel**:
+GitHub Actions publica el sitio en Vercel cuando el job de CI termina en verde:
 
-- **Producción**: cada merge a `master` despliega a <https://jconfperu.com>.
-- **Preview**: cada Pull Request debe recibir una URL `*.vercel.app`.
-- **Build**: Vercel instala con `npm ci` y publica `dist/`.
+- **Producción**: cada push a `master` despliega a <https://jconfperu.com>.
+- **Preview**: cada Pull Request abierto desde este repositorio recibe una URL `*.vercel.app`.
+- **Build**: la acción ejecuta `npm ci` y `npm run build`, y Vercel publica `dist/` según `vercel.json`.
 
-GitHub Actions no despliega. Ejecuta auditoría, typecheck, build, validación del
-sitio generado, pruebas de navegador y accesibilidad.
+Los secrets del repositorio son `VERCEL_TOKEN`, `VERCEL_ORG_ID` y `VERCEL_PROJECT_ID`.
+El job de CI sigue ejecutando auditoría, typecheck, build, validación del sitio
+generado, pruebas de navegador y accesibilidad antes de desplegar.
 
 ### Gate de aprobación
 

@@ -1,5 +1,5 @@
 # CI valida dependencias, contenido, build estático, enlaces y accesibilidad.
-# Vercel Git Integration gestiona previews y producción; no se usan tokens aquí.
+# Si ese job pasa, Vercel CLI publica producción (push a master) o un preview (PR).
 name: CI
 
 on:
@@ -14,7 +14,8 @@ permissions:
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  # Un push nuevo a master no debe cancelar el deploy que ya está publicando.
+  cancel-in-progress: ${{ github.event_name != 'push' }}
 
 jobs:
   build:
@@ -58,3 +59,51 @@ jobs:
           name: dist
           path: dist
           retention-days: 7
+
+  deploy:
+    name: Deploy to Vercel
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    # Los PRs de forks no tienen secrets. workflow_dispatch solo ejecuta CI.
+    if: |
+      (github.event_name == 'push' && github.ref == 'refs/heads/master') ||
+      (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository)
+    concurrency:
+      group: vercel-${{ github.event_name }}-${{ github.ref }}
+      cancel-in-progress: true
+    env:
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+
+      - name: Pull Vercel project settings
+        run: vercel pull --yes --environment=${{ github.event_name == 'push' && 'production' || 'preview' }}
+
+      - name: Build production bundle
+        if: github.event_name == 'push'
+        run: vercel build --prod
+
+      - name: Build preview bundle
+        if: github.event_name == 'pull_request'
+        run: vercel build
+
+      - name: Deploy production to Vercel
+        if: github.event_name == 'push'
+        run: vercel deploy --prebuilt --prod
+
+      - name: Deploy preview to Vercel
+        if: github.event_name == 'pull_request'
+        run: vercel deploy --prebuilt
