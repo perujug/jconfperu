@@ -1,0 +1,38 @@
+---
+interface Props {
+  href: string;
+  closes: Date;
+  editionTitle: string;
+}
+
+const { href, closes, editionTitle } = Astro.props;
+
+const deadlineDate = new Intl.DateTimeFormat('es-PE', {
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric',
+  timeZone: 'America/Lima',
+}).format(closes);
+
+const deadlineTime = new Intl.DateTimeFormat('es-PE', {
+  hour: '2-digit',
+  minute: '2-digit',
+  hourCycle: 'h23',
+  timeZone: 'America/Lima',
+}).format(closes);
+---
+
+<div class="text-center max-w-xl mx-auto">
+  <p class="text-lg" style="color: var(--fg-muted);">
+    <span class="text-2xl" aria-hidden="true">🎤</span>{' '}
+    <strong>Speakers por anunciar.</strong>
+  </p>
+  <p class="mt-3" style="color: var(--fg-muted);">
+    Estamos preparando un line-up internacional. Si quieres exponer en {editionTitle}, envía tu
+    charla en el{' '}
+    <a class="underline text-brand-red" href={href} target="_blank" rel="noopener noreferrer">
+      Call for Papers
+    </a>
+    . La fecha límite es el <strong>{deadlineDate}</strong>, a las {deadlineTime} (hora de Lima).
+  </p>
+</div>

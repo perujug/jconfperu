@@ -5,6 +5,7 @@ import SpeakerCard from '@components/SpeakerCard.astro';
 import { getCollection } from 'astro:content';
 import { getFeaturedEdition } from '@lib/editions';
 import { fetchSpeakers } from '@lib/sessionize';
+import CallForPapers from '@components/CallForPapers.astro';
 
 const edition = await getFeaturedEdition();
 
@@ -77,10 +78,16 @@ const localSpeakers = allLocalSpeakers.filter((s) =>
             </li>
           ))}
         </ul>
+      ) : edition.data.cfp ? (
+        <CallForPapers
+          href={edition.data.cfp.href}
+          closes={edition.data.cfp.closes}
+          editionTitle={edition.data.title}
+        />
       ) : (
         <div class="text-center max-w-xl mx-auto">
           <p class="text-lg" style="color: var(--fg-muted);">
-            <span class="text-2xl">🎤</span>{' '}
+            <span class="text-2xl" aria-hidden="true">🎤</span>{' '}
             <strong>Speakers por anunciar.</strong>
           </p>
           <p class="mt-3" style="color: var(--fg-muted);">
