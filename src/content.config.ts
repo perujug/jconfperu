@@ -42,6 +42,13 @@ const editions = defineCollection({
         .optional(),
       // ID del evento en Sessionize (si aplica). Ej.: '512b45ok'.
       sessionizeEventId: z.string().optional(),
+      // Convocatoria de charlas, cuando está abierta.
+      cfp: z
+        .object({
+          href: z.url(),
+          closes: z.coerce.date(),
+        })
+        .optional(),
       // CTA principal del hero.
       cta: z
         .object({
