@@ -2,15 +2,17 @@
 import Layout from '@layouts/Layout.astro';
 import SectionTitle from '@components/SectionTitle.astro';
 import SpeakerCard from '@components/SpeakerCard.astro';
+import SessionizeEmbed from '@components/SessionizeEmbed.astro';
 import { getCollection } from 'astro:content';
 import { getFeaturedEdition } from '@lib/editions';
 import { fetchSpeakers } from '@lib/sessionize';
 import CallForPapers from '@components/CallForPapers.astro';
 
 const edition = await getFeaturedEdition();
+const sessionizeSpeakersEmbedId = edition.data.sessionizeSpeakersEmbedId;
 
 let sessionizeSpeakers: Awaited<ReturnType<typeof fetchSpeakers>> = [];
-if (edition.data.sessionizeEventId) {
+if (!sessionizeSpeakersEmbedId && edition.data.sessionizeEventId) {
   sessionizeSpeakers = await fetchSpeakers(edition.data.sessionizeEventId);
 }
 
@@ -28,7 +30,9 @@ const localSpeakers = allLocalSpeakers.filter((s) =>
     <SectionTitle eyebrow={edition.data.title} title="Nuestros" highlight="speakers" />
 
     {
-      sessionizeSpeakers.length > 0 ? (
+      sessionizeSpeakersEmbedId ? (
+        <SessionizeEmbed eventId={sessionizeSpeakersEmbedId} view="SpeakerWall" />
+      ) : sessionizeSpeakers.length > 0 ? (
         <ul class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {sessionizeSpeakers.map((sp) => (
             <li

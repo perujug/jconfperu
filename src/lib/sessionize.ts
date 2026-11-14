@@ -1,43 +1,27 @@
 /**
- * Cliente de Sessionize que se ejecuta en build time.
- * Sólo se llama desde rutas estáticas; los datos se "congelan" en HTML.
+ * Sessionize.
+ * La agenda usa el embed HTML (document.write, script clásico).
+ * Los speakers usan el endpoint JSON principal, el mismo que está en producción.
  */
 
 export interface SessionizeSpeaker {
   id: string;
-  firstName: string;
-  lastName: string;
   fullName: string;
-  bio?: string;
   tagLine?: string;
   profilePicture?: string;
-  links?: Array<{ title: string; url: string; linkType: string }>;
-  sessions?: Array<{ id: string | number; name: string }>;
 }
 
-export interface SessionizeSession {
-  id: string;
-  title: string;
-  description?: string;
-  startsAt?: string;
-  endsAt?: string;
-  speakers: Array<{ id: string; name: string }>;
-  room?: string;
-}
+export const sessionizeViews = ['GridSmart', 'Speakers', 'Sessions', 'SpeakerWall'] as const;
 
-export interface SessionizeGridSlot {
-  slotStart: string;
-  rooms: Array<{
-    id: number;
-    name: string;
-    session: SessionizeSession;
-  }>;
-}
+export type SessionizeView = (typeof sessionizeViews)[number];
 
-export interface SessionizeGridDay {
-  date: string;
-  rooms: Array<{ id: number; name: string }>;
-  timeSlots: SessionizeGridSlot[];
+const EVENT_ID = /^[A-Za-z0-9]+$/;
+
+export function sessionizeEmbedSrc(eventId: string, view: SessionizeView): string {
+  if (!EVENT_ID.test(eventId)) {
+    throw new Error(`sessionizeEventId inválido: ${eventId}`);
+  }
+  return `https://sessionize.com/api/v2/${eventId}/view/${view}`;
 }
 
 const TIMEOUT_MS = 8000;
@@ -58,15 +42,11 @@ async function fetchJson<T>(url: string): Promise<T | null> {
       console.warn(`[sessionize] ${url} respondió ${res.status}`);
       return null;
     }
-
     const contentType = res.headers.get('content-type') ?? '';
     if (!contentType.includes('json')) {
-      console.warn(
-        '[sessionize] el endpoint no devuelve JSON; crea un endpoint JSON en API / Embed de Sessionize',
-      );
+      console.warn(`[sessionize] ${url} no devolvió JSON`);
       return null;
     }
-
     return (await res.json()) as T;
   } catch (err) {
     console.warn('[sessionize] error consultando', url, err);
@@ -76,18 +56,13 @@ async function fetchJson<T>(url: string): Promise<T | null> {
   }
 }
 
-/** Lista de speakers para un eventId (formato "view/Speakers"). */
+/** Speakers del endpoint JSON principal (el que usa producción). */
 export async function fetchSpeakers(eventId: string): Promise<SessionizeSpeaker[]> {
+  if (!EVENT_ID.test(eventId)) {
+    throw new Error(`sessionizeEventId inválido: ${eventId}`);
+  }
   const data = await fetchJson<SessionizeSpeaker[]>(
     `https://sessionize.com/api/v2/${eventId}/view/Speakers`,
-  );
-  return data ?? [];
-}
-
-/** Grid horario completo (formato "view/GridSmart"). */
-export async function fetchGrid(eventId: string): Promise<SessionizeGridDay[]> {
-  const data = await fetchJson<SessionizeGridDay[]>(
-    `https://sessionize.com/api/v2/${eventId}/view/GridSmart`,
   );
   return data ?? [];
 }
