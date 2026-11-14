@@ -27,7 +27,7 @@ arquitecturas nativas en la nube y temas afines.
 
 ## ✅ Pre-requisitos
 
-- **Node.js 22 LTS** (mínimo 22.12; versión recomendada en `.mise.toml` y `.nvmrc`)
+- **Node.js 22 LTS** (mínimo 22.23.4; versión recomendada en `.mise.toml` y `.nvmrc`)
 - npm 10+
 
 Con `mise`:
