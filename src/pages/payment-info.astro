@@ -12,14 +12,11 @@ const accountName = 'José Amadeo Martín Diaz Diaz';
 
 const individualTickets = [
   {
-    name: 'Individual Early Bird',
-    price: 'S/ 100.00',
-    details: ['Hasta el 31/10/2026'],
-  },
-  {
     name: 'Individual Regular',
     price: 'S/ 150.00',
     details: ['Del 01/11 al 28/11/2026'],
+    // Último día (inclusive) en que el precio sigue vigente.
+    deadline: '2026-11-28',
   },
 ];
 
@@ -28,11 +25,13 @@ const groupTickets = [
     name: 'Grupal Early Bird',
     price: 'S/ 90.00',
     details: ['Por persona (mínimo 5)', 'Hasta el 15/11/2026'],
+    deadline: '2026-11-15',
   },
   {
     name: 'Grupal Regular',
     price: 'S/ 120.00',
     details: ['Por persona (mínimo 5)', 'Del 16/11 al 28/11/2026'],
+    deadline: '2026-11-28',
   },
 ];
 ---
@@ -110,16 +109,18 @@ const groupTickets = [
   <section id="prices" class="border-t py-16" style="border-color: var(--border-subtle);">
     <div class="max-w-6xl mx-auto px-4 sm:px-6">
       <SectionTitle title="Entradas" highlight="individuales" />
-      <div class="grid gap-6 md:grid-cols-2">
+      <div class="grid gap-6 justify-center" style="grid-template-columns: repeat(auto-fit, minmax(0, 320px));">
         {
           individualTickets.map((ticket) => (
-            <article class="pay-card text-center">
+            <article class="pay-card text-center" data-deadline={ticket.deadline}>
+              <span class="urgency-ribbon" data-urgency-ribbon hidden></span>
               <h3 class="font-display text-2xl font-bold">{ticket.name}</h3>
               <p class="pay-price">{ticket.price}</p>
               {ticket.details.map((line) => (
                 <p style="color: var(--fg-base);">{line}</p>
               ))}
-              <a class="main-btn mt-6" href="#payment-methods">Pagar</a>
+              <p class="urgency-countdown" data-urgency-countdown hidden></p>
+              <a class="main-btn mt-6" href="#payment-methods" data-urgency-button>Pagar</a>
             </article>
           ))
         }
@@ -133,13 +134,15 @@ const groupTickets = [
         <div class="grid gap-6 md:grid-cols-2">
           {
             groupTickets.map((ticket) => (
-              <article class="pay-card text-center">
+              <article class="pay-card text-center" data-deadline={ticket.deadline}>
+                <span class="urgency-ribbon" data-urgency-ribbon hidden></span>
                 <h3 class="font-display text-2xl font-bold">{ticket.name}</h3>
                 <p class="pay-price">{ticket.price}</p>
                 {ticket.details.map((line) => (
                   <p style="color: var(--fg-base);">{line}</p>
                 ))}
-                <a class="main-btn mt-6" href="#payment-methods">Pagar</a>
+                <p class="urgency-countdown" data-urgency-countdown hidden></p>
+                <a class="main-btn mt-6" href="#payment-methods" data-urgency-button>Pagar</a>
               </article>
             ))
           }
@@ -198,11 +201,13 @@ const groupTickets = [
   }
 
   .pay-card {
+    position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
     height: 100%;
     padding: 2rem 1.5rem;
+    overflow: hidden;
     border: 1px solid var(--border-subtle);
     border-radius: 8px;
     background: var(--bg-base);
@@ -216,4 +221,140 @@ const groupTickets = [
     font-weight: 700;
     line-height: 1.1;
   }
+
+  /* Cinta diagonal + glow pulsante para entradas cuyo precio está por vencer. */
+  .pay-card--urgent {
+    border-color: #dd0a37;
+    animation: urgency-glow 1.8s ease-in-out infinite;
+  }
+
+  .urgency-ribbon {
+    position: absolute;
+    top: 16px;
+    right: -42px;
+    z-index: 2;
+    width: 160px;
+    transform: rotate(45deg);
+    background: #dd0a37;
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    text-align: center;
+    padding: 4px 0;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+    animation: urgency-pulse 1.8s ease-in-out infinite;
+  }
+
+  .urgency-countdown {
+    margin-top: 0.75rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    font-size: 0.9rem;
+    color: #dd0a37;
+    background: rgba(221, 10, 55, 0.08);
+    border: 1px dashed rgba(221, 10, 55, 0.45);
+    border-radius: 999px;
+    padding: 0.35rem 0.9rem;
+  }
+
+  .main-btn--disabled {
+    pointer-events: none;
+    opacity: 0.5;
+  }
+
+  @keyframes urgency-glow {
+    0%,
+    100% {
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1), 0 0 0 0 rgba(221, 10, 55, 0.45);
+    }
+    50% {
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1), 0 0 0 9px rgba(221, 10, 55, 0);
+    }
+  }
+
+  @keyframes urgency-pulse {
+    0%,
+    100% {
+      transform: rotate(45deg) scale(1);
+    }
+    50% {
+      transform: rotate(45deg) scale(1.06);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pay-card--urgent,
+    .urgency-ribbon {
+      animation: none;
+    }
+  }
 </style>
+
+<script>
+  const URGENCY_THRESHOLD_DAYS = 3;
+
+  function pad(value: number) {
+    return String(value).padStart(2, '0');
+  }
+
+  function updateUrgency(card: HTMLElement) {
+    const deadlineStr = card.dataset.deadline;
+    if (!deadlineStr) return;
+
+    const [year, month, day] = deadlineStr.split('-').map(Number);
+    const deadlineEnd = new Date(year, month - 1, day, 23, 59, 59, 999);
+    const deadlineMidnight = new Date(year, month - 1, day);
+    const now = new Date();
+    const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    const daysLeft = Math.round((deadlineMidnight.getTime() - todayMidnight.getTime()) / 86_400_000);
+    const msLeft = deadlineEnd.getTime() - now.getTime();
+
+    const ribbon = card.querySelector<HTMLElement>('[data-urgency-ribbon]');
+    const countdown = card.querySelector<HTMLElement>('[data-urgency-countdown]');
+    const button = card.querySelector<HTMLElement>('[data-urgency-button]');
+
+    if (msLeft <= 0) {
+      card.classList.remove('pay-card--urgent');
+      if (ribbon) ribbon.hidden = true;
+      if (countdown) countdown.hidden = true;
+      if (button) {
+        button.textContent = 'Precio cerrado';
+        button.classList.add('main-btn--disabled');
+        button.setAttribute('aria-disabled', 'true');
+        button.removeAttribute('href');
+      }
+      return;
+    }
+
+    if (daysLeft > URGENCY_THRESHOLD_DAYS) return;
+
+    card.classList.add('pay-card--urgent');
+
+    if (ribbon) {
+      ribbon.hidden = false;
+      ribbon.textContent = daysLeft <= 1 ? '¡Último día!' : `¡Quedan ${daysLeft} días!`;
+    }
+
+    if (countdown) {
+      countdown.hidden = false;
+      const hours = Math.floor(msLeft / 3_600_000);
+      const minutes = Math.floor((msLeft % 3_600_000) / 60_000);
+      const seconds = Math.floor((msLeft % 60_000) / 1000);
+      countdown.textContent = `⏳ Termina en ${pad(hours)}h ${pad(minutes)}m ${pad(seconds)}s`;
+    }
+  }
+
+  function tick() {
+    document.querySelectorAll<HTMLElement>('.pay-card[data-deadline]').forEach(updateUrgency);
+  }
+
+  tick();
+  setInterval(tick, 1000);
+</script>
