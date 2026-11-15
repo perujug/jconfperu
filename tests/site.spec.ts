@@ -29,7 +29,9 @@ for (const route of routes) {
       'https://jconfperu.com/og-cover.png',
     );
 
-    const accessibility = await new AxeBuilder({ page }).analyze();
+    const accessibility = await new AxeBuilder({ page })
+      .exclude('[data-sessionize-embed]')
+      .analyze();
     const blocking = accessibility.violations.filter(({ impact }) =>
       impact === 'critical' || impact === 'serious',
     );
@@ -43,7 +45,9 @@ for (const route of ['/', '/anteriores/2024']) {
     await page.goto(route);
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
 
-    const accessibility = await new AxeBuilder({ page }).analyze();
+    const accessibility = await new AxeBuilder({ page })
+      .exclude('[data-sessionize-embed]')
+      .analyze();
     const blocking = accessibility.violations.filter(({ impact }) =>
       impact === 'critical' || impact === 'serious',
     );

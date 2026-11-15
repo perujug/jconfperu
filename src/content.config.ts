@@ -40,8 +40,12 @@ const editions = defineCollection({
           speakers: z.number().optional(),
         })
         .optional(),
-      // ID del evento en Sessionize (si aplica). Ej.: '512b45ok'.
+      // ID del endpoint JSON principal. Los speakers se pintan como en producción.
       sessionizeEventId: z.string().optional(),
+      // ID del embed HTML de la agenda (view/GridSmart). Ej.: '7fotbbqo'.
+      sessionizeAgendaEmbedId: z.string().optional(),
+      // ID del embed HTML de speakers (view/SpeakerWall). Ej.: 'gi5un2zc'.
+      sessionizeSpeakersEmbedId: z.string().optional(),
       // Convocatoria de charlas, cuando está abierta.
       cfp: z
         .object({

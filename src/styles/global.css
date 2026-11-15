@@ -101,6 +101,11 @@ h1, h2, h3, .font-display {
   color: var(--fg-strong);
 }
 
+/* El embed trae sus propios colores. Si no, los títulos heredan el negro del sitio. */
+[data-sessionize-embed] :is(h1, h2, h3, .font-display) {
+  color: inherit;
+}
+
 .tier-platinum {
   color: #ec1313;
 }

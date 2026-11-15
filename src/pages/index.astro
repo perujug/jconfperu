@@ -9,16 +9,17 @@ import SponsorTier from '@components/SponsorTier.astro';
 import SponsorPackages from '@components/SponsorPackages.astro';
 import GalleryCarousel from '@components/GalleryCarousel.astro';
 import CallForPapers from '@components/CallForPapers.astro';
+import SessionizeEmbed from '@components/SessionizeEmbed.astro';
 import { getCollection } from 'astro:content';
 import { getFeaturedEdition } from '@lib/editions';
 import { fetchSpeakers } from '@lib/sessionize';
 import { CONTACT_EMAILS, SITE, SOCIAL } from '@lib/site';
 
 const edition = await getFeaturedEdition();
+const sessionizeSpeakersEmbedId = edition.data.sessionizeSpeakersEmbedId;
 
-// Teaser de speakers: igual que /speakers, prioriza Sessionize (build time) sobre el repo.
 let sessionizeSpeakers: Awaited<ReturnType<typeof fetchSpeakers>> = [];
-if (edition.data.sessionizeEventId) {
+if (!sessionizeSpeakersEmbedId && edition.data.sessionizeEventId) {
   sessionizeSpeakers = await fetchSpeakers(edition.data.sessionizeEventId);
 }
 const allLocalSpeakers = await getCollection('speakers');
@@ -148,7 +149,16 @@ const eventJsonLd = {
   >
     <SectionTitle eyebrow="Conferencistas" title="Nuestros" highlight="speakers" />
     {
-      sessionizeSpeakers.length > 0 ? (
+      sessionizeSpeakersEmbedId ? (
+        <div>
+          <SessionizeEmbed eventId={sessionizeSpeakersEmbedId} view="SpeakerWall" />
+          <p class="text-center mt-8">
+            <a class="underline text-brand-red" href="/speakers">
+              Ver todos los speakers
+            </a>
+          </p>
+        </div>
+      ) : sessionizeSpeakers.length > 0 ? (
         <div>
           <ul class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {sessionizeSpeakers.slice(0, 8).map((sp) => (

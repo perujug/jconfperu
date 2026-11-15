@@ -27,7 +27,7 @@ arquitecturas nativas en la nube y temas afines.
 
 ## ✅ Pre-requisitos
 
-- **Node.js 22 LTS** (mínimo 22.12; versión recomendada en `.mise.toml` y `.nvmrc`)
+- **Node.js 22 LTS** (mínimo 22.23.4; versión recomendada en `.mise.toml` y `.nvmrc`)
 - npm 10+
 
 Con `mise`:
@@ -150,9 +150,9 @@ Bio opcional en Markdown.
 Coloca la foto en `src/assets/images/speakers/<año>/`. Astro la procesa
 automáticamente a WebP/AVIF responsivos.
 
-> Para la edición destacada, los speakers también pueden venir de **Sessionize**
-> automáticamente si configuras `sessionizeEventId` en la edición. En ese caso
-> los archivos locales son opcionales (sirven como respaldo si Sessionize falla).
+> Para la edición destacada, los speakers salen del embed HTML
+> `view/SpeakerWall` si configuras `sessionizeSpeakersEmbedId`. Sin ese ID se
+> usa el JSON de `sessionizeEventId`, y si tampoco está, los archivos locales.
 
 ## 💼 Cómo agregar un sponsor
 
@@ -194,15 +194,15 @@ linkedinUrl: https://...
 ---
 ```
 
-> Para la edición vigente, `sessionizeEventId` debe ser el ID de un endpoint
-> **JSON** creado en **API / Embed** de Sessionize, no el ID de un embed visual.
-> La agenda se consulta durante el build y usa contenido local como respaldo.
+> Para la edición vigente, `sessionizeAgendaEmbedId` inserta el embed
+> `view/GridSmart` y `sessionizeSpeakersEmbedId` el embed `view/SpeakerWall`.
+> `sessionizeEventId` queda como respaldo JSON de speakers cuando no hay embed.
 
 ### Archivar una edición de Sessionize
 
 Cuando termine el evento:
 
-1. Exporta speakers y agenda desde el endpoint JSON de Sessionize.
+1. Exporta speakers y agenda desde Sessionize.
 2. Crea los registros en `src/content/speakers/<año>/` y
    `src/content/sessions/<año>/`.
 3. Elimina `sessionizeEventId` de la edición histórica para que el archivo no
