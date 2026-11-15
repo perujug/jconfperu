@@ -12,10 +12,12 @@ on:
 permissions:
   contents: read
 
+# Un push a master usa github.run_id, así que un PR o un push posterior
+# no puede cancelar el deploy de producción. En un PR, github.head_ref
+# agrupa las corridas de esa rama y la más nueva cancela las anteriores.
 concurrency:
-  group: ci-${{ github.workflow }}-${{ github.ref }}
-  # Un push nuevo a master no debe cancelar el deploy que ya está publicando.
-  cancel-in-progress: ${{ github.event_name != 'push' }}
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
 
 jobs:
   build:
@@ -69,9 +71,10 @@ jobs:
     if: |
       (github.event_name == 'push' && github.ref == 'refs/heads/master') ||
       (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository)
+    # Producción queda en un grupo propio por corrida. Un preview no la cancela.
     concurrency:
-      group: vercel-${{ github.event_name }}-${{ github.ref }}
-      cancel-in-progress: true
+      group: ${{ github.head_ref && format('vercel-preview-{0}', github.head_ref) || format('vercel-production-{0}', github.run_id) }}
+      cancel-in-progress: ${{ github.head_ref != '' }}
     env:
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
       VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
