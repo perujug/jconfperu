@@ -101,6 +101,10 @@ h1, h2, h3, .font-display {
   color: var(--fg-strong);
 }
 
+section[id] {
+  scroll-margin-top: 5rem;
+}
+
 /* El embed trae sus propios colores. Si no, los títulos heredan el negro del sitio. */
 [data-sessionize-embed] :is(h1, h2, h3, .font-display) {
   color: inherit;

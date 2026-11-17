@@ -34,5 +34,7 @@ export const NAV_ITEMS = [
   { href: '/speakers', label: 'Conferencistas' },
   { href: '/anteriores', label: 'Anteriores' },
   { href: '/sponsors', label: 'Sponsors' },
+  { href: '/media-partners', label: 'Media partners' },
+  { href: '/comunidades-aliadas', label: 'Comunidades aliadas' },
   { href: '/contacto', label: 'Contacto' },
 ] as const;

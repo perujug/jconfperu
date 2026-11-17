@@ -6,6 +6,8 @@ const routes = [
   '/agenda',
   '/speakers',
   '/sponsors',
+  '/media-partners',
+  '/comunidades-aliadas',
   '/organizadores',
   '/contacto',
   '/payment-info',

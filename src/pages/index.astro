@@ -7,6 +7,7 @@ import OrganizerCard from '@components/OrganizerCard.astro';
 import SpeakerCard from '@components/SpeakerCard.astro';
 import SponsorTier from '@components/SponsorTier.astro';
 import SponsorPackages from '@components/SponsorPackages.astro';
+import PartnerLogos from '@components/PartnerLogos.astro';
 import GalleryCarousel from '@components/GalleryCarousel.astro';
 import CallForPapers from '@components/CallForPapers.astro';
 import SessionizeEmbed from '@components/SessionizeEmbed.astro';
@@ -39,6 +40,13 @@ const sponsorsForEdition = allSponsors.filter((s) =>
 const platinum = sponsorsForEdition.filter((s) => s.data.tier === 'platinum');
 const gold = sponsorsForEdition.filter((s) => s.data.tier === 'gold');
 const silver = sponsorsForEdition.filter((s) => s.data.tier === 'silver');
+
+const mediaPartners = (await getCollection('mediaPartners'))
+  .filter((partner) => partner.data.editions.includes(edition.data.year))
+  .sort((a, b) => a.data.order - b.data.order);
+const alliedCommunities = (await getCollection('alliedCommunities'))
+  .filter((community) => community.data.editions.includes(edition.data.year))
+  .sort((a, b) => a.data.order - b.data.order);
 
 const addressParts = (edition.data.venue.address ?? '').split(',').map((part) => part.trim());
 const street = addressParts[0];
@@ -270,6 +278,36 @@ const eventJsonLd = {
       }
     </div>
   </section>
+
+  {
+    mediaPartners.length > 0 && (
+      <section
+        id="media-partners"
+        class="border-t py-16"
+        style="border-color: var(--border-subtle);"
+      >
+        <div class="max-w-6xl mx-auto px-4 sm:px-6">
+          <SectionTitle title="Media" highlight="partners" />
+          <PartnerLogos partners={mediaPartners} />
+        </div>
+      </section>
+    )
+  }
+
+  {
+    alliedCommunities.length > 0 && (
+      <section
+        id="comunidades-aliadas"
+        class="border-t py-16"
+        style="border-color: var(--border-subtle);"
+      >
+        <div class="max-w-6xl mx-auto px-4 sm:px-6">
+          <SectionTitle title="Comunidades" highlight="aliadas" />
+          <PartnerLogos partners={alliedCommunities} />
+        </div>
+      </section>
+    )
+  }
 
   <section id="contact" class="border-t py-16" style="border-color: var(--border-subtle);">
     <div class="max-w-6xl mx-auto px-4 sm:px-6">
