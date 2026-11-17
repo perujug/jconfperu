@@ -1,0 +1,71 @@
+---
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+
+interface Partner {
+  data: {
+    name: string;
+    logo: ImageMetadata;
+    website?: string;
+    showName?: boolean;
+  };
+}
+
+interface Props {
+  partners: Partner[];
+}
+
+const { partners } = Astro.props;
+
+const cardClass =
+  'group w-full sm:w-64 rounded-card border p-4 flex items-center justify-center gap-4 bg-white transition hover:shadow-md';
+---
+
+<ul class="flex flex-wrap items-stretch justify-center gap-6">
+  {
+    partners.map((partner) => {
+      const showName = partner.data.showName === true;
+      const logo = (
+        <Image
+          src={partner.data.logo}
+          alt={showName ? '' : partner.data.name}
+          width={partner.data.logo.width}
+          height={partner.data.logo.height}
+          class:list={[
+            'w-auto object-contain',
+            showName ? 'h-16 max-w-28 shrink-0' : 'h-20 max-w-full',
+          ]}
+          loading="lazy"
+        />
+      );
+      const label = showName && (
+        <span class="font-display text-lg font-bold leading-tight text-left text-[#0b0f28]">
+          {partner.data.name}
+        </span>
+      );
+      return (
+        <li class="flex">
+          {partner.data.website ? (
+            <a
+              href={partner.data.website}
+              target="_blank"
+              rel="noopener noreferrer"
+              class={cardClass}
+              style="border-color: var(--border-subtle);"
+              aria-label={`Visitar sitio web de ${partner.data.name}`}
+              title={partner.data.name}
+            >
+              {logo}
+              {label}
+            </a>
+          ) : (
+            <div class={cardClass} style="border-color: var(--border-subtle);">
+              {logo}
+              {label}
+            </div>
+          )}
+        </li>
+      );
+    })
+  }
+</ul>

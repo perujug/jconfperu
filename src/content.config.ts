@@ -138,6 +138,32 @@ const sponsors = defineCollection({
     }),
 });
 
+const mediaPartners = defineCollection({
+  loader: glob({ pattern: '**/*.md', base: './src/content/media-partners' }),
+  schema: ({ image }) =>
+    z.object({
+      name: z.string(),
+      logo: image(),
+      website: z.url().optional(),
+      showName: z.boolean().default(false),
+      editions: z.array(z.number().int()),
+      order: z.number().int().default(99),
+    }),
+});
+
+const alliedCommunities = defineCollection({
+  loader: glob({ pattern: '**/*.md', base: './src/content/allied-communities' }),
+  schema: ({ image }) =>
+    z.object({
+      name: z.string(),
+      logo: image(),
+      website: z.url().optional(),
+      showName: z.boolean().default(false),
+      editions: z.array(z.number().int()),
+      order: z.number().int().default(99),
+    }),
+});
+
 /* ──────────────────────────────────────────────────────────────────────
  *  SESSIONS
  *  Charlas del agenda hardcodeado (ediciones pasadas). Para la edición
@@ -175,5 +201,7 @@ export const collections = {
   speakers,
   organizers,
   sponsors,
+  mediaPartners,
+  alliedCommunities,
   sessions,
 };

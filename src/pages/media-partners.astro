@@ -1,0 +1,30 @@
+---
+import Layout from '@layouts/Layout.astro';
+import SectionTitle from '@components/SectionTitle.astro';
+import PartnerLogos from '@components/PartnerLogos.astro';
+import { getCollection } from 'astro:content';
+import { getFeaturedEdition } from '@lib/editions';
+
+const edition = await getFeaturedEdition();
+const partners = (await getCollection('mediaPartners'))
+  .filter((partner) => partner.data.editions.includes(edition.data.year))
+  .sort((a, b) => a.data.order - b.data.order);
+---
+
+<Layout
+  title={`Media partners · ${edition.data.title}`}
+  description={`Media partners de ${edition.data.title}.`}
+>
+  <section class="max-w-6xl mx-auto px-4 sm:px-6 py-16">
+    <SectionTitle eyebrow={edition.data.title} title="Media" highlight="partners" />
+    {
+      partners.length > 0 ? (
+        <PartnerLogos partners={partners} />
+      ) : (
+        <p class="text-center" style="color: var(--fg-muted);">
+          Pronto anunciaremos los media partners de {edition.data.title}.
+        </p>
+      )
+    }
+  </section>
+</Layout>
