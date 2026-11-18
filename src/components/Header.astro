@@ -15,12 +15,12 @@ function isActive(href: string) {
 }
 
 const linkClass =
-  'px-1.5 py-1.5 text-[11px] xl:px-2 xl:text-sm font-bold uppercase tracking-wide text-white whitespace-nowrap transition-colors inline-flex items-center gap-1 hover:text-[#dd0a37]';
+  'px-1 py-1.5 text-[11px] xl:px-1.5 font-bold uppercase tracking-wide text-white whitespace-nowrap transition-colors inline-flex items-center gap-1 hover:text-[#dd0a37]';
 ---
 
 <header class="site-header sticky top-0 z-40 text-white bg-starfield border-b border-white/20">
   <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-4">
-    <a href="/" class="flex items-center gap-2 font-display font-bold tracking-tight" aria-label={`Inicio · ${SITE.name}`}>
+    <a href="/" class="flex shrink-0 items-center" aria-label={`Inicio · ${SITE.name}`}>
       <Image
         src={logo}
         alt=""
@@ -28,11 +28,11 @@ const linkClass =
         height={36}
         loading="eager"
         decoding="async"
-        class="h-9 w-9"
+        class="h-9 w-9 max-w-none"
       />
     </a>
 
-    <nav aria-label="Principal" class="hidden lg:flex items-center gap-0.5">
+    <nav aria-label="Principal" class="hidden lg:flex min-w-0 items-center gap-0.5">
       {
         NAV_ITEMS.map((item) => {
           if (item.href === '/anteriores') {
@@ -106,7 +106,7 @@ const linkClass =
       }
     </nav>
 
-    <div class="flex items-center gap-2">
+    <div class="flex shrink-0 items-center gap-2">
       <ThemeToggle />
       <button
         type="button"
