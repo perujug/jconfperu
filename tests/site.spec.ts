@@ -76,6 +76,14 @@ test('home features JConf Perú 2026', async ({ page }) => {
   await expect(page.getByRole('heading', { level: 1, name: 'JConf Perú 2026' })).toBeVisible();
 });
 
+test('payment info excludes the expired group early bird ticket', async ({ page }) => {
+  await page.goto('/payment-info');
+  await expect(page.getByText('Grupal Early Bird')).toHaveCount(0);
+  await expect(page.getByText('S/ 90.00')).toHaveCount(0);
+  await expect(page.getByText('Grupal Regular')).toBeVisible();
+  await expect(page.getByText('S/ 120.00').last()).toBeVisible();
+});
+
 test('anteriores menu archives the previous edition', async ({ page }, testInfo) => {
   await page.goto('/');
   const isMobile = testInfo.project.name === 'mobile-chromium';
