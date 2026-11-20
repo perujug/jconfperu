@@ -125,7 +125,7 @@ const groupTickets = [
         <p class="text-center text-lg mb-10" style="color: var(--fg-base);">
           Para grupos de 5 o más personas
         </p>
-        <div class="grid gap-6 md:grid-cols-2">
+        <div class="grid gap-6 justify-center" style="grid-template-columns: repeat(auto-fit, minmax(0, 320px));">
           {
             groupTickets.map((ticket) => (
               <article class="pay-card text-center" data-deadline={ticket.deadline}>

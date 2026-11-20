@@ -82,6 +82,17 @@ test('payment info excludes the expired group early bird ticket', async ({ page 
   await expect(page.getByText('S/ 90.00')).toHaveCount(0);
   await expect(page.getByText('Grupal Regular')).toBeVisible();
   await expect(page.getByText('S/ 120.00').last()).toBeVisible();
+
+  const groupCard = page.getByRole('article').filter({
+    has: page.getByRole('heading', { name: 'Grupal Regular' }),
+  });
+  const [cardBox, gridBox] = await Promise.all([
+    groupCard.boundingBox(),
+    groupCard.locator('..').boundingBox(),
+  ]);
+  expect(cardBox).not.toBeNull();
+  expect(gridBox).not.toBeNull();
+  expect(cardBox!.x + cardBox!.width / 2).toBeCloseTo(gridBox!.x + gridBox!.width / 2, 0);
 });
 
 test('anteriores menu archives the previous edition', async ({ page }, testInfo) => {
