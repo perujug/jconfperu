@@ -15,6 +15,7 @@ import { getCollection } from 'astro:content';
 import { getFeaturedEdition } from '@lib/editions';
 import { fetchSpeakers } from '@lib/sessionize';
 import { CONTACT_EMAILS, SITE, SOCIAL } from '@lib/site';
+import CertificateNotice from '@components/CertificateNotice.astro';
 
 const edition = await getFeaturedEdition();
 const sessionizeSpeakersEmbedId = edition.data.sessionizeSpeakersEmbedId;
@@ -114,6 +115,8 @@ const eventJsonLd = {
   jsonLd={eventJsonLd}
 >
   <Hero edition={edition} />
+
+  <CertificateNotice year={edition.data.year} />
 
   <section id="about" class="py-16">
     <div class="max-w-5xl mx-auto px-4 sm:px-6">

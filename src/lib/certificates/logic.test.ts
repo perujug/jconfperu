@@ -9,6 +9,7 @@ import { editionFacts, freezeCertificate, type EditionFacts } from './snapshot';
 import { safeNext } from '../auth/redirect';
 import { publicBase } from '../site';
 import { attendeeNotice } from './messages';
+import { certificatePendingCopy, certificateReleased, linkedInShareUrl } from './release';
 import { correctionMessage, whatsAppLink } from './whatsapp';
 
 const edition: EditionFacts = {
@@ -156,6 +157,22 @@ test('la copia expedida no sigue un cambio posterior de la edición', () => {
   assert.match(frozen.recognitionText, /JConf Perú 2026/);
   assert.equal(frozen.recognitionText.includes('Otra conferencia'), false);
   assert.match(attendeeNotice('missing', 2026) ?? '', /JConf Perú 2026/);
+});
+
+test('el certificado de 2026 se abre a las 6:00 p. m. del 28 de noviembre', () => {
+  const before = new Date('2026-11-28T17:59:00-05:00');
+  const opening = new Date('2026-11-28T18:00:00-05:00');
+  assert.equal(certificateReleased(2026, before), false);
+  assert.equal(certificateReleased(2026, opening), true);
+  assert.equal(certificateReleased(2025, before), true);
+  assert.equal(
+    certificatePendingCopy(2026),
+    'Tu certificado estará disponible al terminar el evento, el sábado 28 de noviembre a las 6:00 p. m. (hora de Lima). Podrás descargarlo o compartirlo en LinkedIn.',
+  );
+  assert.equal(
+    linkedInShareUrl('https://jconfperu.com/v/abc'),
+    'https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Fjconfperu.com%2Fv%2Fabc',
+  );
 });
 
 test('el enlace de WhatsApp lleva el nombre, el correo y el usuario', () => {

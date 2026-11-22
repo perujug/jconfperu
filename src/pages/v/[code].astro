@@ -18,7 +18,15 @@ const valid = row?.issuedAt && !row.revokedAt && row.displayName && row.certific
 if (!valid) Astro.response.status = unavailable ? 503 : 404;
 ---
 
-<Layout title="Verificación" description="Verificación de un certificado de JConf Perú." noindex>
+<Layout
+  title={valid && row ? row.certificateTitle : 'Verificación'}
+  description={
+    valid && row
+      ? `${row.displayName} · JConf Perú ${row.year}. Certificado verificable.`
+      : 'Verificación de un certificado de JConf Perú.'
+  }
+  noindex={!valid}
+>
   <section class="max-w-2xl mx-auto px-4 sm:px-6 py-16">
     <p class="text-sm font-bold uppercase tracking-wide text-brand-accent">Peru JUG</p>
     {

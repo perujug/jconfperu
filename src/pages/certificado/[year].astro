@@ -3,17 +3,20 @@ export const prerender = false;
 
 import Layout from '@layouts/Layout.astro';
 import CertificateCard from '@components/CertificateCard.astro';
+import CertificateNotice from '@components/CertificateNotice.astro';
 import { readSession, setTempCookie } from '@lib/auth/session';
 import { decodeDraft, encodeDraft } from '@lib/certificates/draft';
 import { certificateStep } from '@lib/certificates/eligibility';
 import { attendeeNotice } from '@lib/certificates/messages';
 import { normalizeEmail, splitSuggestedName, validateNames } from '@lib/certificates/names';
 import { canDownload, normalizePhone, paymentStatus } from '@lib/certificates/registration';
+import { certificateReleased, linkedInShareUrl } from '@lib/certificates/release';
 import { editionFacts, recognitionParagraph } from '@lib/certificates/snapshot';
 import { claimEmail, findAttendeeByGithub, issueForGithub, registerSelf, submitOnlineCode, yearIsOpen } from '@lib/certificates/store';
 import { correctionMessage, whatsAppLink } from '@lib/certificates/whatsapp';
 import { authConfigured, whatsAppPhone } from '@lib/config';
 import { getEditionByYear } from '@lib/editions';
+import { publicUrl } from '@lib/site';
 import type { AttendeeRow } from '@/db/schema';
 
 const year = Number(Astro.params.year);
@@ -97,6 +100,7 @@ if (Astro.request.method === 'POST' && edition && session && facts && !dbError) 
     }
 
     if (intent === 'issue') {
+      if (!certificateReleased(year)) return Astro.redirect(back);
       const names = validateNames(String(form.get('givenName') ?? ''), String(form.get('familyName') ?? ''));
       if (!names.ok) return Astro.redirect(`${back}?aviso=invalid-name`);
       const frozen = await issueForGithub({
@@ -154,6 +158,11 @@ const whatsApp = session
     )
   : null;
 const showWhatsApp = avisoCode === 'missing' || avisoCode === 'taken' || avisoCode === 'revoked' || step === 'forbidden';
+const released = Number.isInteger(year) && certificateReleased(year);
+const linkedIn =
+  released && row?.issuedAt && row.publicCode
+    ? linkedInShareUrl(publicUrl(`/v/${row.publicCode}`, Astro.url.origin))
+    : null;
 ---
 
 <Layout
@@ -171,6 +180,7 @@ const showWhatsApp = avisoCode === 'missing' || avisoCode === 'taken' || avisoCo
             <a class="hover-brand-red" href="/mi/">Mi JConf Perú</a>
           </p>
           <h1 class="font-display text-4xl font-black mt-2">{edition.data.title}</h1>
+          <CertificateNotice year={year} compact />
 
           {notice && <p class="mt-6" role="alert">{notice}</p>}
           {dbError && <p class="mt-6" role="alert">No pudimos consultar la lista. Inténtalo de nuevo en unos minutos.</p>}
@@ -253,7 +263,7 @@ const showWhatsApp = avisoCode === 'missing' || avisoCode === 'taken' || avisoCo
           }
 
           {
-            session && !dbError && step === 'issue' && (
+            session && !dbError && released && step === 'issue' && (
               <form class="mt-8 grid gap-4 max-w-xl" method="post">
                 <input type="hidden" name="intent" value="issue" />
                 <label class="grid gap-1">
@@ -273,9 +283,14 @@ const showWhatsApp = avisoCode === 'missing' || avisoCode === 'taken' || avisoCo
           }
 
           {
-            session && !dbError && step === 'download' && row?.issuedAt && (
-              <p class="mt-8">
+            session && !dbError && released && step === 'download' && row?.issuedAt && (
+              <p class="mt-8 flex flex-wrap gap-3">
                 <a class="main-btn" href={`${back}pdf`}>Descargar PDF</a>
+                {linkedIn && (
+                  <a class="main-btn" href={linkedIn} target="_blank" rel="noopener noreferrer">
+                    Compartir en LinkedIn
+                  </a>
+                )}
               </p>
             )
           }

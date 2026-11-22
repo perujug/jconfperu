@@ -3,15 +3,18 @@ export const prerender = false;
 
 import Layout from '@layouts/Layout.astro';
 import CertificateCard from '@components/CertificateCard.astro';
+import CertificateNotice from '@components/CertificateNotice.astro';
 import { readSession } from '@lib/auth/session';
 import { attendeeNotice } from '@lib/certificates/messages';
 import { splitSuggestedName } from '@lib/certificates/names';
 import { canDownload, paymentStatus } from '@lib/certificates/registration';
+import { certificateReleased, linkedInShareUrl } from '@lib/certificates/release';
 import { certificateTitle, parseRole } from '@lib/certificates/roles';
 import { editionFacts, recognitionParagraph } from '@lib/certificates/snapshot';
 import { listAttendeesForGithub } from '@lib/certificates/store';
 import { authConfigured } from '@lib/config';
 import { getAllEditions } from '@lib/editions';
+import { publicUrl } from '@lib/site';
 import type { AttendeeRow } from '@/db/schema';
 
 const session = await readSession(Astro.cookies);
@@ -27,6 +30,7 @@ type YearView = {
   role: string;
   status: string;
   action: { href: string; label: string } | null;
+  share: string | null;
   certificate: {
     title: string;
     person: string;
@@ -68,11 +72,16 @@ function yearView(row: AttendeeRow, edition: Awaited<ReturnType<typeof getAllEdi
     : null;
   const revoked = row.revokedAt != null;
   const eligible = canDownload(paymentStatus(row.paymentStatus));
+  const released = certificateReleased(row.year);
   const href = `/certificado/${row.year}/`;
   let action: YearView['action'] = null;
-  if (!revoked && eligible && row.issuedAt) action = { href: `${href}pdf`, label: 'Descargar PDF' };
-  else if (!revoked && eligible) action = { href, label: 'Expedir certificado' };
-  else if (!revoked) action = { href, label: 'Validar participación' };
+  if (released && !revoked && eligible && row.issuedAt) action = { href: `${href}pdf`, label: 'Descargar PDF' };
+  else if (released && !revoked && eligible) action = { href, label: 'Expedir certificado' };
+  else if (!revoked && !eligible) action = { href, label: 'Validar participación' };
+  const share =
+    released && row.issuedAt && !revoked && row.publicCode
+      ? linkedInShareUrl(publicUrl(`/v/${row.publicCode}`))
+      : null;
 
   return {
     year: row.year,
@@ -84,6 +93,7 @@ function yearView(row: AttendeeRow, edition: Awaited<ReturnType<typeof getAllEdi
     role: roleLabel(role),
     status: revoked ? 'Revocado' : statusLabel(paymentStatus(row.paymentStatus)),
     action,
+    share,
     certificate: {
       title: row.certificateTitle || certificateTitle(role),
       person: person || 'Tu nombre',
@@ -125,6 +135,7 @@ function formatPhone(value: string | null): string {
     <p class="mt-4" style="color: var(--fg-muted);">
       Tus datos y tu certificado, separados por edición.
     </p>
+    <CertificateNotice year={2026} compact />
 
     {aviso && <p class="mt-6" role="alert">{aviso}</p>}
     {dbError && <p class="mt-6" role="alert">No pudimos consultar tus certificados. Inténtalo de nuevo en unos minutos.</p>}
@@ -206,9 +217,16 @@ function formatPhone(value: string | null): string {
                     )
                   }
                   {
-                    item.action && (
-                      <p>
-                        <a class="main-btn" href={item.action.href}>{item.action.label}</a>
+                    (item.action || item.share) && (
+                      <p class="flex flex-wrap gap-3">
+                        {item.action && <a class="main-btn" href={item.action.href}>{item.action.label}</a>}
+                        {
+                          item.share && (
+                            <a class="main-btn" href={item.share} target="_blank" rel="noopener noreferrer">
+                              Compartir en LinkedIn
+                            </a>
+                          )
+                        }
                       </p>
                     )
                   }

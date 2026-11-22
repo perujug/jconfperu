@@ -1,0 +1,42 @@
+---
+import SectionTitle from '@components/SectionTitle.astro';
+import { certificatePendingCopy, certificateReleased } from '@lib/certificates/release';
+
+interface Props {
+  year: number;
+  /** En la portada ocupa una sección. En el flujo del certificado, un aviso. */
+  compact?: boolean;
+}
+
+const { year, compact = false } = Astro.props;
+const released = certificateReleased(year);
+const pending = certificatePendingCopy(year);
+const href = `/certificado/${year}/`;
+---
+
+{
+  pending &&
+    (compact ? (
+      !released && <p class="mt-6">{pending}</p>
+    ) : (
+      <section id="certificado" class="border-t py-16" style="border-color: var(--border-subtle);">
+        <div class="max-w-3xl mx-auto px-4 sm:px-6 text-center">
+          <SectionTitle title="Certificado" />
+          {
+            released ? (
+              <>
+                <p class="text-base sm:text-lg" style="color: var(--fg-base);">
+                  Tu certificado de JConf Perú {year} ya está disponible. Puedes descargarlo o compartirlo en LinkedIn.
+                </p>
+                <p class="mt-8">
+                  <a class="main-btn" href={href}>Obtener mi certificado</a>
+                </p>
+              </>
+            ) : (
+              <p class="text-base sm:text-lg" style="color: var(--fg-base);">{pending}</p>
+            )
+          }
+        </div>
+      </section>
+    ))
+}

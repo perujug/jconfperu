@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 import { readSession } from '@lib/auth/session';
 import { renderCertificatePdf } from '@lib/certificates/pdf';
 import { canDownload, paymentStatus } from '@lib/certificates/registration';
+import { certificateReleased } from '@lib/certificates/release';
 import { findAttendeeByGithub } from '@lib/certificates/store';
 import { publicUrl } from '@lib/site';
 
@@ -10,7 +11,7 @@ export const prerender = false;
 export const GET: APIRoute = async ({ params, cookies, url }) => {
   const year = Number(params.year);
   const session = await readSession(cookies);
-  if (!session || !Number.isInteger(year)) return new Response(null, { status: 404 });
+  if (!session || !Number.isInteger(year) || !certificateReleased(year)) return new Response(null, { status: 404 });
 
   try {
     const row = await findAttendeeByGithub(year, session.githubId);
