@@ -137,8 +137,9 @@ export async function renderCertificatePdf(input: {
     ['Aprende,', 'comparte,', 'conecta.'].forEach((line, index) => {
       page.drawText(line, { x: 45.35, y: height - 167.24 - index * 28.35, size: 18, font: bold, color: white });
     });
-    drawRight(page, shortDate(input.editionDateLabel), bold, 11, width - 36, height - 70.9, ink);
-    drawRight(page, `${input.year} · LIMA, PERÚ`, regular, 10, width - 36, height - 88, muted);
+    const headerY = height - 132;
+    drawRight(page, shortDate(input.editionDateLabel), bold, 11, width - 36, headerY, ink);
+    drawRight(page, `${input.year} · LIMA, PERÚ`, regular, 9, width - 36, headerY - 16, muted);
   } else {
     page.drawText('Aprende, comparte, conecta.', { x: 28, y: 12, size: 9, font: regular, color: white });
     const footer = `PERU JUG  /  JCONF PERÚ ${input.year}`;

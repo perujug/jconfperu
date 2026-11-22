@@ -38,11 +38,13 @@ const place = /lima/i.test(venueLine) ? `${year} · LIMA, PERÚ` : venueLine;
     )
   }
   <div class="body">
-    {rail && <p class="when">{dayMonth}<br />{place}</p>}
-    <p class="lockup">
-      <span class="jconf"><span class="mark dark" aria-hidden="true"></span>JCONF</span>
-      <span class="jconf-year">PERU {year}</span>
-    </p>
+    <div class="mast">
+      <p class="lockup">
+        <span class="jconf"><span class="mark dark" aria-hidden="true"></span>JCONF</span>
+        <span class="jconf-year">PERU {year}</span>
+      </p>
+      {rail && <p class="when">{dayMonth}<br />{place}</p>}
+    </div>
     <h2>Certificado</h2>
     <p class="role">{roleWord}</p>
     <p class="grant">Se otorga el presente certificado a</p>
@@ -143,12 +145,20 @@ const place = /lima/i.test(venueLine) ? `${year} · LIMA, PERÚ` : venueLine;
     text-transform: uppercase;
   }
 
-  .lockup {
-    display: grid;
-    gap: 2px;
+  .mast {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
     margin: 0 0 18px;
     padding-bottom: 12px;
     border-bottom: 1px solid #d9d5db;
+  }
+
+  .lockup {
+    display: grid;
+    gap: 2px;
+    margin: 0;
   }
 
   .jconf {
@@ -195,10 +205,7 @@ const place = /lima/i.test(venueLine) ? `${year} · LIMA, PERÚ` : venueLine;
   }
 
   .when {
-    position: absolute;
-    top: 28px;
-    right: 28px;
-    margin: 0;
+    margin: 2px 0 0;
     color: #55515a;
     font-size: 12px;
     font-weight: 700;
@@ -221,7 +228,7 @@ const place = /lima/i.test(venueLine) ? `${year} · LIMA, PERÚ` : venueLine;
   }
 
   .rail .body {
-    padding-top: 92px;
+    padding-top: 36px;
   }
 
   .kicker {
@@ -319,9 +326,11 @@ const place = /lima/i.test(venueLine) ? `${year} · LIMA, PERÚ` : venueLine;
       grid-template-columns: 1fr;
     }
 
+    .mast {
+      flex-direction: column;
+    }
+
     .when {
-      position: static;
-      margin-bottom: 16px;
       text-align: left;
     }
 
