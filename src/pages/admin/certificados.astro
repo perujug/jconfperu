@@ -5,6 +5,7 @@ import Layout from '@layouts/Layout.astro';
 import { resolveGithubAccount } from '@lib/auth/github';
 import { deleteTempCookie, readSession, setTempCookie } from '@lib/auth/session';
 import { parseRole, ROLES } from '@lib/certificates/roles';
+import { editionFacts } from '@lib/certificates/snapshot';
 import { normalizePhone, paymentStatus } from '@lib/certificates/registration';
 import {
   addAdmin,
@@ -19,6 +20,7 @@ import {
   seedAdmins,
   setOnlineCode,
   setPaymentStatus,
+  setRosterKind,
   setRevoked,
   setYearOpen,
   unlinkGithub,
@@ -43,11 +45,12 @@ const year = selected?.data.year ?? null;
 const requestedView = Astro.url.searchParams.get('vista');
 const view: AdminView = views.includes(requestedView as AdminView) ? (requestedView as AdminView) : 'resumen';
 
-function adminPath(nextYear = year, nextView: AdminView = view, notice?: string) {
+function adminPath(nextYear = year, nextView: AdminView = view, notice?: string, q?: string) {
   const params = new URLSearchParams();
   if (nextYear) params.set('year', String(nextYear));
   if (nextView !== 'resumen') params.set('vista', nextView);
   if (notice) params.set('aviso', notice);
+  if (q?.trim()) params.set('q', q.trim());
   const query = params.toString();
   return `/admin/certificados/${query ? `?${query}` : ''}`;
 }
@@ -104,11 +107,27 @@ if (Astro.request.method === 'POST' && session && allowed && year && !dbError) {
     }
     if (intent === 'revoke') {
       await setRevoked(String(form.get('id') ?? ''), form.get('revoked') === '1');
-      return Astro.redirect(adminPath(year, 'lista'));
+      return Astro.redirect(adminPath(year, 'lista', undefined, String(form.get('q') ?? '')));
     }
     if (intent === 'unlink') {
       await unlinkGithub(String(form.get('id') ?? ''));
-      return Astro.redirect(adminPath(year, 'lista'));
+      return Astro.redirect(adminPath(year, 'lista', undefined, String(form.get('q') ?? '')));
+    }
+    if (intent === 'kind') {
+      const kind = String(form.get('kind') ?? '');
+      if (kind !== 'paid' && kind !== 'speaker' && kind !== 'organizer' && kind !== 'volunteer') return Astro.redirect(adminPath(year, 'lista', 'error', String(form.get('q') ?? '')));
+      const source = editions.find((item) => item.data.year === year);
+      const facts = source
+        ? editionFacts({
+            title: source.data.title,
+            tagline: source.data.tagline,
+            date: source.data.date,
+            dateLabel: source.data.dateLabel,
+            venue: source.data.venue,
+          })
+        : null;
+      await setRosterKind(String(form.get('id') ?? ''), kind, facts);
+      return Astro.redirect(adminPath(year, 'lista', undefined, String(form.get('q') ?? '')));
     }
     if (intent === 'add-admin') {
       const account = await resolveGithubAccount(String(form.get('github') ?? ''));
@@ -130,7 +149,7 @@ if (Astro.request.method === 'POST' && session && allowed && year && !dbError) {
     }
     if (intent === 'payment') {
       await setPaymentStatus(String(form.get('id') ?? ''), form.get('status') === 'paid' ? 'paid' : 'unpaid');
-      return Astro.redirect(adminPath(year, 'lista'));
+      return Astro.redirect(adminPath(year, 'lista', undefined, String(form.get('q') ?? '')));
     }
   } catch {
     return Astro.redirect(adminPath(year, view, 'error'));
@@ -180,6 +199,7 @@ const nav = [
 ] as const;
 
 const aviso = Astro.url.searchParams.get('aviso');
+const rosterQuery = Astro.url.searchParams.get('q') ?? '';
 const protectedIds = new Set(bootstrapAdminIds());
 const notices: Record<string, string> = {
   added: 'Persona agregada a la lista.',
@@ -331,67 +351,101 @@ const notices: Record<string, string> = {
                     people.length === 0 ? (
                       <p>Nadie se ha registrado. Comparte el enlace del resumen.</p>
                     ) : (
-                      <div class="table-wrap">
-                        <table>
-                          <thead>
-                            <tr>
-                              <th>Nombre</th>
-                              <th>Correo</th>
-                              <th>GitHub</th>
-                              <th>Celular</th>
-                              <th>Estado</th>
-                              <th>Acciones</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {
-                              people.map((person) => {
-                                const pay = person.revokedAt ? 'revocado' : paymentStatus(person.paymentStatus);
-                                const label = pay === 'paid' ? 'PAID' : pay === 'online' ? 'ONLINE' : pay === 'revocado' ? 'Revocado' : 'UNPAID';
-                                const chat = person.phone
-                                  ? whatsAppLink(person.phone, `Hola, te escribimos de JConf Perú ${year} por tu certificado.`)
-                                  : null;
-                                return (
-                                  <tr>
-                                    <td>{person.displayName || person.suggestedName}</td>
-                                    <td>{person.email ? <a href={`mailto:${person.email}`}>{person.email}</a> : '—'}</td>
-                                    <td>{person.githubLogin ? `@${person.githubLogin}` : '—'}</td>
-                                    <td>{chat ? <a href={chat} target="_blank" rel="noopener noreferrer">{person.phone}</a> : '—'}</td>
-                                    <td><span class={`state ${pay}`}>{label}</span></td>
-                                    <td class="actions-cell">
-                                      {
-                                        !person.revokedAt && pay !== 'online' && (
-                                          <form method="post">
-                                            <input type="hidden" name="intent" value="payment" />
-                                            <input type="hidden" name="id" value={person.id} />
-                                            <input type="hidden" name="status" value={pay === 'paid' ? 'unpaid' : 'paid'} />
-                                            <button type="submit">{pay === 'paid' ? 'Volver a impago' : 'Marcar pagado'}</button>
-                                          </form>
-                                        )
-                                      }
-                                      <form method="post">
-                                        <input type="hidden" name="intent" value="revoke" />
-                                        <input type="hidden" name="id" value={person.id} />
-                                        <input type="hidden" name="revoked" value={person.revokedAt ? '0' : '1'} />
-                                        <button type="submit">{person.revokedAt ? 'Restaurar' : 'Revocar'}</button>
-                                      </form>
-                                      {
-                                        person.githubId && !person.issuedAt && (
-                                          <form method="post">
-                                            <input type="hidden" name="intent" value="unlink" />
-                                            <input type="hidden" name="id" value={person.id} />
-                                            <button type="submit">Desvincular</button>
-                                          </form>
-                                        )
-                                      }
-                                    </td>
-                                  </tr>
-                                );
-                              })
-                            }
-                          </tbody>
-                        </table>
-                      </div>
+                      <>
+                        <form class="finder" method="get" action="/admin/certificados/">
+                          <input type="hidden" name="year" value={year} />
+                          <input type="hidden" name="vista" value="lista" />
+                          <label>
+                            Buscar
+                            <input id="roster-search" type="search" name="q" value={rosterQuery} placeholder="Nombre, apellido, GitHub o correo" autocomplete="off" />
+                          </label>
+                        </form>
+                        <p id="roster-empty" hidden>Nadie coincide con esa búsqueda.</p>
+                        <p>VOLUNTARIO es quien apoya las transmisiones en línea, el soporte de las charlas, la comida y las bebidas.</p>
+                        <div class="table-wrap">
+                          <table id="roster">
+                            <thead>
+                              <tr>
+                                <th>Nombre</th>
+                                <th>Correo</th>
+                                <th>GitHub</th>
+                                <th>Celular</th>
+                                <th>Rol</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {
+                                people.map((person) => {
+                                  const pay = person.revokedAt ? 'revocado' : paymentStatus(person.paymentStatus);
+                                  const label = pay === 'paid' ? 'PAID' : pay === 'online' ? 'ONLINE' : pay === 'revocado' ? 'Revocado' : 'UNPAID';
+                                  const role = parseRole(person.role) ?? 'participante';
+                                  const kind = role === 'conferencista' ? 'speaker' : role === 'organizador' ? 'organizer' : role === 'voluntario' ? 'volunteer' : 'paid';
+                                  const chat = person.phone
+                                    ? whatsAppLink(person.phone, `Hola, te escribimos de JConf Perú ${year} por tu certificado.`)
+                                    : null;
+                                  const search = [person.displayName, person.suggestedName, person.givenName, person.familyName, person.email, person.githubLogin, person.githubId]
+                                    .filter((value) => value != null && String(value).trim())
+                                    .join(' ');
+                                  return (
+                                    <tr data-search={search}>
+                                      <td>{person.displayName || person.suggestedName}</td>
+                                      <td>{person.email ? <a href={`mailto:${person.email}`}>{person.email}</a> : '—'}</td>
+                                      <td>{person.githubLogin ? `@${person.githubLogin}` : person.githubId ? String(person.githubId) : '—'}</td>
+                                      <td>{chat ? <a href={chat} target="_blank" rel="noopener noreferrer">{person.phone}</a> : '—'}</td>
+                                      <td>
+                                        <form class="kind-form" method="post">
+                                          <input type="hidden" name="intent" value="kind" />
+                                          <input type="hidden" name="id" value={person.id} />
+                                          <input type="hidden" name="q" value={rosterQuery} />
+                                          <select name="kind" aria-label={`Rol de ${person.displayName || person.suggestedName}`} onchange="this.form.requestSubmit()">
+                                            <option value="paid" selected={kind === 'paid'}>PAID</option>
+                                            <option value="speaker" selected={kind === 'speaker'}>SPEAKER</option>
+                                            <option value="organizer" selected={kind === 'organizer'}>ORGANIZER</option>
+                                            <option value="volunteer" selected={kind === 'volunteer'}>VOLUNTARIO</option>
+                                          </select>
+                                        </form>
+                                      </td>
+                                      <td><span class={`state ${pay}`}>{label}</span></td>
+                                      <td class="actions-cell">
+                                        {
+                                          !person.revokedAt && pay !== 'online' && (
+                                            <form method="post">
+                                              <input type="hidden" name="intent" value="payment" />
+                                              <input type="hidden" name="id" value={person.id} />
+                                              <input type="hidden" name="q" value={rosterQuery} />
+                                              <input type="hidden" name="status" value={pay === 'paid' ? 'unpaid' : 'paid'} />
+                                              <button type="submit">{pay === 'paid' ? 'Volver a impago' : 'Marcar pagado'}</button>
+                                            </form>
+                                          )
+                                        }
+                                        <form method="post">
+                                          <input type="hidden" name="intent" value="revoke" />
+                                          <input type="hidden" name="id" value={person.id} />
+                                          <input type="hidden" name="q" value={rosterQuery} />
+                                          <input type="hidden" name="revoked" value={person.revokedAt ? '0' : '1'} />
+                                          <button type="submit">{person.revokedAt ? 'Restaurar' : 'Revocar'}</button>
+                                        </form>
+                                        {
+                                          person.githubId && !person.issuedAt && (
+                                            <form method="post">
+                                              <input type="hidden" name="intent" value="unlink" />
+                                              <input type="hidden" name="id" value={person.id} />
+                                              <input type="hidden" name="q" value={rosterQuery} />
+                                              <button type="submit">Desvincular</button>
+                                            </form>
+                                          )
+                                        }
+                                      </td>
+                                    </tr>
+                                  );
+                                })
+                              }
+                            </tbody>
+                          </table>
+                        </div>
+                      </>
                     )
                   }
                 </section>
@@ -407,8 +461,9 @@ const notices: Record<string, string> = {
                     <pre class="example">email,nombre,rol
 ana.perez@correo.com,Ana Pérez,participante
 beto.quispe@correo.com,Beto Quispe,conferencista
-luz.mendoza@correo.com,Luz Mendoza,organizador</pre>
-                    <p>El rol puede omitirse y queda como participante. También valen speaker y organizer, y las columnas correo y nombre separadas por coma o punto y coma. El certificado se descarga con el pago confirmado, o si el rol es speaker u organizer.</p>
+luz.mendoza@correo.com,Luz Mendoza,organizador
+rosa.vega@correo.com,Rosa Vega,voluntario</pre>
+                    <p>El rol puede omitirse y queda como participante. También valen speaker, organizer y voluntario. Voluntario es quien apoya las transmisiones en línea, el soporte de las charlas, la comida y las bebidas. El certificado se descarga con el pago confirmado, o si el rol es speaker, organizer o voluntario.</p>
                     <input type="hidden" name="intent" value="import" />
                     <input type="file" name="csv" accept=".csv,text/csv" required />
                     <button class="btn" type="submit">Cargar CSV</button>
@@ -647,6 +702,13 @@ luz.mendoza@correo.com,Luz Mendoza,organizador</pre>
     color: #fff;
     font-weight: 700;
   }
+  .finder {
+    max-width: 28rem;
+  }
+  .kind-form select {
+    width: auto;
+    min-width: 9.5rem;
+  }
   .table-wrap {
     overflow-x: auto;
   }
@@ -733,3 +795,29 @@ luz.mendoza@correo.com,Luz Mendoza,organizador</pre>
     }
   }
 </style>
+
+<script is:inline>
+  const search = document.getElementById('roster-search');
+  const table = document.getElementById('roster');
+  const empty = document.getElementById('roster-empty');
+  if (search instanceof HTMLInputElement && table && empty) {
+    const rows = [...table.querySelectorAll('tbody tr')];
+    const fold = (value) => value.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase();
+    const apply = () => {
+      const terms = fold(search.value).split(/\s+/).filter(Boolean);
+      let shown = 0;
+      for (const row of rows) {
+        const hay = fold(row.getAttribute('data-search') || '');
+        const match = terms.every((term) => hay.includes(term));
+        row.hidden = !match;
+        if (match) shown += 1;
+      }
+      empty.hidden = shown !== 0;
+      document.querySelectorAll('input[name="q"]').forEach((field) => {
+        if (field instanceof HTMLInputElement && field !== search) field.value = search.value;
+      });
+    };
+    search.addEventListener('input', apply);
+    apply();
+  }
+</script>

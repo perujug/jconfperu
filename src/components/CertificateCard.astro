@@ -14,21 +14,24 @@ interface Props {
 const { year, title, person, recognition, dateLabel, venueLine, editable = false } = Astro.props;
 const kind = certificateKind(title);
 const roleWord = certificateRoleWord(kind);
+const rail = kind === 'speaker' || kind === 'organizador' || kind === 'voluntario';
+const dated = dateLabel.match(/(\d{1,2})\s+de\s+([a-záéíóúñ]+)/i);
+const dayMonth = dated ? `${dated[1]} ${dated[2].toUpperCase()}` : dateLabel;
+const place = /lima/i.test(venueLine) ? `${year} · LIMA, PERÚ` : venueLine;
 ---
 
-<article class:list={['sheet', kind]} aria-label={`${roleWord} ${year}`}>
+<article class:list={['sheet', kind, { rail }]} aria-label={`${roleWord} ${year}`}>
   {
-    kind === 'speaker' && (
+    rail && (
       <aside>
-        <p class="when">{dateLabel}</p>
         <p class="rail-role">{roleWord}</p>
-        <p class="where">{venueLine}</p>
+        <span class="rail-rule"></span>
         <p class="slogan">Aprende,<br />comparte,<br />conecta.</p>
       </aside>
     )
   }
   <div class="body">
-    <p class="kicker">JConf Perú {year}</p>
+    {rail ? <p class="when">{dayMonth}<br />{place}</p> : <p class="kicker">JConf Perú {year}</p>}
     <h2>Certificado</h2>
     <p class="role">{roleWord}</p>
     <p class="grant">Se otorga el presente certificado a</p>
@@ -58,40 +61,55 @@ const roleWord = certificateRoleWord(kind);
     overflow: hidden;
   }
 
-  .sheet.speaker {
-    grid-template-columns: 220px 1fr;
+  .sheet.rail {
+    grid-template-columns: 232px 1fr;
   }
 
   aside {
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
-    gap: 24px;
-    padding: 32px 22px;
+    align-items: flex-start;
+    gap: 18px;
+    padding: 48px 28px;
     color: white;
     background: #171719;
   }
 
-  .when,
-  .where,
   .slogan {
     margin: 0;
   }
 
-  .when,
-  .where {
-    font-size: 12px;
-    line-height: 1.4;
-    letter-spacing: 0.04em;
-    color: rgba(255, 255, 255, 0.82);
+  .rail-rule {
+    width: 136px;
+    height: 1px;
+    background: #656068;
   }
 
   .rail-role {
     margin: 0;
-    font-size: 42px;
+    font-size: 34px;
     font-weight: 800;
-    line-height: 0.9;
+    line-height: 0.95;
+    letter-spacing: 0.02em;
+  }
+
+  .organizador .rail-role,
+  .voluntario .rail-role {
+    font-size: 20px;
     letter-spacing: 0.04em;
+  }
+
+  .when {
+    position: absolute;
+    top: 28px;
+    right: 28px;
+    margin: 0;
+    color: #55515a;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.35;
+    text-align: right;
+    text-transform: uppercase;
   }
 
   .slogan {
@@ -101,9 +119,14 @@ const roleWord = certificateRoleWord(kind);
   }
 
   .body {
+    position: relative;
     padding: 36px 40px 28px;
     display: flex;
     flex-direction: column;
+  }
+
+  .rail .body {
+    padding-top: 92px;
   }
 
   .kicker {
@@ -130,6 +153,12 @@ const roleWord = certificateRoleWord(kind);
     font-weight: 800;
     line-height: 1;
     letter-spacing: 0.08em;
+  }
+
+  .rail .role {
+    color: #6d176f;
+    font-size: 26px;
+    letter-spacing: 0.12em;
   }
 
   .grant {
@@ -186,13 +215,19 @@ const roleWord = certificateRoleWord(kind);
     text-align: right;
   }
 
-  .sheet:not(.speaker) .body {
+  .sheet:not(.rail) .body {
     border-bottom: 28px solid #171719;
   }
 
   @media (max-width: 720px) {
-    .sheet.speaker {
+    .sheet.rail {
       grid-template-columns: 1fr;
+    }
+
+    .when {
+      position: static;
+      margin-bottom: 16px;
+      text-align: left;
     }
 
     aside {

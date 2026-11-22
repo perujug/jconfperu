@@ -9,7 +9,7 @@ export function paymentStatus(value: string | null | undefined): PaymentStatus {
 
 export function canDownload(status: PaymentStatus, role?: string | Role | null): boolean {
   const parsed = typeof role === 'string' || role == null ? parseRole(role ?? '') : role;
-  if (parsed === 'conferencista' || parsed === 'organizador') return true;
+  if (parsed === 'conferencista' || parsed === 'organizador' || parsed === 'voluntario') return true;
   return status === 'paid' || status === 'online';
 }
 

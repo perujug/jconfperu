@@ -107,6 +107,7 @@ function yearView(row: AttendeeRow, edition: Awaited<ReturnType<typeof getAllEdi
 function roleLabel(role: string): string {
   if (role === 'conferencista') return 'Conferencista';
   if (role === 'organizador') return 'Organizador';
+  if (role === 'voluntario') return 'Voluntario';
   return 'Participante';
 }
 

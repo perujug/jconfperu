@@ -54,6 +54,9 @@ export function editionFacts(source: EditionSource): EditionFacts {
 export function recognitionParagraph(facts: EditionFacts, role: Role = 'participante'): string {
   const tagline = facts.tagline.replace(/\.\s*$/, '').trim();
   const sentence = tagline ? `${tagline.charAt(0).toLowerCase()}${tagline.slice(1)}` : tagline;
+  if (role === 'voluntario') {
+    return `por su labor como voluntario en ${facts.eventTitle}, apoyando las transmisiones en línea, el soporte de las charlas y la atención de comida y bebidas, realizada el ${facts.dateLabel} en ${facts.venueLine}.`;
+  }
   const as = role === 'conferencista' ? 'como speaker ' : role === 'organizador' ? 'como organizador ' : '';
   return `por su participación ${as}en ${facts.eventTitle}, ${sentence}, realizada el ${facts.dateLabel} en ${facts.venueLine}.`;
 }

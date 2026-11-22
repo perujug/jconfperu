@@ -4,10 +4,10 @@ import { admins, attendees, certificateYears, type AttendeeRow } from '@/db/sche
 import { mergeCsv, parseCertificateCsv, type CsvIssue, type RosterEntry } from '@lib/certificates/csv';
 import { classifyClaim, type ClaimOutcome } from '@lib/certificates/eligibility';
 import { normalizeEmail } from '@lib/certificates/names';
-import { parseRole, type Role } from '@lib/certificates/roles';
+import { certificateTitle, parseRole, type Role } from '@lib/certificates/roles';
 import { applyOnlineCode, canDownload, paymentStatus, registrationAllowed, type PaymentStatus } from '@lib/certificates/registration';
 import { certificateClaimOpen } from '@lib/certificates/release';
-import { freezeCertificate, type EditionFacts, type FrozenCertificate } from '@lib/certificates/snapshot';
+import { freezeCertificate, recognitionParagraph, type EditionFacts, type FrozenCertificate } from '@lib/certificates/snapshot';
 import { bootstrapAdminIds } from '@lib/config';
 import { resolveGithubAccount } from '@lib/auth/github';
 
@@ -433,6 +433,24 @@ export async function submitOnlineCode(year: number, githubId: number, code: str
   const db = await getDb();
   await db.update(attendees).set({ paymentStatus: 'online', updatedAt: new Date() }).where(eq(attendees.id, row.id));
   return 'online';
+}
+
+export async function setRosterKind(id: string, kind: 'paid' | 'speaker' | 'organizer' | 'volunteer', facts: EditionFacts | null): Promise<void> {
+  const role: Role = kind === 'speaker' ? 'conferencista' : kind === 'organizer' ? 'organizador' : kind === 'volunteer' ? 'voluntario' : 'participante';
+  const db = await getDb();
+  const rows = await db.select().from(attendees).where(eq(attendees.id, id)).limit(1);
+  const row = rows[0];
+  if (!row) return;
+  await db
+    .update(attendees)
+    .set({
+      role,
+      paymentStatus: kind === 'paid' ? 'paid' : row.paymentStatus,
+      certificateTitle: row.issuedAt ? certificateTitle(role) : row.certificateTitle,
+      recognitionText: row.issuedAt && facts ? recognitionParagraph(facts, role) : row.recognitionText,
+      updatedAt: new Date(),
+    })
+    .where(eq(attendees.id, id));
 }
 
 export async function setPaymentStatus(id: string, status: Extract<PaymentStatus, 'paid' | 'unpaid'>): Promise<void> {

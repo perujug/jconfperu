@@ -6,7 +6,7 @@ import { applyOnlineCode, canDownload, normalizePhone, registrationAllowed } fro
 import { parseRole } from './roles';
 import { normalizeEmail, validateNames } from './names';
 import { renderCertificatePdf } from './pdf';
-import { editionFacts, freezeCertificate, type EditionFacts } from './snapshot';
+import { editionFacts, freezeCertificate, recognitionParagraph, type EditionFacts } from './snapshot';
 import { safeNext } from '../auth/redirect';
 import { publicBase } from '../site';
 import { attendeeNotice } from './messages';
@@ -132,8 +132,10 @@ test('el certificado sale con PAID o con el código de la charla', () => {
   assert.equal(canDownload('online'), true);
   assert.equal(canDownload('unpaid', 'speaker'), true);
   assert.equal(canDownload('unpaid', 'organizer'), true);
+  assert.equal(canDownload('unpaid', 'voluntario'), true);
   assert.equal(parseRole('SPEAKER'), 'conferencista');
   assert.equal(parseRole('ORGANIZER'), 'organizador');
+  assert.equal(parseRole('VOLUNTARIO'), 'voluntario');
   assert.equal(normalizePhone('987654321'), '51987654321');
   assert.equal(normalizePhone(''), null);
 });
@@ -160,6 +162,8 @@ test('la copia expedida no sigue un cambio posterior de la edición', () => {
   assert.equal(frozen.displayName, 'María Quispe');
   assert.equal(frozen.certificateTitle, 'Certificado de conferencista');
   assert.match(frozen.recognitionText, /JConf Perú 2026/);
+  assert.match(recognitionParagraph(facts, 'voluntario'), /transmisiones en línea/);
+  assert.match(recognitionParagraph(facts, 'voluntario'), /comida y bebidas/);
   assert.equal(frozen.recognitionText.includes('Otra conferencia'), false);
   assert.match(attendeeNotice('missing', 2026) ?? '', /JConf Perú 2026/);
 });
