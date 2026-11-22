@@ -22,7 +22,8 @@ function newPublicCode(): string {
   return [...bytes].map((byte) => byte.toString(16).padStart(2, '0')).join('');
 }
 
-function toRoster(row: AttendeeRow): RosterEntry {
+function toRoster(row: AttendeeRow): RosterEntry | null {
+  if (!row.email) return null;
   return {
     id: row.id,
     year: row.year,
@@ -191,11 +192,15 @@ export async function importAttendees(
   }
   const db = await getDb();
   const existing = await db.select().from(attendees).where(eq(attendees.year, year));
-  const merged = mergeCsv(existing.map(toRoster), parsed.rows, year, {
+  const roster = existing.flatMap((row) => {
+    const entry = toRoster(row);
+    return entry ? [entry] : [];
+  });
+  const merged = mergeCsv(roster, parsed.rows, year, {
     id: () => crypto.randomUUID(),
     code: newPublicCode,
   });
-  const previous = new Map(existing.map((row) => [row.email, row]));
+  const previous = new Map(existing.flatMap((row) => (row.email ? [[row.email, row] as const] : [])));
 
   await db.transaction(async (tx) => {
     for (const entry of merged.entries) {
