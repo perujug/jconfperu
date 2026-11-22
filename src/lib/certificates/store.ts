@@ -157,6 +157,12 @@ export async function setOnlineCode(year: number, code: string): Promise<void> {
   });
 }
 
+export async function yearHasAttendees(year: number): Promise<boolean> {
+  const db = await getDb();
+  const rows = await db.select({ id: attendees.id }).from(attendees).where(eq(attendees.year, year)).limit(1);
+  return rows.length > 0;
+}
+
 export async function listAttendees(year: number): Promise<AttendeeRow[]> {
   const db = await getDb();
   return db.select().from(attendees).where(eq(attendees.year, year));
@@ -271,8 +277,9 @@ export async function issueForGithub(input: {
   edition: EditionFacts;
 }): Promise<FrozenCertificate | null> {
   const row = await findAttendeeByGithub(input.year, input.githubId);
-  if (!row || row.revokedAt || row.issuedAt || !canDownload(paymentStatus(row.paymentStatus))) return null;
+  if (!row || row.revokedAt || row.issuedAt) return null;
   const role = parseRole(row.role) ?? 'participante';
+  if (!canDownload(paymentStatus(row.paymentStatus), role)) return null;
   const frozen = freezeCertificate({
     givenName: input.givenName,
     familyName: input.familyName,
@@ -400,7 +407,7 @@ export async function registerSelf(input: {
     return 'created';
   }
 
-  if (existing.issuedAt || canDownload(paymentStatus(existing.paymentStatus))) return 'locked';
+  if (existing.issuedAt || canDownload(paymentStatus(existing.paymentStatus), existing.role)) return 'locked';
   await db
     .update(attendees)
     .set({

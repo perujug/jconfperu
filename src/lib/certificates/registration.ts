@@ -1,3 +1,5 @@
+import { parseRole, type Role } from './roles';
+
 export type PaymentStatus = 'unpaid' | 'paid' | 'online';
 
 export function paymentStatus(value: string | null | undefined): PaymentStatus {
@@ -5,7 +7,9 @@ export function paymentStatus(value: string | null | undefined): PaymentStatus {
   return 'unpaid';
 }
 
-export function canDownload(status: PaymentStatus): boolean {
+export function canDownload(status: PaymentStatus, role?: string | Role | null): boolean {
+  const parsed = typeof role === 'string' || role == null ? parseRole(role ?? '') : role;
+  if (parsed === 'conferencista' || parsed === 'organizador') return true;
   return status === 'paid' || status === 'online';
 }
 

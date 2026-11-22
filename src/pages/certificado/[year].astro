@@ -12,7 +12,7 @@ import { normalizeEmail, splitSuggestedName, validateNames } from '@lib/certific
 import { canDownload, normalizePhone, paymentStatus } from '@lib/certificates/registration';
 import { certificateClaimOpen, certificateReleased, linkedInShareUrl } from '@lib/certificates/release';
 import { editionFacts, recognitionParagraph } from '@lib/certificates/snapshot';
-import { claimEmail, findAttendeeByGithub, issueForGithub, registerSelf, submitOnlineCode, yearIsOpen } from '@lib/certificates/store';
+import { claimEmail, findAttendeeByGithub, issueForGithub, registerSelf, submitOnlineCode, yearHasAttendees, yearIsOpen } from '@lib/certificates/store';
 import { correctionMessage, whatsAppLink } from '@lib/certificates/whatsapp';
 import { authConfigured, whatsAppPhone } from '@lib/config';
 import { getEditionByYear } from '@lib/editions';
@@ -35,12 +35,16 @@ const facts = edition
 
 let dbError = false;
 let open = false;
+let roster = false;
 let row: AttendeeRow | null = null;
 
-if (edition && session) {
+if (edition) {
   try {
-    open = certificateClaimOpen(year, await yearIsOpen(year));
-    row = await findAttendeeByGithub(year, session.githubId);
+    roster = await yearHasAttendees(year);
+    if (session) {
+      open = roster && certificateClaimOpen(year, await yearIsOpen(year));
+      row = await findAttendeeByGithub(year, session.githubId);
+    }
   } catch {
     dbError = true;
   }
@@ -72,7 +76,7 @@ if (Astro.request.method === 'POST' && edition && session && facts && !dbError) 
       return Astro.redirect(`${back}?aviso=${code}`);
     }
 
-    if (intent === 'profile' && row && !row.issuedAt && !canDownload(paymentStatus(row.paymentStatus))) {
+    if (intent === 'profile' && row && !row.issuedAt && !canDownload(paymentStatus(row.paymentStatus), row.role)) {
       const names = validateNames(String(form.get('givenName') ?? ''), String(form.get('familyName') ?? ''));
       if (!names.ok) return Astro.redirect(`${back}?aviso=invalid-name`);
       const phoneRaw = String(form.get('phone') ?? '');
@@ -119,7 +123,7 @@ if (Astro.request.method === 'POST' && edition && session && facts && !dbError) 
 
 if (!edition) Astro.response.status = 404;
 
-const eligible = row ? canDownload(paymentStatus(row.paymentStatus)) : false;
+const eligible = row ? canDownload(paymentStatus(row.paymentStatus), row.role) : false;
 const step =
   session && row
     ? certificateStep({
@@ -186,7 +190,13 @@ const linkedIn =
           {dbError && <p class="mt-6" role="alert">No pudimos consultar la lista. Inténtalo de nuevo en unos minutos.</p>}
 
           {
-            !session && (
+            !dbError && !roster && !row && (
+              <p class="mt-6">Todavía no hay certificados de {edition.data.title}. Cuando carguemos la lista, podrás buscar tu entrada y descargarlo.</p>
+            )
+          }
+
+          {
+            !session && roster && (
               <p class="mt-8">
                 {
                   authConfigured() ? (
@@ -200,7 +210,7 @@ const linkedIn =
           }
 
           {
-            session && !dbError && step === 'closed' && !notice && (
+            session && !dbError && roster && step === 'closed' && !notice && (
               <p class="mt-6">El registro de {edition.data.title} está cerrado. Si ya estás validado, tu certificado sigue disponible.</p>
             )
           }

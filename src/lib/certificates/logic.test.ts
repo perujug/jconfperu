@@ -3,6 +3,7 @@ import test from 'node:test';
 import { mergeCsv, parseCertificateCsv, type RosterEntry } from './csv';
 import { certificateStep, classifyClaim } from './eligibility';
 import { applyOnlineCode, canDownload, normalizePhone, registrationAllowed } from './registration';
+import { parseRole } from './roles';
 import { normalizeEmail, validateNames } from './names';
 import { renderCertificatePdf } from './pdf';
 import { editionFacts, freezeCertificate, type EditionFacts } from './snapshot';
@@ -129,6 +130,10 @@ test('el certificado sale con PAID o con el código de la charla', () => {
   assert.equal(canDownload('unpaid'), false);
   assert.equal(canDownload('paid'), true);
   assert.equal(canDownload('online'), true);
+  assert.equal(canDownload('unpaid', 'speaker'), true);
+  assert.equal(canDownload('unpaid', 'organizer'), true);
+  assert.equal(parseRole('SPEAKER'), 'conferencista');
+  assert.equal(parseRole('ORGANIZER'), 'organizador');
   assert.equal(normalizePhone('987654321'), '51987654321');
   assert.equal(normalizePhone(''), null);
 });

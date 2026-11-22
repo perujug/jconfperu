@@ -18,7 +18,7 @@ export const GET: APIRoute = async ({ params, cookies, url }) => {
     if (
       !row?.issuedAt ||
       row.revokedAt ||
-      !canDownload(paymentStatus(row.paymentStatus)) ||
+      !canDownload(paymentStatus(row.paymentStatus), row.role) ||
       !row.displayName ||
       !row.certificateTitle ||
       !row.recognitionText ||

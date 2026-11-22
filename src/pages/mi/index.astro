@@ -11,7 +11,7 @@ import { canDownload, paymentStatus } from '@lib/certificates/registration';
 import { certificateReleased, linkedInShareUrl } from '@lib/certificates/release';
 import { certificateTitle, parseRole } from '@lib/certificates/roles';
 import { editionFacts, recognitionParagraph } from '@lib/certificates/snapshot';
-import { listAttendeesForGithub } from '@lib/certificates/store';
+import { listAttendeesForGithub, yearHasAttendees } from '@lib/certificates/store';
 import { authConfigured } from '@lib/config';
 import { getAllEditions } from '@lib/editions';
 import { publicUrl } from '@lib/site';
@@ -42,6 +42,13 @@ type YearView = {
 
 let dbError = false;
 let years: YearView[] = [];
+let certificate2025Ready = false;
+
+try {
+  certificate2025Ready = await yearHasAttendees(2025);
+} catch {
+  certificate2025Ready = false;
+}
 
 if (session) {
   try {
@@ -71,7 +78,7 @@ function yearView(row: AttendeeRow, edition: Awaited<ReturnType<typeof getAllEdi
       })
     : null;
   const revoked = row.revokedAt != null;
-  const eligible = canDownload(paymentStatus(row.paymentStatus));
+  const eligible = canDownload(paymentStatus(row.paymentStatus), role);
   const released = certificateReleased(row.year);
   const href = `/certificado/${row.year}/`;
   let action: YearView['action'] = null;
@@ -135,7 +142,7 @@ function formatPhone(value: string | null): string {
     <p class="mt-4" style="color: var(--fg-muted);">
       Tus datos y tu certificado, separados por edición.
     </p>
-    <CertificateNotice year={2026} prominent />
+    <CertificateNotice year={2026} prominent priorDownload={certificate2025Ready} />
 
     {aviso && <p class="mt-6" role="alert">{aviso}</p>}
     {dbError && <p class="mt-6" role="alert">No pudimos consultar tus certificados. Inténtalo de nuevo en unos minutos.</p>}

@@ -8,9 +8,11 @@ interface Props {
   compact?: boolean;
   /** En Mi JConf, el aviso ocupa el primer plano. */
   prominent?: boolean;
+  /** Muestra el acceso al certificado de 2025 solo si esa lista ya existe. */
+  priorDownload?: boolean;
 }
 
-const { year, compact = false, prominent = false } = Astro.props;
+const { year, compact = false, prominent = false, priorDownload = false } = Astro.props;
 const released = certificateReleased(year);
 const pending = certificatePendingCopy(year);
 const href = `/certificado/${year}/`;
@@ -41,11 +43,15 @@ const clock = `${pick('hour')}:${pick('minute')} ${pick('dayPeriod')}`.replace(/
         <p class="mx-auto mt-5 max-w-xl text-base font-semibold sm:text-lg">
           El certificado de {year} estará disponible al terminar el evento. Podrás descargarlo o compartirlo en LinkedIn.
         </p>
-        <p class="mt-6">
-          <a class="inline-flex items-center bg-white px-5 py-3 text-sm font-bold uppercase tracking-wide text-[#0b0f28]" href="/certificado/2025/">
-            Certificado 2025: descárgalo ahora
-          </a>
-        </p>
+        {
+          priorDownload && (
+            <p class="mt-6">
+              <a class="inline-flex items-center bg-white px-5 py-3 text-sm font-bold uppercase tracking-wide text-[#0b0f28]" href="/certificado/2025/">
+                Certificado 2025: descárgalo ahora
+              </a>
+            </p>
+          )
+        }
       </aside>
     ) : compact ? (
       !released && <p class="mt-6">{pending}</p>
@@ -64,12 +70,7 @@ const clock = `${pick('hour')}:${pick('minute')} ${pick('dayPeriod')}`.replace(/
                 </p>
               </>
             ) : (
-              <>
-                <p class="text-base sm:text-lg" style="color: var(--fg-base);">{pending}</p>
-                <p class="mt-6">
-                  <a class="underline text-brand-red" href="/certificado/2025/">El certificado de 2025 ya se puede descargar.</a>
-                </p>
-              </>
+              <p class="text-base sm:text-lg" style="color: var(--fg-base);">{pending}</p>
             )
           }
         </div>
