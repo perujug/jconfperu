@@ -8,7 +8,8 @@ import { readSession } from '@lib/auth/session';
 import { attendeeNotice } from '@lib/certificates/messages';
 import { splitSuggestedName } from '@lib/certificates/names';
 import { canDownload, paymentStatus } from '@lib/certificates/registration';
-import { certificateReleased, linkedInShareUrl } from '@lib/certificates/release';
+import { certificateReleased } from '@lib/certificates/release';
+import CertificateShare from '@components/CertificateShare.astro';
 import { certificateTitle, parseRole } from '@lib/certificates/roles';
 import { editionFacts, recognitionParagraph } from '@lib/certificates/snapshot';
 import { listAttendeesForGithub } from '@lib/certificates/store';
@@ -31,6 +32,7 @@ type YearView = {
   status: string;
   action: { href: string; label: string } | null;
   share: string | null;
+  released: boolean;
   certificate: {
     title: string;
     person: string;
@@ -80,7 +82,7 @@ function yearView(row: AttendeeRow, edition: Awaited<ReturnType<typeof getAllEdi
   else if (!revoked && !eligible) action = { href, label: 'Validar participación' };
   const share =
     released && row.issuedAt && !revoked && row.publicCode
-      ? linkedInShareUrl(publicUrl(`/v/${row.publicCode}`))
+      ? publicUrl(`/v/${row.publicCode}`)
       : null;
 
   return {
@@ -94,6 +96,7 @@ function yearView(row: AttendeeRow, edition: Awaited<ReturnType<typeof getAllEdi
     status: revoked ? 'Revocado' : statusLabel(paymentStatus(row.paymentStatus)),
     action,
     share,
+    released,
     certificate: {
       title: row.certificateTitle || certificateTitle(role),
       person: person || 'Tu nombre',
@@ -117,6 +120,8 @@ function statusLabel(status: ReturnType<typeof paymentStatus>): string {
   return 'Pendiente de validación';
 }
 
+const preview2026 = years.find((item) => item.year === 2026 && !item.released)?.certificate ?? null;
+
 function formatPhone(value: string | null): string {
   const digits = value?.replace(/\D/g, '') ?? '';
   if (!digits) return 'No indicado';
@@ -136,7 +141,22 @@ function formatPhone(value: string | null): string {
     <p class="mt-4" style="color: var(--fg-muted);">
       Tus datos y tu certificado, separados por edición.
     </p>
-    <CertificateNotice year={2026} prominent priorDownload={years.some((item) => item.year === 2025)} />
+    <CertificateNotice year={2026} prominent priorDownload={years.some((item) => item.year === 2025)}>
+      {
+        preview2026 && (
+          <div class="mx-auto mt-8 max-w-4xl overflow-x-auto text-left">
+            <CertificateCard
+              year={2026}
+              title={preview2026.title}
+              person={preview2026.person}
+              recognition={preview2026.recognition}
+              dateLabel={preview2026.dateLabel}
+              venueLine={preview2026.venueLine}
+            />
+          </div>
+        )
+      }
+    </CertificateNotice>
 
     {aviso && <p class="mt-6" role="alert">{aviso}</p>}
     {dbError && <p class="mt-6" role="alert">No pudimos consultar tus certificados. Inténtalo de nuevo en unos minutos.</p>}
@@ -210,7 +230,7 @@ function formatPhone(value: string | null): string {
                     </div>
                   </dl>
                   {
-                    item.certificate && (
+                    item.released && item.certificate && (
                       <div class="overflow-x-auto">
                         <CertificateCard
                           year={item.year}
@@ -224,17 +244,15 @@ function formatPhone(value: string | null): string {
                     )
                   }
                   {
-                    (item.action || item.share) && (
-                      <p class="flex flex-wrap gap-3">
-                        {item.action && <a class="main-btn" href={item.action.href}>{item.action.label}</a>}
-                        {
-                          item.share && (
-                            <a class="main-btn" href={item.share} target="_blank" rel="noopener noreferrer">
-                              Compartir en LinkedIn
-                            </a>
-                          )
-                        }
+                    item.action && (
+                      <p>
+                        <a class="main-btn" href={item.action.href}>{item.action.label}</a>
                       </p>
+                    )
+                  }
+                  {
+                    item.share && item.certificate && (
+                      <CertificateShare year={item.year} title={item.certificate.title} url={item.share} />
                     )
                   }
                 </article>

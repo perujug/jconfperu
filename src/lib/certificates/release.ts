@@ -38,3 +38,19 @@ export function certificatePendingCopy(year: number): string {
 export function linkedInShareUrl(pageUrl: string): string {
   return `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(pageUrl)}`;
 }
+
+export function linkedInComposerUrl(text: string): string {
+  return `https://www.linkedin.com/feed/?shareActive=true&text=${encodeURIComponent(text)}`;
+}
+
+export function certificateShareDraft(year: number, title: string, url: string): string {
+  const value = title.toLowerCase();
+  const lead = value.includes('speaker') || value.includes('conferenc')
+    ? `Compartí como speaker en JConf Perú ${year}.`
+    : value.includes('organiz')
+      ? `Organicé JConf Perú ${year} junto a Peru JUG.`
+      : value.includes('volunt')
+        ? `Apoyé como voluntario en JConf Perú ${year}, en las transmisiones, las charlas, la comida y las bebidas.`
+        : `Participé en JConf Perú ${year}.`;
+  return `${lead}\n\nEste es mi certificado:\n${url}\n\n#JConfPeru #Java #PeruJUG`;
+}

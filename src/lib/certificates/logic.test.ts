@@ -10,7 +10,7 @@ import { editionFacts, freezeCertificate, recognitionParagraph, type EditionFact
 import { safeNext } from '../auth/redirect';
 import { publicBase } from '../site';
 import { attendeeNotice } from './messages';
-import { certificateClaimOpen, certificatePendingCopy, certificateReleased, linkedInShareUrl } from './release';
+import { certificateClaimOpen, certificatePendingCopy, certificateReleased, certificateShareDraft, linkedInComposerUrl, linkedInShareUrl } from './release';
 import { correctionMessage, whatsAppLink } from './whatsapp';
 
 const edition: EditionFacts = {
@@ -185,6 +185,12 @@ test('el certificado de 2026 se abre a las 6:00 p. m. del 28 de noviembre', () =
     linkedInShareUrl('https://jconfperu.com/v/abc'),
     'https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Fjconfperu.com%2Fv%2Fabc',
   );
+  const draft = certificateShareDraft(2025, 'Certificado de organización', 'https://jconfperu.com/v/abc');
+  assert.match(draft, /Organicé JConf Perú 2025/);
+  assert.match(draft, /https:\/\/jconfperu.com\/v\/abc/);
+  assert.match(linkedInComposerUrl(draft), /shareActive=true/);
+  assert.match(certificateShareDraft(2025, 'Certificado de conferencista', 'https://jconfperu.com/v/abc'), /speaker/);
+  assert.match(certificateShareDraft(2025, 'Certificado de voluntario', 'https://jconfperu.com/v/abc'), /voluntario/);
 });
 
 test('el enlace de WhatsApp lleva el nombre, el correo y el usuario', () => {

@@ -43,6 +43,7 @@ const clock = `${pick('hour')}:${pick('minute')} ${pick('dayPeriod')}`.replace(/
         <p class="mx-auto mt-5 max-w-xl text-base font-semibold sm:text-lg">
           El certificado de {year} estará disponible al terminar el evento. Podrás descargarlo o compartirlo en LinkedIn.
         </p>
+        <slot />
         {
           priorDownload && (
             <p class="mt-6">

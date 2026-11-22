@@ -10,7 +10,8 @@ import { certificateStep } from '@lib/certificates/eligibility';
 import { attendeeNotice } from '@lib/certificates/messages';
 import { normalizeEmail, splitSuggestedName, validateNames } from '@lib/certificates/names';
 import { canDownload, normalizePhone, paymentStatus } from '@lib/certificates/registration';
-import { certificateClaimOpen, certificateReleased, linkedInShareUrl } from '@lib/certificates/release';
+import { certificateClaimOpen, certificateReleased } from '@lib/certificates/release';
+import CertificateShare from '@components/CertificateShare.astro';
 import { editionFacts, recognitionParagraph } from '@lib/certificates/snapshot';
 import { claimEmail, findAttendeeByGithub, issueForGithub, registerSelf, submitOnlineCode, yearHasAttendees, yearIsOpen } from '@lib/certificates/store';
 import { correctionMessage, whatsAppLink } from '@lib/certificates/whatsapp';
@@ -163,9 +164,9 @@ const whatsApp = session
   : null;
 const showWhatsApp = avisoCode === 'missing' || avisoCode === 'taken' || avisoCode === 'revoked' || step === 'forbidden';
 const released = Number.isInteger(year) && certificateReleased(year);
-const linkedIn =
+const shareUrl =
   released && row?.issuedAt && row.publicCode
-    ? linkedInShareUrl(publicUrl(`/v/${row.publicCode}`, Astro.url.origin))
+    ? publicUrl(`/v/${row.publicCode}`, Astro.url.origin)
     : null;
 ---
 
@@ -289,14 +290,12 @@ const linkedIn =
 
           {
             session && !dbError && released && step === 'download' && row?.issuedAt && (
-              <p class="mt-8 flex flex-wrap gap-3">
-                <a class="main-btn" href={`${back}pdf`}>Descargar PDF</a>
-                {linkedIn && (
-                  <a class="main-btn" href={linkedIn} target="_blank" rel="noopener noreferrer">
-                    Compartir en LinkedIn
-                  </a>
-                )}
-              </p>
+              <div class="mt-8 grid gap-2">
+                <p>
+                  <a class="main-btn" href={`${back}pdf`}>Descargar PDF</a>
+                </p>
+                {shareUrl && <CertificateShare year={year} title={title} url={shareUrl} />}
+              </div>
             )
           }
 
@@ -316,7 +315,7 @@ const linkedIn =
           }
 
           {
-            facts && row && (step === 'issue' || step === 'download' || step === 'pending') && (
+            released && facts && row && (step === 'issue' || step === 'download' || step === 'pending') && (
               <div class="mt-10 overflow-x-auto">
                 <CertificateCard
                   year={year}

@@ -2,6 +2,7 @@
 export const prerender = false;
 
 import Layout from '@layouts/Layout.astro';
+import { certificateReleased } from '@lib/certificates/release';
 import { findAttendeeByCode } from '@lib/certificates/store';
 
 const code = Astro.params.code ?? '';
@@ -14,7 +15,12 @@ try {
   unavailable = true;
 }
 
-const valid = row?.issuedAt && !row.revokedAt && row.displayName && row.certificateTitle;
+const valid =
+  row?.issuedAt &&
+  !row.revokedAt &&
+  row.displayName &&
+  row.certificateTitle &&
+  certificateReleased(row.year);
 if (!valid) Astro.response.status = unavailable ? 503 : 404;
 ---
 
