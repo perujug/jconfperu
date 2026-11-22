@@ -9,26 +9,34 @@
     "start": "astro dev",
     "generate:assets": "node scripts/generate-social-assets.mjs",
     "build": "npm run generate:assets && astro build",
-    "preview": "astro preview",
+    "preview": "node scripts/preview-static.mjs",
     "astro": "astro",
     "check": "astro check",
     "typecheck": "astro check",
     "validate:site": "node scripts/validate-built-site.mjs",
     "test:site": "playwright test",
-    "test": "npm run audit && npm run check && npm run build && npm run validate:site && npm run test:site",
+    "test:unit": "tsx --test src/lib/certificates/logic.test.ts",
+    "test": "npm run audit && npm run test:unit && npm run check && npm run build && npm run validate:site && npm run test:site",
     "audit": "npm audit --audit-level=high"
   },
   "dependencies": {
     "@astrojs/check": "0.9.10",
     "@astrojs/mdx": "8.0.2",
     "@astrojs/sitemap": "3.7.4",
+    "@astrojs/vercel": "11.0.22",
+    "@pdf-lib/fontkit": "1.1.1",
     "@tailwindcss/vite": "4.3.3",
     "astro": "7.4.7",
+    "drizzle-orm": "0.45.4",
+    "pdf-lib": "1.17.1",
+    "postgres": "4.1.1",
+    "qrcode": "1.5.4",
     "tailwindcss": "4.3.3",
     "typescript": "5.9.3"
   },
   "overrides": {
     "fast-uri": "3.1.9",
+    "path-to-regexp": "6.3.0",
     "undici": "8.12.2",
     "vite": "8.3.3",
     "zod": "4.6.6"
@@ -53,6 +61,8 @@
   "devDependencies": {
     "@axe-core/playwright": "4.13.0",
     "@playwright/test": "1.63.0",
-    "sharp": "0.35.5"
+    "@types/qrcode": "1.5.6",
+    "sharp": "0.35.5",
+    "tsx": "4.23.15"
   }
 }

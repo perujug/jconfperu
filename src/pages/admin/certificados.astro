@@ -1,0 +1,733 @@
+---
+export const prerender = false;
+
+import Layout from '@layouts/Layout.astro';
+import { resolveGithubAccount } from '@lib/auth/github';
+import { deleteTempCookie, readSession, setTempCookie } from '@lib/auth/session';
+import { parseRole, ROLES } from '@lib/certificates/roles';
+import { normalizePhone, paymentStatus } from '@lib/certificates/registration';
+import {
+  addAdmin,
+  addManualAttendee,
+  ensureRegistrationToken,
+  importAttendees,
+  isAdmin,
+  listAdmins,
+  listAttendees,
+  removeAdmin,
+  rotateRegistrationToken,
+  seedAdmins,
+  setOnlineCode,
+  setPaymentStatus,
+  setRevoked,
+  setYearOpen,
+  unlinkGithub,
+  yearAccess,
+  yearIsOpen,
+} from '@lib/certificates/store';
+import { whatsAppLink } from '@lib/certificates/whatsapp';
+import QRCode from 'qrcode';
+import { authConfigured, bootstrapAdminIds } from '@lib/config';
+import { publicUrl } from '@lib/site';
+import { getAllEditions } from '@lib/editions';
+import type { CsvIssue } from '@lib/certificates/csv';
+
+const views = ['resumen', 'lista', 'carga', 'organizadores'] as const;
+type AdminView = (typeof views)[number];
+
+const session = await readSession(Astro.cookies);
+const editions = await getAllEditions();
+const requested = Number(Astro.url.searchParams.get('year'));
+const selected = editions.find((edition) => edition.data.year === requested) ?? editions[0];
+const year = selected?.data.year ?? null;
+const requestedView = Astro.url.searchParams.get('vista');
+const view: AdminView = views.includes(requestedView as AdminView) ? (requestedView as AdminView) : 'resumen';
+
+function adminPath(nextYear = year, nextView: AdminView = view, notice?: string) {
+  const params = new URLSearchParams();
+  if (nextYear) params.set('year', String(nextYear));
+  if (nextView !== 'resumen') params.set('vista', nextView);
+  if (notice) params.set('aviso', notice);
+  const query = params.toString();
+  return `/admin/certificados/${query ? `?${query}` : ''}`;
+}
+
+let allowed = false;
+let dbError = false;
+if (session) {
+  try {
+    await seedAdmins();
+    allowed = await isAdmin(session.githubId);
+  } catch {
+    dbError = true;
+  }
+}
+
+if (Astro.request.method === 'POST' && session && allowed && year && !dbError) {
+  const form = await Astro.request.formData();
+  const intent = String(form.get('intent') ?? '');
+  try {
+    if (intent === 'toggle') {
+      await setYearOpen(year, form.get('open') === '1');
+      return Astro.redirect(adminPath(year, 'resumen'));
+    }
+    if (intent === 'import') {
+      const file = form.get('csv');
+      const text = file instanceof File ? await file.text() : '';
+      const result = await importAttendees(year, text);
+      setTempCookie(
+        Astro.cookies,
+        'jconf_import',
+        encodeURIComponent(JSON.stringify({ added: result.added, updated: result.updated, unchanged: result.unchanged, errors: result.errors.slice(0, 20) })),
+        120,
+      );
+      return Astro.redirect(adminPath(year, 'carga'));
+    }
+    if (intent === 'add-person') {
+      const githubField = String(form.get('github') ?? '');
+      const account = githubField.trim() ? await resolveGithubAccount(githubField) : null;
+      if (githubField.trim() && !account) return Astro.redirect(adminPath(year, 'carga', 'github'));
+      const role = parseRole(String(form.get('rol') ?? ''));
+      const phoneRaw = String(form.get('phone') ?? '');
+      const phone = phoneRaw.trim() ? normalizePhone(phoneRaw) : null;
+      if (phoneRaw.trim() && !phone) return Astro.redirect(adminPath(year, 'carga', 'phone'));
+      const outcome = await addManualAttendee({
+        year,
+        email: String(form.get('email') ?? ''),
+        suggestedName: String(form.get('nombre') ?? ''),
+        role: role ?? 'participante',
+        githubId: account?.githubId ?? null,
+        githubLogin: account?.login ?? null,
+        phone,
+      });
+      return Astro.redirect(adminPath(year, 'carga', outcome));
+    }
+    if (intent === 'revoke') {
+      await setRevoked(String(form.get('id') ?? ''), form.get('revoked') === '1');
+      return Astro.redirect(adminPath(year, 'lista'));
+    }
+    if (intent === 'unlink') {
+      await unlinkGithub(String(form.get('id') ?? ''));
+      return Astro.redirect(adminPath(year, 'lista'));
+    }
+    if (intent === 'add-admin') {
+      const account = await resolveGithubAccount(String(form.get('github') ?? ''));
+      if (!account) return Astro.redirect(adminPath(year, 'organizadores', 'github'));
+      await addAdmin(account.githubId, String(form.get('label') ?? '').trim() || account.login, account.login);
+      return Astro.redirect(adminPath(year, 'organizadores'));
+    }
+    if (intent === 'remove-admin') {
+      await removeAdmin(Number(form.get('githubId')));
+      return Astro.redirect(adminPath(year, 'organizadores'));
+    }
+    if (intent === 'rotate-link') {
+      await rotateRegistrationToken(year);
+      return Astro.redirect(adminPath(year, 'resumen'));
+    }
+    if (intent === 'online-code') {
+      await setOnlineCode(year, String(form.get('code') ?? ''));
+      return Astro.redirect(adminPath(year, 'resumen'));
+    }
+    if (intent === 'payment') {
+      await setPaymentStatus(String(form.get('id') ?? ''), form.get('status') === 'paid' ? 'paid' : 'unpaid');
+      return Astro.redirect(adminPath(year, 'lista'));
+    }
+  } catch {
+    return Astro.redirect(adminPath(year, view, 'error'));
+  }
+}
+
+let open = false;
+let registrationToken: string | null = null;
+let onlineCode = '';
+let people: Awaited<ReturnType<typeof listAttendees>> = [];
+let organizers: Array<{ githubId: number; label: string; login: string | null }> = [];
+let imported: { added: number; updated: number; unchanged: number; errors: CsvIssue[] } | null = null;
+
+if (session && allowed && year && !dbError) {
+  try {
+    open = await yearIsOpen(year);
+    registrationToken = await ensureRegistrationToken(year);
+    onlineCode = (await yearAccess(year)).onlineCode ?? '';
+    people = (await listAttendees(year)).sort((a, b) => (a.suggestedName || a.email || '').localeCompare(b.suggestedName || b.email || '', 'es'));
+    organizers = await listAdmins({ githubId: session.githubId, login: session.login });
+    const raw = Astro.cookies.get('jconf_import')?.value;
+    if (raw) {
+      deleteTempCookie(Astro.cookies, 'jconf_import');
+      imported = JSON.parse(decodeURIComponent(raw)) as { added: number; updated: number; unchanged: number; errors: CsvIssue[] };
+    }
+  } catch {
+    dbError = true;
+  }
+}
+
+const counts = {
+  total: people.length,
+  unpaid: people.filter((person) => !person.revokedAt && paymentStatus(person.paymentStatus) === 'unpaid').length,
+  paid: people.filter((person) => !person.revokedAt && paymentStatus(person.paymentStatus) === 'paid').length,
+  online: people.filter((person) => !person.revokedAt && paymentStatus(person.paymentStatus) === 'online').length,
+};
+const registerUrl = registrationToken
+  ? publicUrl(`/certificado/${year}/registro/?clave=${registrationToken}`, Astro.url.origin)
+  : '';
+const accountUrl = publicUrl('/mi/', Astro.url.origin);
+const registerQr = registerUrl ? await QRCode.toDataURL(registerUrl, { margin: 1, width: 220 }) : '';
+const nav = [
+  ['resumen', 'Resumen'],
+  ['lista', 'Lista'],
+  ['carga', 'Carga'],
+  ['organizadores', 'Organizadores'],
+] as const;
+
+const aviso = Astro.url.searchParams.get('aviso');
+const protectedIds = new Set(bootstrapAdminIds());
+const notices: Record<string, string> = {
+  added: 'Persona agregada a la lista.',
+  updated: 'Persona actualizada. El certificado ya expedido no cambia.',
+  taken: 'Ese GitHub ya está vinculado a otra entrada de este año.',
+  invalid: 'Revisa el correo y el nombre.',
+  github: 'No encontramos esa cuenta de GitHub.',
+  phone: 'Revisa el celular. Puedes dejarlo vacío.',
+  error: 'No pudimos guardar el cambio.',
+};
+---
+
+<Layout admin title="Certificados" description="Administración de certificados de JConf Perú." noindex>
+  <div class="shell">
+    <header class="top">
+      <div class="brand">
+        <a href="/">JConf Perú</a>
+        <span>Admin</span>
+      </div>
+      {
+        session && allowed && !dbError && (
+          <nav aria-label="Secciones">
+            {
+              nav.map(([id, label]) => (
+                <a href={adminPath(year, id)} aria-current={view === id ? 'page' : undefined}>{label}</a>
+              ))
+            }
+          </nav>
+        )
+      }
+      <div class="account">
+        <a href="/">Ver sitio</a>
+        {session && <span>@{session.login}</span>}
+        {
+          session && (
+            <form method="post" action="/auth/github/logout">
+              <button type="submit">Salir</button>
+            </form>
+          )
+        }
+      </div>
+    </header>
+
+    <div class="content">
+
+      {aviso && notices[aviso] && <p class="notice" role="alert">{notices[aviso]}</p>}
+      {dbError && <p class="notice" role="alert">La base de certificados no está disponible. Revisa DATABASE_URL.</p>}
+
+      {
+        !session && (
+          <section class="card narrow">
+            <h1>Certificados</h1>
+            <p>Entra con la cuenta de GitHub que administra JConf Perú.</p>
+            {
+              authConfigured() ? (
+                <a class="btn" href="/auth/github/login/?next=/admin/certificados/">Entrar con GitHub</a>
+              ) : (
+                <p>El ingreso con GitHub todavía no está configurado.</p>
+              )
+            }
+          </section>
+        )
+      }
+      {session && !allowed && !dbError && <p class="notice">Tu cuenta de GitHub no administra los certificados.</p>}
+
+      {
+        session && allowed && !dbError && selected && year && (
+          <>
+            <div class="heading">
+              <div>
+                <h1>Certificados</h1>
+                <p>JConf Perú {year} está {open ? 'abierto' : 'cerrado'}.</p>
+              </div>
+              <form method="get" class="year">
+                {view !== 'resumen' && <input type="hidden" name="vista" value={view} />}
+                <label>
+                  Año
+                  <select name="year" onchange="this.form.requestSubmit()">
+                    {editions.map((edition) => (
+                      <option value={edition.data.year} selected={edition.data.year === year}>{edition.data.year}</option>
+                    ))}
+                  </select>
+                </label>
+              </form>
+            </div>
+
+            {
+              view === 'resumen' && (
+                <>
+                  <div class="stats">
+                    <article class="card"><p>Registrados</p><strong>{counts.total}</strong></article>
+                    <article class="card"><p>UNPAID</p><strong>{counts.unpaid}</strong></article>
+                    <article class="card"><p>PAID</p><strong>{counts.paid}</strong></article>
+                    <article class="card"><p>ONLINE</p><strong>{counts.online}</strong></article>
+                  </div>
+                  <div class="split">
+                    <section class="card">
+                      <h2>Enlace de registro</h2>
+                      <p>Compártelo o muestra el QR. Quien entre anota su nombre. El certificado sale solo si lo marcas PAID o si escribe el código de la charla.</p>
+                      <p>Después del evento, el participante entra a <a href={accountUrl}>{accountUrl}</a> con la misma cuenta de GitHub y descarga desde ahí.</p>
+                      {registerQr && <img class="qr" src={registerQr} alt="QR del registro de certificados" width="160" height="160" />}
+                      <p class="example">{registerUrl}</p>
+                      <form method="post">
+                        <input type="hidden" name="intent" value="rotate-link" />
+                        <button class="btn" type="submit">Generar otro enlace</button>
+                      </form>
+                    </section>
+                    <form method="post" class="card">
+                      <h2>Código de las charlas online</h2>
+                      <p>Dilo en las charlas. Quien lo escriba pasa a ONLINE y puede descargar sin haber pagado. Si lo cambias, el anterior deja de servir.</p>
+                      <input type="hidden" name="intent" value="online-code" />
+                      <label>
+                        Código
+                        <input name="code" value={onlineCode} autocomplete="off" />
+                      </label>
+                      <button class="btn" type="submit">Guardar código</button>
+                    </form>
+                  </div>
+                  <div class="actions">
+                    <a class="card link" href={adminPath(year, 'lista')}>
+                      <strong>Lista</strong>
+                      <span>Correos, roles, vínculo con GitHub y revocaciones.</span>
+                    </a>
+                    <a class="card link" href={adminPath(year, 'carga')}>
+                      <strong>Cargar personas</strong>
+                      <span>CSV de pagos o un alta manual desde WhatsApp.</span>
+                    </a>
+                    <a class="card link" href={adminPath(year, 'organizadores')}>
+                      <strong>Organizadores</strong>
+                      <span>Quién puede entrar a este panel.</span>
+                    </a>
+                    <form method="post" class="card status">
+                      <input type="hidden" name="intent" value="toggle" />
+                      <input type="hidden" name="open" value={open ? '0' : '1'} />
+                      <strong>{open ? 'Recepción abierta' : 'Recepción cerrada'}</strong>
+                      <span>{open ? 'El enlace acepta registros. El PDF sale con PAID o con el código online.' : 'Nadie nuevo puede registrarse. Los ya validados siguen disponibles.'}</span>
+                      <button class="btn" type="submit">{open ? 'Cerrar registros' : 'Abrir registros'}</button>
+                    </form>
+                  </div>
+                </>
+              )
+            }
+
+            {
+              view === 'lista' && (
+                <section class="card">
+                  <h2>Lista {year}</h2>
+                  {
+                    people.length === 0 ? (
+                      <p>Nadie se ha registrado. Comparte el enlace del resumen.</p>
+                    ) : (
+                      <div class="table-wrap">
+                        <table>
+                          <thead>
+                            <tr>
+                              <th>Nombre</th>
+                              <th>GitHub</th>
+                              <th>Celular</th>
+                              <th>Estado</th>
+                              <th>Acciones</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {
+                              people.map((person) => {
+                                const pay = person.revokedAt ? 'revocado' : paymentStatus(person.paymentStatus);
+                                const label = pay === 'paid' ? 'PAID' : pay === 'online' ? 'ONLINE' : pay === 'revocado' ? 'Revocado' : 'UNPAID';
+                                const chat = person.phone
+                                  ? whatsAppLink(person.phone, `Hola, te escribimos de JConf Perú ${year} por tu certificado.`)
+                                  : null;
+                                return (
+                                  <tr>
+                                    <td>{person.displayName || person.suggestedName}</td>
+                                    <td>{person.githubLogin ? `@${person.githubLogin}` : '—'}</td>
+                                    <td>{chat ? <a href={chat} target="_blank" rel="noopener noreferrer">{person.phone}</a> : '—'}</td>
+                                    <td><span class={`state ${pay}`}>{label}</span></td>
+                                    <td class="actions-cell">
+                                      {
+                                        !person.revokedAt && pay !== 'online' && (
+                                          <form method="post">
+                                            <input type="hidden" name="intent" value="payment" />
+                                            <input type="hidden" name="id" value={person.id} />
+                                            <input type="hidden" name="status" value={pay === 'paid' ? 'unpaid' : 'paid'} />
+                                            <button type="submit">{pay === 'paid' ? 'Volver a impago' : 'Marcar pagado'}</button>
+                                          </form>
+                                        )
+                                      }
+                                      <form method="post">
+                                        <input type="hidden" name="intent" value="revoke" />
+                                        <input type="hidden" name="id" value={person.id} />
+                                        <input type="hidden" name="revoked" value={person.revokedAt ? '0' : '1'} />
+                                        <button type="submit">{person.revokedAt ? 'Restaurar' : 'Revocar'}</button>
+                                      </form>
+                                      {
+                                        person.githubId && !person.issuedAt && (
+                                          <form method="post">
+                                            <input type="hidden" name="intent" value="unlink" />
+                                            <input type="hidden" name="id" value={person.id} />
+                                            <button type="submit">Desvincular</button>
+                                          </form>
+                                        )
+                                      }
+                                    </td>
+                                  </tr>
+                                );
+                              })
+                            }
+                          </tbody>
+                        </table>
+                      </div>
+                    )
+                  }
+                </section>
+              )
+            }
+
+            {
+              view === 'carga' && (
+                <div class="split">
+                  <form method="post" enctype="multipart/form-data" class="card">
+                    <h2>CSV de pagos</h2>
+                    <p>Una fila por persona. El correo es la clave: si vuelves a cargar el archivo con los últimos pagos, ese correo se actualiza y no se crea otra fila. Quien ya no venga en el archivo se queda. Un certificado ya expedido no se reescribe.</p>
+                    <pre class="example">email,nombre,rol
+ana.perez@correo.com,Ana Pérez,participante
+beto.quispe@correo.com,Beto Quispe,conferencista
+luz.mendoza@correo.com,Luz Mendoza,organizador</pre>
+                    <p>El rol puede omitirse y queda como participante. También valen las columnas correo y nombre, separadas por coma o punto y coma.</p>
+                    <input type="hidden" name="intent" value="import" />
+                    <input type="file" name="csv" accept=".csv,text/csv" required />
+                    <button class="btn" type="submit">Cargar CSV</button>
+                    {
+                      imported && (
+                        <p role="status">
+                          {imported.added} nuevos, {imported.updated} actualizados, {imported.unchanged ?? 0} ya estaban
+                          {imported.errors.length > 0 ? `, ${imported.errors.length} observaciones.` : '.'}
+                        </p>
+                      )
+                    }
+                    {imported?.errors.map((error) => <p class="error">Línea {error.line}: {error.message}</p>)}
+                  </form>
+
+                  <form method="post" class="card">
+                    <h2>Alta manual</h2>
+                    <p>Para quien escribió por WhatsApp y no venía en el archivo.</p>
+                    <input type="hidden" name="intent" value="add-person" />
+                    <label>Correo<input type="email" name="email" required /></label>
+                    <label>Nombre de referencia<input name="nombre" required /></label>
+                    <label>
+                      Rol
+                      <select name="rol">
+                        {ROLES.map((role) => <option value={role}>{role}</option>)}
+                      </select>
+                    </label>
+                    <label>Celular<input name="phone" placeholder="Opcional" autocomplete="tel" /></label>
+                    <label>GitHub, usuario o id<input name="github" placeholder="Opcional" /></label>
+                    <button class="btn" type="submit">Agregar a {year}</button>
+                  </form>
+                </div>
+              )
+            }
+
+            {
+              view === 'organizadores' && (
+                <div class="split">
+                  <section class="card">
+                    <h2>Con acceso</h2>
+                    <ul class="people">
+                      {
+                        organizers.map((organizer) => (
+                          <li>
+                            <span>
+                              {organizer.login ? `@${organizer.login}` : organizer.label}
+                              {organizer.login && organizer.label !== organizer.login && <small>{organizer.label}</small>}
+                            </span>
+                            {
+                              protectedIds.has(organizer.githubId) ? (
+                                <em>Fijo</em>
+                              ) : (
+                                <form method="post">
+                                  <input type="hidden" name="intent" value="remove-admin" />
+                                  <input type="hidden" name="githubId" value={organizer.githubId} />
+                                  <button type="submit">Quitar</button>
+                                </form>
+                              )
+                            }
+                          </li>
+                        ))
+                      }
+                    </ul>
+                  </section>
+                  <form method="post" class="card">
+                    <h2>Agregar organizador</h2>
+                    <p>Puede entrar a este panel sin un nuevo deploy.</p>
+                    <input type="hidden" name="intent" value="add-admin" />
+                    <label>GitHub, usuario o id<input name="github" required /></label>
+                    <label>Nombre<input name="label" /></label>
+                    <button class="btn" type="submit">Agregar</button>
+                  </form>
+                </div>
+              )
+            }
+          </>
+        )
+      }
+    </div>
+  </div>
+</Layout>
+
+<style>
+  .shell {
+    min-height: 100vh;
+    background: var(--bg-elevated);
+    color: var(--fg-strong);
+  }
+  .top {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 0.85rem 1.5rem;
+    background: var(--bg-base);
+    border-bottom: 1px solid var(--border-subtle);
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-weight: 900;
+  }
+  .brand span,
+  .state {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .brand span {
+    color: #dd0a37;
+  }
+  nav {
+    display: flex;
+    gap: 0.25rem;
+  }
+  nav a {
+    padding: 0.4rem 0.75rem;
+    color: var(--fg-base);
+    font-weight: 700;
+  }
+  nav a[aria-current='page'] {
+    color: var(--fg-strong);
+    box-shadow: inset 0 -2px 0 #dd0a37;
+  }
+  .account {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    margin-left: auto;
+    color: var(--fg-muted);
+  }
+  .account button,
+  .actions-cell button,
+  .people button {
+    background: none;
+    border: 0;
+    color: #dd0a37;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .content {
+    width: min(1080px, calc(100% - 2rem));
+    margin: 0 auto;
+    padding: 1.75rem 0 3rem;
+  }
+  .heading,
+  .stats,
+  .actions,
+  .split {
+    display: grid;
+    gap: 1rem;
+  }
+  .heading {
+    grid-template-columns: 1fr auto;
+    align-items: end;
+    margin-bottom: 1.25rem;
+  }
+  h1 {
+    font-size: 1.8rem;
+    font-weight: 900;
+  }
+  h2 {
+    font-size: 1.15rem;
+    font-weight: 700;
+  }
+  .heading p,
+  .card p,
+  .card span,
+  .people small {
+    color: var(--fg-muted);
+  }
+  .year label {
+    display: grid;
+    gap: 0.25rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+  }
+  .stats {
+    grid-template-columns: repeat(4, 1fr);
+    margin-bottom: 1rem;
+  }
+  .actions,
+  .split {
+    grid-template-columns: 1fr 1fr;
+  }
+  .card {
+    display: grid;
+    gap: 0.75rem;
+    align-content: start;
+    padding: 1.1rem 1.15rem;
+    background: var(--bg-base);
+    border: 1px solid var(--border-subtle);
+  }
+  .card strong {
+    font-size: 1.05rem;
+  }
+  .stats strong {
+    font-size: 2rem;
+    font-weight: 900;
+  }
+  .link {
+    text-decoration: none;
+  }
+  .link:hover strong {
+    color: #dd0a37;
+  }
+  .status {
+    grid-column: 1 / -1;
+  }
+  .narrow {
+    max-width: 32rem;
+  }
+  .notice {
+    margin-bottom: 1rem;
+    padding: 0.75rem 0.9rem;
+    background: var(--bg-base);
+    border: 1px solid var(--border-subtle);
+  }
+  label {
+    display: grid;
+    gap: 0.3rem;
+    font-weight: 700;
+  }
+  input,
+  select {
+    width: 100%;
+    padding: 0.55rem 0.7rem;
+    color: var(--fg-strong);
+    background: var(--bg-base);
+    border: 1px solid var(--border-subtle);
+  }
+  .btn {
+    justify-self: start;
+    padding: 0.65rem 1rem;
+    background: #dd0a37;
+    color: #fff;
+    font-weight: 700;
+  }
+  .table-wrap {
+    overflow-x: auto;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.92rem;
+  }
+  th {
+    text-align: left;
+    font-size: 0.75rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--fg-muted);
+  }
+  th,
+  td {
+    padding: 0.7rem 0.6rem 0.7rem 0;
+    border-bottom: 1px solid var(--border-subtle);
+    vertical-align: middle;
+  }
+  .state {
+    color: var(--fg-muted);
+  }
+  .state.expedido {
+    color: #0b7a3b;
+  }
+  .state.revocado {
+    color: #dd0a37;
+  }
+  .actions-cell,
+  .people li {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .people {
+    display: grid;
+  }
+  .people li {
+    justify-content: space-between;
+    padding: 0.7rem 0;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+  .people span {
+    display: grid;
+  }
+  .error {
+    color: #dd0a37;
+  }
+  .example {
+    margin: 0;
+    padding: 0.75rem 0.85rem;
+    overflow-x: auto;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.82rem;
+    line-height: 1.45;
+    word-break: break-all;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-subtle);
+  }
+  .qr {
+    width: 160px;
+    height: 160px;
+  }
+  .state.paid,
+  .state.online {
+    color: #0b7a3b;
+  }
+  @media (max-width: 800px) {
+    .top,
+    .heading,
+    .stats,
+    .actions,
+    .split {
+      display: grid;
+      grid-template-columns: 1fr;
+    }
+    .account {
+      margin-left: 0;
+    }
+    .stats {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+</style>

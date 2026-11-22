@@ -1,0 +1,61 @@
+---
+export const prerender = false;
+
+import Layout from '@layouts/Layout.astro';
+import { findAttendeeByCode } from '@lib/certificates/store';
+
+const code = Astro.params.code ?? '';
+let unavailable = false;
+let row = null;
+
+try {
+  row = code ? await findAttendeeByCode(code) : null;
+} catch {
+  unavailable = true;
+}
+
+const valid = row?.issuedAt && !row.revokedAt && row.displayName && row.certificateTitle;
+if (!valid) Astro.response.status = unavailable ? 503 : 404;
+---
+
+<Layout title="Verificación" description="Verificación de un certificado de JConf Perú." noindex>
+  <section class="max-w-2xl mx-auto px-4 sm:px-6 py-16">
+    <p class="text-sm font-bold uppercase tracking-wide text-brand-accent">Peru JUG</p>
+    {
+      unavailable ? (
+        <h1 class="font-display text-4xl font-black mt-2">Verificación no disponible</h1>
+      ) : valid && row ? (
+        <>
+          <h1 class="font-display text-4xl font-black mt-2">Certificado vigente</h1>
+          <dl class="mt-8 grid gap-4">
+            <div>
+              <dt class="text-sm font-bold">Nombre</dt>
+              <dd>{row.displayName}</dd>
+            </div>
+            <div>
+              <dt class="text-sm font-bold">Certificado</dt>
+              <dd>{row.certificateTitle}</dd>
+            </div>
+            <div>
+              <dt class="text-sm font-bold">Edición</dt>
+              <dd>JConf Perú {row.year}</dd>
+            </div>
+            <div>
+              <dt class="text-sm font-bold">Fecha</dt>
+              <dd>{row.editionDateLabel}</dd>
+            </div>
+            <div>
+              <dt class="text-sm font-bold">Sede</dt>
+              <dd>{row.venueLine}</dd>
+            </div>
+          </dl>
+        </>
+      ) : (
+        <>
+          <h1 class="font-display text-4xl font-black mt-2">Código no vigente</h1>
+          <p class="mt-4">Este código no corresponde a un certificado vigente.</p>
+        </>
+      )
+    }
+  </section>
+</Layout>

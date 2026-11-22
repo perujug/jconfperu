@@ -1,0 +1,331 @@
+---
+export const prerender = false;
+
+import Layout from '@layouts/Layout.astro';
+import CertificateCard from '@components/CertificateCard.astro';
+import { readSession, setTempCookie } from '@lib/auth/session';
+import { decodeDraft, encodeDraft } from '@lib/certificates/draft';
+import { certificateStep } from '@lib/certificates/eligibility';
+import { attendeeNotice } from '@lib/certificates/messages';
+import { normalizeEmail, splitSuggestedName, validateNames } from '@lib/certificates/names';
+import { canDownload, normalizePhone, paymentStatus } from '@lib/certificates/registration';
+import { editionFacts, recognitionParagraph } from '@lib/certificates/snapshot';
+import { claimEmail, findAttendeeByGithub, issueForGithub, registerSelf, submitOnlineCode, yearIsOpen } from '@lib/certificates/store';
+import { correctionMessage, whatsAppLink } from '@lib/certificates/whatsapp';
+import { authConfigured, whatsAppPhone } from '@lib/config';
+import { getEditionByYear } from '@lib/editions';
+import type { AttendeeRow } from '@/db/schema';
+
+const year = Number(Astro.params.year);
+const edition = Number.isInteger(year) ? await getEditionByYear(year) : undefined;
+const session = await readSession(Astro.cookies);
+const back = `/certificado/${year}/`;
+const facts = edition
+  ? editionFacts({
+      title: edition.data.title,
+      tagline: edition.data.tagline,
+      date: edition.data.date,
+      dateLabel: edition.data.dateLabel,
+      venue: edition.data.venue,
+    })
+  : null;
+
+let dbError = false;
+let open = false;
+let row: AttendeeRow | null = null;
+
+if (edition && session) {
+  try {
+    open = await yearIsOpen(year);
+    row = await findAttendeeByGithub(year, session.githubId);
+  } catch {
+    dbError = true;
+  }
+}
+
+if (Astro.request.method === 'POST' && edition && session && facts && !dbError) {
+  const form = await Astro.request.formData();
+  const intent = String(form.get('intent') ?? '');
+  try {
+    if (intent === 'claim') {
+      const email = normalizeEmail(String(form.get('email') ?? ''));
+      const givenName = String(form.get('givenName') ?? '');
+      const familyName = String(form.get('familyName') ?? '');
+      if (!email) return Astro.redirect(`${back}?aviso=invalid-email`);
+      const outcome = await claimEmail({
+        year,
+        email,
+        githubId: session.githubId,
+        githubLogin: session.login,
+      });
+      if (outcome === 'linked') return Astro.redirect(back);
+      setTempCookie(
+        Astro.cookies,
+        'jconf_claim',
+        encodeDraft({ year, email, givenName, familyName }),
+        60 * 30,
+      );
+      const code = outcome === 'ready' ? 'error' : outcome;
+      return Astro.redirect(`${back}?aviso=${code}`);
+    }
+
+    if (intent === 'profile' && row && !row.issuedAt && !canDownload(paymentStatus(row.paymentStatus))) {
+      const names = validateNames(String(form.get('givenName') ?? ''), String(form.get('familyName') ?? ''));
+      if (!names.ok) return Astro.redirect(`${back}?aviso=invalid-name`);
+      const phoneRaw = String(form.get('phone') ?? '');
+      const phone = phoneRaw.trim() ? normalizePhone(phoneRaw) : null;
+      if (phoneRaw.trim() && !phone) return Astro.redirect(`${back}?aviso=invalid-phone`);
+      const email = normalizeEmail(String(form.get('email') ?? ''));
+      if (String(form.get('email') ?? '').trim() && !email) return Astro.redirect(`${back}?aviso=invalid-email`);
+      const outcome = await registerSelf({
+        year,
+        token: 'keep',
+        githubId: session.githubId,
+        githubLogin: session.login,
+        givenName: names.givenName,
+        familyName: names.familyName,
+        email,
+        phone,
+      });
+      return Astro.redirect(`${back}?aviso=${outcome === 'taken' ? 'taken' : 'updated'}`);
+    }
+
+    if (intent === 'code') {
+      const outcome = await submitOnlineCode(year, session.githubId, String(form.get('code') ?? ''));
+      const notice = outcome === 'online' ? 'online' : outcome === 'unchanged' ? 'online' : 'bad-code';
+      return Astro.redirect(`${back}?aviso=${notice}`);
+    }
+
+    if (intent === 'issue') {
+      const names = validateNames(String(form.get('givenName') ?? ''), String(form.get('familyName') ?? ''));
+      if (!names.ok) return Astro.redirect(`${back}?aviso=invalid-name`);
+      const frozen = await issueForGithub({
+        year,
+        githubId: session.githubId,
+        givenName: names.givenName,
+        familyName: names.familyName,
+        edition: facts,
+      });
+      return Astro.redirect(frozen ? `${back}?aviso=issued` : `${back}?aviso=closed`);
+    }
+  } catch {
+    return Astro.redirect(`${back}?aviso=error`);
+  }
+}
+
+if (!edition) Astro.response.status = 404;
+
+const eligible = row ? canDownload(paymentStatus(row.paymentStatus)) : false;
+const step =
+  session && row
+    ? certificateStep({
+        yearOpen: open,
+        linked: true,
+        revoked: row.revokedAt != null,
+        issued: row.issuedAt != null,
+        eligible,
+      })
+    : certificateStep({ yearOpen: open, linked: false, revoked: false, issued: false, eligible: false });
+const avisoCode = Astro.url.searchParams.get('aviso');
+const notice = edition
+  ? attendeeNotice(avisoCode, year) ?? (step === 'forbidden' ? attendeeNotice('forbidden', year) : null)
+  : null;
+const draft = decodeDraft(Astro.cookies.get('jconf_claim')?.value, year);
+
+const suggested = splitSuggestedName(row?.suggestedName ?? '');
+const givenValue = row?.givenName || draft?.givenName || suggested.givenName;
+const familyValue = row?.familyName || draft?.familyName || suggested.familyName;
+const person = row?.displayName || [givenValue, familyValue].filter(Boolean).join(' ') || 'Tu nombre';
+const recognition = row?.recognitionText || (facts ? recognitionParagraph(facts) : '');
+const dateLabel = row?.editionDateLabel || facts?.dateLabel || '';
+const venueLine = row?.venueLine || facts?.venueLine || '';
+const title = row?.certificateTitle || 'Certificado de participación';
+const reason = avisoCode === 'taken' ? 'taken' : avisoCode === 'revoked' || step === 'forbidden' ? 'revoked' : 'missing';
+const whatsApp = session
+  ? whatsAppLink(
+      whatsAppPhone(),
+      correctionMessage({
+        year,
+        displayName: [givenValue, familyValue].filter(Boolean).join(' '),
+        email: draft?.email || row?.email || '',
+        githubLogin: session.login,
+        reason,
+      }),
+    )
+  : null;
+const showWhatsApp = avisoCode === 'missing' || avisoCode === 'taken' || avisoCode === 'revoked' || step === 'forbidden';
+---
+
+<Layout
+  title={edition ? `Certificado ${edition.data.year}` : 'Certificado'}
+  description="Certificado de participación de JConf Perú."
+  noindex
+>
+  <section class="max-w-5xl mx-auto px-4 sm:px-6 py-16">
+    {
+      !edition || !facts ? (
+        <h1 class="font-display text-4xl font-black">No encontramos esa edición</h1>
+      ) : (
+        <>
+          <p class="text-sm font-bold uppercase tracking-wide text-brand-accent">
+            <a class="hover-brand-red" href="/mi/">Mi JConf Perú</a>
+          </p>
+          <h1 class="font-display text-4xl font-black mt-2">{edition.data.title}</h1>
+
+          {notice && <p class="mt-6" role="alert">{notice}</p>}
+          {dbError && <p class="mt-6" role="alert">No pudimos consultar la lista. Inténtalo de nuevo en unos minutos.</p>}
+
+          {
+            !session && (
+              <p class="mt-8">
+                {
+                  authConfigured() ? (
+                    <a class="main-btn" href={`/auth/github/login/?next=${encodeURIComponent(back)}`}>Entrar con GitHub</a>
+                  ) : (
+                    'El ingreso con GitHub todavía no está configurado.'
+                  )
+                }
+              </p>
+            )
+          }
+
+          {
+            session && !dbError && step === 'closed' && !notice && (
+              <p class="mt-6">El registro de {edition.data.title} está cerrado. Si ya estás validado, tu certificado sigue disponible.</p>
+            )
+          }
+
+          {
+            session && !dbError && step === 'claim' && (
+              <form class="mt-8 grid gap-4 max-w-xl" method="post">
+                <input type="hidden" name="intent" value="claim" />
+                <label class="grid gap-1">
+                  <span class="font-bold">Correo con el que pagaste</span>
+                  <input class="border px-3 py-2" style="border-color: var(--border-subtle);" type="email" name="email" required value={draft?.email ?? ''} autocomplete="email" />
+                </label>
+                <label class="grid gap-1">
+                  <span class="font-bold">Nombres</span>
+                  <input id="given-name" class="border px-3 py-2" style="border-color: var(--border-subtle);" name="givenName" value={givenValue} autocomplete="given-name" />
+                </label>
+                <label class="grid gap-1">
+                  <span class="font-bold">Apellidos</span>
+                  <input id="family-name" class="border px-3 py-2" style="border-color: var(--border-subtle);" name="familyName" value={familyValue} autocomplete="family-name" />
+                </label>
+                <button class="main-btn" type="submit">Buscar mi entrada</button>
+              </form>
+            )
+          }
+
+          {
+            session && !dbError && step === 'pending' && (
+              <div class="mt-8 grid gap-8 max-w-xl">
+                <p>Tu registro está pendiente. El certificado se descarga cuando confirmemos el pago o cuando escribas el código dicho en las charlas online.</p>
+                <form class="grid gap-4" method="post">
+                  <input type="hidden" name="intent" value="code" />
+                  <label class="grid gap-1">
+                    <span class="font-bold">Código de la charla online</span>
+                    <input class="border px-3 py-2" style="border-color: var(--border-subtle);" name="code" required autocomplete="off" />
+                  </label>
+                  <button class="main-btn" type="submit">Validar código</button>
+                </form>
+                <form class="grid gap-4" method="post">
+                  <input type="hidden" name="intent" value="profile" />
+                  <label class="grid gap-1">
+                    <span class="font-bold">Nombres</span>
+                    <input id="given-name" class="border px-3 py-2" style="border-color: var(--border-subtle);" name="givenName" required value={givenValue} autocomplete="given-name" />
+                  </label>
+                  <label class="grid gap-1">
+                    <span class="font-bold">Apellidos</span>
+                    <input id="family-name" class="border px-3 py-2" style="border-color: var(--border-subtle);" name="familyName" required value={familyValue} autocomplete="family-name" />
+                  </label>
+                  <label class="grid gap-1">
+                    <span class="font-bold">Correo, opcional</span>
+                    <input class="border px-3 py-2" style="border-color: var(--border-subtle);" type="email" name="email" value={row?.email ?? ''} autocomplete="email" />
+                  </label>
+                  <label class="grid gap-1">
+                    <span class="font-bold">Celular, opcional</span>
+                    <input class="border px-3 py-2" style="border-color: var(--border-subtle);" name="phone" value={row?.phone ?? ''} autocomplete="tel" />
+                  </label>
+                  <button class="main-btn" type="submit">Guardar datos</button>
+                </form>
+              </div>
+            )
+          }
+
+          {
+            session && !dbError && step === 'issue' && (
+              <form class="mt-8 grid gap-4 max-w-xl" method="post">
+                <input type="hidden" name="intent" value="issue" />
+                <label class="grid gap-1">
+                  <span class="font-bold">Nombres</span>
+                  <input id="given-name" class="border px-3 py-2" style="border-color: var(--border-subtle);" name="givenName" required value={givenValue} autocomplete="given-name" />
+                </label>
+                <label class="grid gap-1">
+                  <span class="font-bold">Apellidos</span>
+                  <input id="family-name" class="border px-3 py-2" style="border-color: var(--border-subtle);" name="familyName" required value={familyValue} autocomplete="family-name" />
+                </label>
+                <p class="text-sm" style="color: var(--fg-muted);">
+                  Este nombre queda fijo al expedir. El de la lista ({row?.suggestedName}) es solo una referencia.
+                </p>
+                <button class="main-btn" type="submit">Expedir certificado</button>
+              </form>
+            )
+          }
+
+          {
+            session && !dbError && step === 'download' && row?.issuedAt && (
+              <p class="mt-8">
+                <a class="main-btn" href={`${back}pdf`}>Descargar PDF</a>
+              </p>
+            )
+          }
+
+          {
+            showWhatsApp && session && (
+              <div class="mt-8 grid gap-3 max-w-xl">
+                <p>Si pagaste, envía una solicitud para validar tu entrada manualmente.</p>
+                {
+                  whatsApp ? (
+                    <a class="main-btn" href={whatsApp} target="_blank" rel="noopener noreferrer">Sí, yo pagué</a>
+                  ) : (
+                    <p>El WhatsApp del organizador todavía no está configurado. Escríbenos por los canales de contacto con tu correo y tu usuario de GitHub.</p>
+                  )
+                }
+              </div>
+            )
+          }
+
+          {
+            facts && (step === 'issue' || step === 'download' || step === 'claim' || step === 'pending') && (
+              <div class="mt-10 overflow-x-auto">
+                <CertificateCard
+                  year={year}
+                  title={title}
+                  person={person}
+                  recognition={recognition}
+                  dateLabel={dateLabel}
+                  venueLine={venueLine}
+                  editable={step === 'claim' || step === 'issue'}
+                />
+              </div>
+            )
+          }
+        </>
+      )
+    }
+  </section>
+</Layout>
+
+<script is:inline>
+  const given = document.getElementById('given-name');
+  const family = document.getElementById('family-name');
+  const person = document.getElementById('certificate-person');
+  if (given instanceof HTMLInputElement && family instanceof HTMLInputElement && person) {
+    const render = () => {
+      const name = `${given.value} ${family.value}`.replace(/\s+/g, ' ').trim();
+      person.textContent = name || 'Tu nombre';
+    };
+    given.addEventListener('input', render);
+    family.addEventListener('input', render);
+  }
+</script>

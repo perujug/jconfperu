@@ -1,11 +1,6 @@
 import { access, readFile, readdir } from 'node:fs/promises';
 import { extname, join, relative } from 'node:path';
 
-const root = new URL('../', import.meta.url).pathname;
-const dist = join(root, 'dist');
-const productionOrigin = 'https://jconfperu.com';
-const errors = [];
-
 async function exists(path) {
   try {
     await access(path);
@@ -14,6 +9,13 @@ async function exists(path) {
     return false;
   }
 }
+
+const root = new URL('../', import.meta.url).pathname;
+const clientDir = join(root, 'dist/client');
+const flatDir = join(root, 'dist');
+const dist = (await exists(join(clientDir, 'index.html'))) ? clientDir : flatDir;
+const productionOrigin = 'https://jconfperu.com';
+const errors = [];
 
 async function walk(directory) {
   const entries = await readdir(directory, { withFileTypes: true });
@@ -33,6 +35,13 @@ function candidates(pathname) {
   return [join(dist, decoded, 'index.html'), join(dist, `${decoded}.html`)];
 }
 
+const onDemandPrefixes = ['/admin', '/certificado', '/auth', '/v', '/mi'];
+
+function isOnDemandRoute(pathname) {
+  const path = pathname.replace(/\/$/, '') || '/';
+  return onDemandPrefixes.some((prefix) => path === prefix || path.startsWith(`${prefix}/`));
+}
+
 async function validateReference(sourceFile, value) {
   if (!value || value.startsWith('#') || value.startsWith('mailto:') || value.startsWith('tel:')) return;
 
@@ -45,6 +54,7 @@ async function validateReference(sourceFile, value) {
   }
 
   if (!['http:', 'https:'].includes(url.protocol) || url.origin !== productionOrigin) return;
+  if (isOnDemandRoute(url.pathname)) return;
   const resolved = await Promise.all(candidates(url.pathname).map(exists));
   if (!resolved.some(Boolean)) errors.push(`${sourceFile}: missing local target ${url.pathname}`);
 }

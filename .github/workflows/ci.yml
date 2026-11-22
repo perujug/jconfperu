@@ -40,6 +40,9 @@ jobs:
       - name: Audit dependencies
         run: npm run audit
 
+      - name: Unit tests
+        run: npm run test:unit
+
       - name: Astro check
         run: npm run check
 

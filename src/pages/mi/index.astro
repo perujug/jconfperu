@@ -1,0 +1,223 @@
+---
+export const prerender = false;
+
+import Layout from '@layouts/Layout.astro';
+import CertificateCard from '@components/CertificateCard.astro';
+import { readSession } from '@lib/auth/session';
+import { attendeeNotice } from '@lib/certificates/messages';
+import { splitSuggestedName } from '@lib/certificates/names';
+import { canDownload, paymentStatus } from '@lib/certificates/registration';
+import { certificateTitle, parseRole } from '@lib/certificates/roles';
+import { editionFacts, recognitionParagraph } from '@lib/certificates/snapshot';
+import { listAttendeesForGithub } from '@lib/certificates/store';
+import { authConfigured } from '@lib/config';
+import { getAllEditions } from '@lib/editions';
+import type { AttendeeRow } from '@/db/schema';
+
+const session = await readSession(Astro.cookies);
+const aviso = attendeeNotice(Astro.url.searchParams.get('aviso'), new Date().getFullYear());
+
+type YearView = {
+  year: number;
+  eventTitle: string;
+  name: string;
+  email: string;
+  phone: string;
+  github: string;
+  role: string;
+  status: string;
+  action: { href: string; label: string } | null;
+  certificate: {
+    title: string;
+    person: string;
+    recognition: string;
+    dateLabel: string;
+    venueLine: string;
+  } | null;
+};
+
+let dbError = false;
+let years: YearView[] = [];
+
+if (session) {
+  try {
+    const editions = await getAllEditions();
+    const byYear = new Map(editions.map((edition) => [edition.data.year, edition]));
+    const rows = await listAttendeesForGithub(session.githubId);
+    years = rows
+      .slice()
+      .sort((left, right) => right.year - left.year)
+      .map((row) => yearView(row, byYear.get(row.year), session.login));
+  } catch {
+    dbError = true;
+  }
+}
+
+function yearView(row: AttendeeRow, edition: Awaited<ReturnType<typeof getAllEditions>>[number] | undefined, login: string): YearView {
+  const suggested = splitSuggestedName(row.suggestedName);
+  const person = (row.displayName || [row.givenName || suggested.givenName, row.familyName || suggested.familyName].filter(Boolean).join(' ')).replace(/\s+/g, ' ').trim();
+  const role = parseRole(row.role) ?? 'participante';
+  const facts = edition
+    ? editionFacts({
+        title: edition.data.title,
+        tagline: edition.data.tagline,
+        date: edition.data.date,
+        dateLabel: edition.data.dateLabel,
+        venue: edition.data.venue,
+      })
+    : null;
+  const revoked = row.revokedAt != null;
+  const eligible = canDownload(paymentStatus(row.paymentStatus));
+  const href = `/certificado/${row.year}/`;
+  let action: YearView['action'] = null;
+  if (!revoked && eligible && row.issuedAt) action = { href: `${href}pdf`, label: 'Descargar PDF' };
+  else if (!revoked && eligible) action = { href, label: 'Expedir certificado' };
+  else if (!revoked) action = { href, label: 'Validar participación' };
+
+  return {
+    year: row.year,
+    eventTitle: edition?.data.title ?? `JConf Perú ${row.year}`,
+    name: person || 'Sin nombre',
+    email: row.email || 'No indicado',
+    phone: formatPhone(row.phone),
+    github: `@${row.githubLogin || login}`,
+    role: roleLabel(role),
+    status: revoked ? 'Revocado' : statusLabel(paymentStatus(row.paymentStatus)),
+    action,
+    certificate: {
+      title: row.certificateTitle || certificateTitle(role),
+      person: person || 'Tu nombre',
+      recognition: row.recognitionText || (facts ? recognitionParagraph(facts) : ''),
+      dateLabel: row.editionDateLabel || facts?.dateLabel || '',
+      venueLine: row.venueLine || facts?.venueLine || '',
+    },
+  };
+}
+
+function roleLabel(role: string): string {
+  if (role === 'conferencista') return 'Conferencista';
+  if (role === 'organizador') return 'Organizador';
+  return 'Participante';
+}
+
+function statusLabel(status: ReturnType<typeof paymentStatus>): string {
+  if (status === 'paid') return 'Pagado';
+  if (status === 'online') return 'Charla online';
+  return 'Pendiente de validación';
+}
+
+function formatPhone(value: string | null): string {
+  const digits = value?.replace(/\D/g, '') ?? '';
+  if (!digits) return 'No indicado';
+  if (digits.startsWith('51') && digits.length === 11) return `+51 ${digits.slice(2, 5)} ${digits.slice(5, 8)} ${digits.slice(8)}`;
+  return `+${digits}`;
+}
+---
+
+<Layout
+  title="Mi JConf Perú"
+  description="Tus datos y certificados de JConf Perú, por año."
+  noindex
+>
+  <section class="max-w-5xl mx-auto px-4 sm:px-6 py-16">
+    <p class="text-sm font-bold uppercase tracking-wide text-brand-accent">Peru JUG</p>
+    <h1 class="font-display text-4xl font-black mt-2">Mi JConf Perú</h1>
+    <p class="mt-4" style="color: var(--fg-muted);">
+      Tus datos y tu certificado, separados por edición.
+    </p>
+
+    {aviso && <p class="mt-6" role="alert">{aviso}</p>}
+    {dbError && <p class="mt-6" role="alert">No pudimos consultar tus certificados. Inténtalo de nuevo en unos minutos.</p>}
+
+    {
+      session ? (
+        <div class="mt-8 flex items-center justify-between gap-4">
+          <p>Sesión de @{session.login}</p>
+          <form method="post" action="/auth/github/logout">
+            <button class="underline" type="submit">Salir</button>
+          </form>
+        </div>
+      ) : (
+        <p class="mt-8">
+          {
+            authConfigured() ? (
+              <a class="main-btn" href="/auth/github/login/?next=/mi/">Entrar con GitHub</a>
+            ) : (
+              <span>El ingreso con GitHub todavía no está configurado.</span>
+            )
+          }
+        </p>
+      )
+    }
+
+    {
+      session && !dbError && (
+        years.length === 0 ? (
+          <p class="mt-8">
+            Esta cuenta todavía no tiene un certificado. El registro se hace con el enlace que compartimos durante el evento. Si ya te registraste, entra con esa misma cuenta de GitHub.
+          </p>
+        ) : (
+          <div class="mt-10 grid gap-12">
+            {
+              years.map((item) => (
+                <article class="grid gap-6 border-t pt-8" style="border-color: var(--border-subtle);">
+                  <header>
+                    <p class="text-sm font-bold uppercase tracking-wide text-brand-accent">{item.year}</p>
+                    <h2 class="font-display text-3xl font-black mt-1">{item.eventTitle}</h2>
+                  </header>
+                  <dl class="grid gap-4 sm:grid-cols-2">
+                    <div>
+                      <dt class="text-sm font-bold">Nombre</dt>
+                      <dd>{item.name}</dd>
+                    </div>
+                    <div>
+                      <dt class="text-sm font-bold">Correo</dt>
+                      <dd>{item.email}</dd>
+                    </div>
+                    <div>
+                      <dt class="text-sm font-bold">Celular</dt>
+                      <dd>{item.phone}</dd>
+                    </div>
+                    <div>
+                      <dt class="text-sm font-bold">GitHub</dt>
+                      <dd>{item.github}</dd>
+                    </div>
+                    <div>
+                      <dt class="text-sm font-bold">Rol</dt>
+                      <dd>{item.role}</dd>
+                    </div>
+                    <div>
+                      <dt class="text-sm font-bold">Estado</dt>
+                      <dd>{item.status}</dd>
+                    </div>
+                  </dl>
+                  {
+                    item.certificate && (
+                      <div class="overflow-x-auto">
+                        <CertificateCard
+                          year={item.year}
+                          title={item.certificate.title}
+                          person={item.certificate.person}
+                          recognition={item.certificate.recognition}
+                          dateLabel={item.certificate.dateLabel}
+                          venueLine={item.certificate.venueLine}
+                        />
+                      </div>
+                    )
+                  }
+                  {
+                    item.action && (
+                      <p>
+                        <a class="main-btn" href={item.action.href}>{item.action.label}</a>
+                      </p>
+                    )
+                  }
+                </article>
+              ))
+            }
+          </div>
+        )
+      )
+    }
+  </section>
+</Layout>

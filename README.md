@@ -16,6 +16,7 @@ arquitecturas nativas en la nube y temas afines.
 - [Correr el sitio localmente](#-correr-el-sitio-localmente)
 - [Estructura del proyecto](#-estructura-del-proyecto)
 - [Cómo agregar una edición nueva](#-cómo-agregar-una-edición-nueva-ej-2027)
+- [Certificados de un año nuevo](#-certificados-de-un-año-nuevo)
 - [Cómo agregar un speaker](#-cómo-agregar-un-speaker)
 - [Cómo agregar un sponsor](#-cómo-agregar-un-sponsor)
 - [Cómo agregar una sesión / charla](#-cómo-agregar-una-sesión--charla)
@@ -124,6 +125,28 @@ en caliente al editar contenido o componentes).
 
 > Tip: Si no quieres copiar contenido viejo, usa `git mv` y deja el archivo
 > antiguo intacto. Los archivos por año son independientes.
+
+## 🎓 Certificados de un año nuevo
+
+La plantilla, el ingreso con GitHub y la verificación no se rehacen. Un año nuevo son tres pasos:
+
+1. La edición existe en `src/content/editions/AAAA.md`, con fecha y sede.
+2. En `/admin/certificados` eliges ese año, subes el CSV y pulsas **Abrir certificados**.
+3. La persona entra en `/certificado/` con GitHub, escribe el correo con el que pagó, corrige nombres y apellidos, y expide el PDF.
+
+El CSV usa `email,nombre,rol`. El rol puede ser `participante`, `conferencista` u `organizador`. Si falta, queda como participante. Volver a subir el archivo agrega filas y actualiza el nombre de referencia y el rol. No borra a quien ya no viene en el archivo ni reescribe un certificado ya expedido. Quitar a alguien es **Revocar** en esa misma pantalla.
+
+Si alguien pagó y no está en la lista, el sitio le ofrece escribir por WhatsApp. En el admin se agrega su correo y, si vino en el mensaje, su usuario de GitHub.
+
+En local, `npm run dev` muestra el flujo completo. `npm run preview` sirve solo el sitio estático ya construido: el adaptador de Vercel no tiene preview de las rutas con servidor.
+
+Estas variables viven en el proyecto de Vercel. El build no las necesita y no van al repositorio:
+
+- `DATABASE_URL`: Postgres del proyecto. En Supabase es la URI del pooler (puerto 6543), con la contraseña de la base.
+- `AUTH_SECRET`: secreto largo para firmar la sesión.
+- `GITHUB_CLIENT_ID` y `GITHUB_CLIENT_SECRET`: OAuth app de la organización Peru JUG. La callback es `https://jconfperu.com/auth/github/callback/`.
+- `ADMIN_GITHUB_IDS`: ids numéricos de GitHub, separados por coma. Esos organizadores entran siempre. Desde el admin se pueden sumar otros sin otro deploy.
+- `CERT_WHATSAPP_E164`: número directo del organizador, con código de país. No es el grupo de la comunidad.
 
 ## 🎤 Cómo agregar un speaker
 
@@ -237,8 +260,9 @@ Bio breve opcional.
 | --- | --- |
 | `npm run dev` | Servidor de desarrollo en <http://localhost:4321> |
 | `npm run check` | Typecheck y validación de Content Collections |
-| `npm run build` | Genera activos sociales y el sitio estático en `dist/` |
+| `npm run build` | Genera el sitio. Las páginas públicas quedan en `dist/client` |
 | `npm run validate:site` | Valida enlaces, activos, metadata y redirects generados |
+| `npm run test:unit` | Prueba la lista, el nombre y la copia congelada del certificado |
 | `npm run test:site` | Smoke tests y Axe sobre el preview local |
 | `npm test` | Ejecuta el gate local completo |
 | `npm run audit` | Rechaza vulnerabilidades high/critical conocidas |

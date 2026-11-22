@@ -12,6 +12,16 @@ export const SITE = {
   twitter: '@perujug',
 } as const;
 
+/** En local usa el origen del servidor. Publicado, siempre https://jconfperu.com. */
+export function publicBase(dev: boolean, requestOrigin?: string): string {
+  if (dev && requestOrigin) return requestOrigin.replace(/\/$/, '');
+  return SITE.url;
+}
+
+export function publicUrl(path: string, requestOrigin?: string): string {
+  return new URL(path, `${publicBase(import.meta.env.DEV, requestOrigin)}/`).toString();
+}
+
 export const SOCIAL = {
   facebook: 'https://www.facebook.com/groups/perujug/',
   twitter: 'https://twitter.com/perujug',

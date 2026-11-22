@@ -1,0 +1,128 @@
+---
+export const prerender = false;
+
+import Layout from '@layouts/Layout.astro';
+import { readSession } from '@lib/auth/session';
+import { attendeeNotice } from '@lib/certificates/messages';
+import { normalizeEmail, validateNames } from '@lib/certificates/names';
+import { normalizePhone, registrationAllowed } from '@lib/certificates/registration';
+import { findAttendeeByGithub, registerSelf, yearAccess } from '@lib/certificates/store';
+import { authConfigured } from '@lib/config';
+import { getEditionByYear } from '@lib/editions';
+
+const year = Number(Astro.params.year);
+const token = Astro.url.searchParams.get('clave') ?? '';
+const edition = Number.isInteger(year) ? await getEditionByYear(year) : undefined;
+const session = await readSession(Astro.cookies);
+const back = `/certificado/${year}/registro/?clave=${encodeURIComponent(token)}`;
+
+let dbError = false;
+let open = false;
+let expected: string | null = null;
+let row: Awaited<ReturnType<typeof findAttendeeByGithub>> = null;
+
+if (edition && token) {
+  try {
+    const access = await yearAccess(year);
+    open = access.open;
+    expected = access.token;
+    if (session) row = await findAttendeeByGithub(year, session.githubId);
+  } catch {
+    dbError = true;
+  }
+}
+
+const allowed = registrationAllowed({ yearOpen: open, token, expected });
+if (!edition || !token || token !== expected) Astro.response.status = 404;
+
+if (Astro.request.method === 'POST' && edition && session && allowed && !dbError) {
+  const form = await Astro.request.formData();
+  const names = validateNames(String(form.get('givenName') ?? ''), String(form.get('familyName') ?? ''));
+  if (!names.ok) return Astro.redirect(`${back}&aviso=invalid-name`);
+  const phoneRaw = String(form.get('phone') ?? '');
+  const phone = phoneRaw.trim() ? normalizePhone(phoneRaw) : null;
+  if (phoneRaw.trim() && !phone) return Astro.redirect(`${back}&aviso=invalid-phone`);
+  const emailRaw = String(form.get('email') ?? '');
+  const email = emailRaw.trim() ? normalizeEmail(emailRaw) : null;
+  if (emailRaw.trim() && !email) return Astro.redirect(`${back}&aviso=invalid-email`);
+  try {
+    const outcome = await registerSelf({
+      year,
+      token,
+      githubId: session.githubId,
+      githubLogin: session.login,
+      givenName: names.givenName,
+      familyName: names.familyName,
+      email,
+      phone,
+    });
+    if (outcome === 'closed') return Astro.redirect(`${back}&aviso=closed`);
+    if (outcome === 'taken') return Astro.redirect(`${back}&aviso=taken`);
+    if (outcome === 'locked') return Astro.redirect(`/certificado/${year}/?aviso=locked`);
+    return Astro.redirect(`/certificado/${year}/?aviso=${outcome === 'updated' ? 'updated' : 'registered'}`);
+  } catch {
+    return Astro.redirect(`${back}&aviso=error`);
+  }
+}
+
+const notice = attendeeNotice(Astro.url.searchParams.get('aviso'), year);
+---
+
+<Layout title={edition ? `Registro ${edition.data.year}` : 'Registro'} description="Registro para el certificado de JConf Perú." noindex>
+  <section class="max-w-xl mx-auto px-4 sm:px-6 py-16">
+    {
+      !edition || !token || token !== expected ? (
+        <h1 class="font-display text-4xl font-black">Este enlace no está activo</h1>
+      ) : (
+        <>
+          <p class="text-sm font-bold uppercase tracking-wide text-brand-accent">JConf Perú {year}</p>
+          <h1 class="font-display text-4xl font-black mt-2">Registro para el certificado</h1>
+          <p class="mt-4" style="color: var(--fg-muted);">
+            Escribe el nombre que debe salir en el certificado. El correo y el celular son opcionales. El certificado se descarga cuando confirmemos el pago o cuando escribas el código de la charla online.
+          </p>
+          {notice && <p class="mt-6" role="alert">{notice}</p>}
+          {dbError && <p class="mt-6" role="alert">No pudimos guardar el registro. Inténtalo de nuevo en unos minutos.</p>}
+          {
+            !open && <p class="mt-6">El registro de JConf Perú {year} está cerrado.</p>
+          }
+          {
+            open && !session && (
+              <p class="mt-8">
+                {
+                  authConfigured() ? (
+                    <a class="main-btn" href={`/auth/github/login/?next=${encodeURIComponent(back)}`}>Entrar con GitHub</a>
+                  ) : (
+                    'El ingreso con GitHub todavía no está configurado.'
+                  )
+                }
+              </p>
+            )
+          }
+          {
+            open && session && !dbError && (
+              <form class="mt-8 grid gap-4" method="post">
+                <label class="grid gap-1">
+                  <span class="font-bold">Nombres</span>
+                  <input class="border px-3 py-2" style="border-color: var(--border-subtle);" name="givenName" required value={row?.givenName ?? ''} autocomplete="given-name" />
+                </label>
+                <label class="grid gap-1">
+                  <span class="font-bold">Apellidos</span>
+                  <input class="border px-3 py-2" style="border-color: var(--border-subtle);" name="familyName" required value={row?.familyName ?? ''} autocomplete="family-name" />
+                </label>
+                <label class="grid gap-1">
+                  <span class="font-bold">Correo, opcional</span>
+                  <input class="border px-3 py-2" style="border-color: var(--border-subtle);" type="email" name="email" value={row?.email ?? ''} autocomplete="email" />
+                </label>
+                <label class="grid gap-1">
+                  <span class="font-bold">Celular, opcional</span>
+                  <input class="border px-3 py-2" style="border-color: var(--border-subtle);" name="phone" value={row?.phone ?? ''} autocomplete="tel" placeholder="987654321" />
+                </label>
+                <button class="main-btn" type="submit">{row ? 'Actualizar registro' : 'Registrarme'}</button>
+              </form>
+            )
+          }
+        </>
+      )
+    }
+  </section>
+</Layout>

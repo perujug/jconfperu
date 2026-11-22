@@ -107,6 +107,16 @@ const linkClass =
     </nav>
 
     <div class="flex shrink-0 items-center gap-2">
+      <a
+        href="/mi/"
+        class:list={[
+          'inline-flex items-center h-9 px-3 text-[11px] font-bold uppercase tracking-wide bg-[#dd0a37] text-white hover:opacity-90',
+          isActive('/mi') && 'ring-2 ring-white',
+        ]}
+        aria-current={isActive('/mi') ? 'page' : undefined}
+      >
+        Mi JConf
+      </a>
       <ThemeToggle />
       <button
         type="button"

@@ -13,6 +13,8 @@ interface Props {
   jsonLd?: Record<string, unknown> | Array<Record<string, unknown>>;
   /** Excluir de robots (ej. páginas de admin). */
   noindex?: boolean;
+  /** Oculta el encabezado y el pie del sitio público. */
+  admin?: boolean;
 }
 
 const {
@@ -21,6 +23,7 @@ const {
   image = SITE.ogImage,
   jsonLd,
   noindex = false,
+  admin = false,
 } = Astro.props;
 
 const pageTitle = title ? `${title} · ${SITE.name}` : SITE.name;
@@ -133,12 +136,12 @@ const allJsonLd = jsonLd
       Saltar al contenido
     </a>
 
-    <Header />
+    {!admin && <Header />}
 
     <main id="main" class="flex-1">
       <slot />
     </main>
 
-    <Footer />
+    {!admin && <Footer />}
   </body>
 </html>

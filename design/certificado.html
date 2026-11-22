@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <title>Propuesta · Certificado JConf Perú</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #0b0f28;
+      --ink-soft: #1c2340;
+      --red: #dd0a37;
+      --paper: #ffffff;
+      --muted: #5c6178;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: #e7e8ee;
+      color: var(--ink);
+      font-family: Poppins, sans-serif;
+    }
+
+    .page {
+      width: 1123px;
+      margin: 32px auto;
+    }
+
+    .caption {
+      margin: 0 0 12px;
+      font-size: 13px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .sheet {
+      width: 1123px;
+      height: 794px;
+      display: grid;
+      grid-template-columns: 248px 1fr;
+      background: var(--paper);
+      box-shadow: 0 18px 50px rgba(11, 15, 40, 0.16);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .sheet::after {
+      content: "";
+      position: absolute;
+      inset: 14px;
+      border: 1px solid rgba(11, 15, 40, 0.18);
+      pointer-events: none;
+    }
+
+    .band {
+      position: relative;
+      background:
+        radial-gradient(1px 1px at 20% 18%, rgba(255,255,255,.85) 50%, transparent 51%),
+        radial-gradient(1px 1px at 70% 28%, rgba(255,255,255,.7) 50%, transparent 51%),
+        radial-gradient(1.4px 1.4px at 40% 62%, rgba(255,255,255,.9) 50%, transparent 51%),
+        radial-gradient(1px 1px at 82% 74%, rgba(255,255,255,.65) 50%, transparent 51%),
+        radial-gradient(1px 1px at 30% 84%, rgba(255,255,255,.55) 50%, transparent 51%),
+        radial-gradient(1.2px 1.2px at 60% 46%, rgba(255,255,255,.75) 50%, transparent 51%),
+        linear-gradient(180deg, #12183a 0%, #05060f 100%);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 42px 28px 36px;
+    }
+
+    .band::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 8px;
+      height: 100%;
+      background: var(--red);
+    }
+
+    .mark {
+      font-weight: 800;
+      letter-spacing: 0.14em;
+      font-size: 14px;
+      line-height: 1.15;
+    }
+
+    .mark span {
+      display: block;
+      color: var(--red);
+      letter-spacing: 0.28em;
+      font-size: 12px;
+      margin-top: 6px;
+    }
+
+    .year {
+      font-weight: 800;
+      font-size: 86px;
+      line-height: 0.85;
+      letter-spacing: -0.04em;
+    }
+
+    .year small {
+      display: block;
+      margin-top: 14px;
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+    }
+
+    .edition-meta {
+      font-size: 13px;
+      line-height: 1.45;
+      color: rgba(255,255,255,.82);
+    }
+
+    .body {
+      padding: 54px 64px 42px 56px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .kicker {
+      margin: 0;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--red);
+    }
+
+    h1 {
+      margin: 10px 0 0;
+      font-size: 34px;
+      line-height: 1.05;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    .grant {
+      margin: 28px 0 0;
+      font-size: 15px;
+      color: var(--muted);
+    }
+
+    .person {
+      margin: 8px 0 0;
+      font-size: 42px;
+      line-height: 1.1;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .rule {
+      width: 180px;
+      height: 4px;
+      margin: 14px 0 0;
+      background: var(--red);
+    }
+
+    .prose {
+      margin: 22px 0 0;
+      max-width: 640px;
+      font-size: 16px;
+      line-height: 1.55;
+      color: #2a3148;
+    }
+
+    .prose strong { color: var(--ink); font-weight: 700; }
+
+    .foot {
+      margin-top: auto;
+      display: grid;
+      grid-template-columns: 1fr 120px;
+      gap: 24px;
+      align-items: end;
+    }
+
+    .signature {
+      margin: 0;
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      color: var(--ink);
+    }
+
+    .sign-role {
+      margin: 6px 0 0;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .verify {
+      text-align: center;
+    }
+
+    .qr {
+      width: 84px;
+      height: 84px;
+      margin: 0 auto 6px;
+      background:
+        linear-gradient(90deg, var(--ink) 0 8px, transparent 8px 14px) 0 0 / 16px 16px,
+        linear-gradient(var(--ink) 0 8px, transparent 8px 14px) 0 0 / 16px 16px,
+        var(--paper);
+      border: 6px solid var(--ink);
+    }
+
+    .verify p {
+      margin: 0;
+      font-size: 10px;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <section class="page">
+    <p class="caption">JConf Perú 2026 · participación</p>
+    <article class="sheet" aria-label="Certificado de participación JConf Perú 2026">
+      <aside class="band">
+        <p class="mark">JCONF<span>PERÚ</span></p>
+        <p class="year">2026<small>Lima</small></p>
+        <p class="edition-meta">28 de noviembre<br />Edificio SOHO Plus<br />Magdalena del Mar</p>
+      </aside>
+      <div class="body">
+        <p class="kicker">Peru JUG</p>
+        <h1>Certificado de participación</h1>
+        <p class="grant">Se otorga a</p>
+        <p class="person">María Fernanda Quispe Rojas</p>
+        <div class="rule"></div>
+        <p class="prose">
+          por su participación en <strong>JConf Perú 2026</strong>,
+          la conferencia para usuarios y desarrolladores Java,
+          realizada el sábado 28 de noviembre de 2026
+          en el Edificio SOHO Plus, Magdalena del Mar, Lima, Perú.
+        </p>
+        <div class="foot">
+          <div>
+            <p class="signature">PERU JUG</p>
+            <p class="sign-role">Peru Java User Group</p>
+          </div>
+          <div class="verify">
+            <div class="qr" aria-hidden="true"></div>
+            <p>jconfperu.com/v/2026</p>
+          </div>
+        </div>
+      </div>
+    </article>
+  </section>
+
+  <section class="page">
+    <p class="caption">La misma plantilla, edición 2025</p>
+    <article class="sheet" aria-label="Certificado de participación JConf Perú 2025">
+      <aside class="band">
+        <p class="mark">JCONF<span>PERÚ</span></p>
+        <p class="year">2025<small>Lima</small></p>
+        <p class="edition-meta">3 de diciembre<br />Centro de Negocios Cronos<br />Santiago de Surco</p>
+      </aside>
+      <div class="body">
+        <p class="kicker">Peru JUG</p>
+        <h1>Certificado de participación</h1>
+        <p class="grant">Se otorga a</p>
+        <p class="person">André Bedregal</p>
+        <div class="rule"></div>
+        <p class="prose">
+          por su participación en <strong>JConf Perú 2025</strong>,
+          la conferencia para usuarios y desarrolladores Java,
+          realizada el miércoles 3 de diciembre de 2025
+          en el Centro de Negocios Cronos, Santiago de Surco, Lima, Perú.
+        </p>
+        <div class="foot">
+          <div>
+            <p class="signature">PERU JUG</p>
+            <p class="sign-role">Peru Java User Group</p>
+          </div>
+          <div class="verify">
+            <div class="qr" aria-hidden="true"></div>
+            <p>jconfperu.com/v/2025</p>
+          </div>
+        </div>
+      </div>
+    </article>
+  </section>
+</body>
+</html>
