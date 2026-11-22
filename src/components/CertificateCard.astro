@@ -1,5 +1,5 @@
 ---
-import { SIGNATORY } from '@lib/certificates/snapshot';
+import { certificateKind, certificateRoleWord } from '@lib/certificates/roles';
 
 interface Props {
   year: number;
@@ -12,25 +12,33 @@ interface Props {
 }
 
 const { year, title, person, recognition, dateLabel, venueLine, editable = false } = Astro.props;
+const kind = certificateKind(title);
+const roleWord = certificateRoleWord(kind);
 ---
 
-<article class="sheet" aria-label={`${title} ${year}`}>
-  <aside>
-    <p class="mark">JCONF<span>PERÚ</span></p>
-    <p class="year">{year}<small>Lima</small></p>
-    <p class="meta">{dateLabel}<br />{venueLine}</p>
-  </aside>
+<article class:list={['sheet', kind]} aria-label={`${roleWord} ${year}`}>
+  {
+    kind === 'speaker' && (
+      <aside>
+        <p class="when">{dateLabel}</p>
+        <p class="rail-role">{roleWord}</p>
+        <p class="where">{venueLine}</p>
+        <p class="slogan">Aprende,<br />comparte,<br />conecta.</p>
+      </aside>
+    )
+  }
   <div class="body">
-    <p class="kicker">Peru JUG</p>
-    <h2>{title}</h2>
-    <p class="grant">Se otorga a</p>
+    <p class="kicker">JConf Perú {year}</p>
+    <h2>Certificado</h2>
+    <p class="role">{roleWord}</p>
+    <p class="grant">Se otorga el presente certificado a</p>
     <p class="person" id={editable ? 'certificate-person' : undefined}>{person}</p>
     <div class="rule"></div>
     <p class="prose">{recognition}</p>
     <div class="foot">
       <div>
-        <p class="signature">{SIGNATORY.name}</p>
-        <p class="sign-role">{SIGNATORY.role}</p>
+        <p class="signature">PERU JUG</p>
+        <p class="sign-role">Peru Java User Group</p>
       </div>
       <p class="verify">Verificación<br />jconfperu.com</p>
     </div>
@@ -40,105 +48,94 @@ const { year, title, person, recognition, dateLabel, venueLine, editable = false
 <style>
   .sheet {
     display: grid;
-    grid-template-columns: 168px 1fr;
-    min-height: 460px;
+    grid-template-columns: 1fr;
+    min-height: 520px;
     background: white;
-    color: #0b0f28;
-    border: 1px solid rgba(11, 15, 40, 0.16);
+    color: #171719;
+    border: 1px solid rgba(23, 23, 25, 0.14);
     box-shadow: 0 16px 40px rgba(11, 15, 40, 0.12);
     font-family: Poppins, sans-serif;
+    overflow: hidden;
+  }
+
+  .sheet.speaker {
+    grid-template-columns: 220px 1fr;
   }
 
   aside {
-    position: relative;
-    padding: 28px 18px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    gap: 24px;
+    padding: 32px 22px;
     color: white;
-    background:
-      radial-gradient(1px 1px at 20% 18%, rgba(255, 255, 255, 0.85) 50%, transparent 51%),
-      radial-gradient(1px 1px at 70% 30%, rgba(255, 255, 255, 0.7) 50%, transparent 51%),
-      radial-gradient(1.2px 1.2px at 40% 70%, rgba(255, 255, 255, 0.8) 50%, transparent 51%),
-      linear-gradient(180deg, #12183a, #05060f);
+    background: #171719;
   }
 
-  aside::after {
-    content: "";
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 7px;
-    height: 100%;
-    background: #dd0a37;
-  }
-
-  .mark {
+  .when,
+  .where,
+  .slogan {
     margin: 0;
-    font-weight: 800;
-    letter-spacing: 0.14em;
-    font-size: 13px;
   }
 
-  .mark span {
-    display: block;
-    margin-top: 4px;
-    color: #dd0a37;
-    letter-spacing: 0.22em;
-    font-size: 11px;
-  }
-
-  .year {
-    margin: 0;
-    font-size: 48px;
-    font-weight: 800;
-    line-height: 0.85;
-  }
-
-  .year small {
-    display: block;
-    margin-top: 8px;
+  .when,
+  .where {
     font-size: 12px;
-    letter-spacing: 0.18em;
-  }
-
-  .meta {
-    margin: 0;
-    font-size: 11px;
     line-height: 1.4;
+    letter-spacing: 0.04em;
     color: rgba(255, 255, 255, 0.82);
   }
 
+  .rail-role {
+    margin: 0;
+    font-size: 42px;
+    font-weight: 800;
+    line-height: 0.9;
+    letter-spacing: 0.04em;
+  }
+
+  .slogan {
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1.15;
+  }
+
   .body {
-    padding: 32px 36px 24px;
+    padding: 36px 40px 28px;
     display: flex;
     flex-direction: column;
   }
 
   .kicker {
     margin: 0;
-    color: #dd0a37;
+    color: #5c6178;
     font-size: 12px;
     font-weight: 700;
     letter-spacing: 0.16em;
+    text-transform: uppercase;
   }
 
   h2 {
     margin: 8px 0 0;
-    font-size: 28px;
-    line-height: 1.1;
-    color: #0b0f28;
+    font-size: 52px;
+    line-height: 0.95;
+    letter-spacing: -0.03em;
+    color: #171719;
   }
 
-  .grant,
-  .sign-role,
-  .verify {
-    color: #5c6178;
+  .role {
+    margin: 10px 0 0;
+    color: #dd0a37;
+    font-size: 34px;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: 0.08em;
   }
 
   .grant {
-    margin: 22px 0 0;
-    font-size: 14px;
+    margin: 28px 0 0;
+    color: #5c6178;
+    font-size: 15px;
   }
 
   .person {
@@ -149,16 +146,16 @@ const { year, title, person, recognition, dateLabel, venueLine, editable = false
   }
 
   .rule {
-    width: 120px;
+    width: 148px;
     height: 4px;
-    margin-top: 10px;
+    margin-top: 12px;
     background: #dd0a37;
   }
 
   .prose {
-    max-width: 38rem;
+    max-width: 40rem;
     margin: 18px 0 0;
-    font-size: 14px;
+    font-size: 15px;
     line-height: 1.5;
   }
 
@@ -168,46 +165,51 @@ const { year, title, person, recognition, dateLabel, venueLine, editable = false
     gap: 16px;
     align-items: end;
     margin-top: auto;
-    padding-top: 28px;
+    padding-top: 32px;
   }
 
   .signature {
     margin: 0;
-    font-size: 18px;
+    font-size: 22px;
     font-weight: 800;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.12em;
   }
 
   .sign-role,
   .verify {
     margin: 4px 0 0;
-    font-size: 11px;
+    color: #5c6178;
+    font-size: 13px;
   }
 
   .verify {
     text-align: right;
   }
 
+  .sheet:not(.speaker) .body {
+    border-bottom: 28px solid #171719;
+  }
+
   @media (max-width: 720px) {
-    .sheet {
+    .sheet.speaker {
       grid-template-columns: 1fr;
     }
 
     aside {
-      min-height: 180px;
+      min-height: 220px;
     }
 
-    aside::after {
-      top: auto;
-      right: auto;
-      bottom: 0;
-      width: 100%;
-      height: 7px;
-    }
-
-    .person,
     h2 {
-      font-size: 24px;
+      font-size: 40px;
+    }
+
+    .role,
+    .rail-role {
+      font-size: 28px;
+    }
+
+    .person {
+      font-size: 26px;
     }
 
     .body {

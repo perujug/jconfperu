@@ -51,10 +51,11 @@ export function editionFacts(source: EditionSource): EditionFacts {
   };
 }
 
-export function recognitionParagraph(facts: EditionFacts): string {
+export function recognitionParagraph(facts: EditionFacts, role: Role = 'participante'): string {
   const tagline = facts.tagline.replace(/\.\s*$/, '').trim();
   const sentence = tagline ? `${tagline.charAt(0).toLowerCase()}${tagline.slice(1)}` : tagline;
-  return `por su participación en ${facts.eventTitle}, ${sentence}, realizada el ${facts.dateLabel} en ${facts.venueLine}.`;
+  const as = role === 'conferencista' ? 'como speaker ' : role === 'organizador' ? 'como organizador ' : '';
+  return `por su participación ${as}en ${facts.eventTitle}, ${sentence}, realizada el ${facts.dateLabel} en ${facts.venueLine}.`;
 }
 
 export function freezeCertificate(input: {
@@ -72,7 +73,7 @@ export function freezeCertificate(input: {
   return {
     displayName: `${input.givenName} ${input.familyName}`,
     certificateTitle: certificateTitle(input.role),
-    recognitionText: recognitionParagraph(facts),
+    recognitionText: recognitionParagraph(facts, input.role),
     editionDateLabel: facts.dateLabel,
     venueLine: facts.venueLine,
   };

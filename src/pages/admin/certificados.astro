@@ -336,6 +336,7 @@ const notices: Record<string, string> = {
                           <thead>
                             <tr>
                               <th>Nombre</th>
+                              <th>Correo</th>
                               <th>GitHub</th>
                               <th>Celular</th>
                               <th>Estado</th>
@@ -353,6 +354,7 @@ const notices: Record<string, string> = {
                                 return (
                                   <tr>
                                     <td>{person.displayName || person.suggestedName}</td>
+                                    <td>{person.email ? <a href={`mailto:${person.email}`}>{person.email}</a> : '—'}</td>
                                     <td>{person.githubLogin ? `@${person.githubLogin}` : '—'}</td>
                                     <td>{chat ? <a href={chat} target="_blank" rel="noopener noreferrer">{person.phone}</a> : '—'}</td>
                                     <td><span class={`state ${pay}`}>{label}</span></td>

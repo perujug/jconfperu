@@ -3,6 +3,7 @@ import { join } from 'node:path';
 import fontkit from '@pdf-lib/fontkit';
 import { PDFDocument, rgb, type PDFFont, type PDFPage } from 'pdf-lib';
 import QRCode from 'qrcode';
+import { certificateKind, certificateRoleWord } from './roles';
 import { SIGNATORY } from './snapshot';
 
 const ink = rgb(11 / 255, 15 / 255, 40 / 255);
@@ -50,6 +51,12 @@ function drawLines(page: PDFPage, lines: string[], font: PDFFont, size: number, 
   });
 }
 
+function fitSize(text: string, font: PDFFont, maxSize: number, minSize: number, maxWidth: number): number {
+  let size = maxSize;
+  while (size > minSize && font.widthOfTextAtSize(text, size) > maxWidth) size -= 1;
+  return size;
+}
+
 export async function renderCertificatePdf(input: {
   year: number;
   displayName: string;
@@ -69,61 +76,60 @@ export async function renderCertificatePdf(input: {
   const { width, height } = page.getSize();
   const regular = await pdf.embedFont(await loadFont('Poppins-Regular.ttf'), { subset: true });
   const bold = await pdf.embedFont(await loadFont('Poppins-Bold.ttf'), { subset: true });
+  const kind = certificateKind(input.certificateTitle);
+  const roleWord = certificateRoleWord(kind);
+  const speaker = kind === 'speaker';
+  const band = speaker ? 214 : 0;
 
-  const band = 188;
   page.drawRectangle({ x: 0, y: 0, width, height, color: paper });
-  page.drawRectangle({ x: 0, y: 0, width: band, height, color: ink });
-  page.drawRectangle({ x: band, y: 0, width: 7, height, color: red });
+  if (speaker) page.drawRectangle({ x: 0, y: 0, width: band, height, color: ink });
+  else page.drawRectangle({ x: 0, y: 0, width, height: 32, color: ink });
 
-  for (const [x, y, size] of [
-    [36, 520, 1.3],
-    [110, 470, 1.1],
-    [58, 250, 1.4],
-    [140, 180, 1],
-    [42, 90, 1.2],
-  ] as const) {
-    page.drawCircle({ x, y, size, color: white });
+  if (speaker) {
+    const railWidth = band - 36;
+    const dateLines = wrap(input.editionDateLabel, regular, 10, railWidth).slice(0, 3);
+    drawLines(page, dateLines, regular, 10, 20, height - 48, 13, white);
+    const roleSize = fitSize(roleWord, bold, 32, 18, railWidth);
+    page.drawText(roleWord, { x: 20, y: height - 150, size: roleSize, font: bold, color: white });
+    const venueLines = wrap(input.venueLine, regular, 9, railWidth).slice(0, 3);
+    drawLines(page, venueLines, regular, 9, 20, height - 176, 12, white);
+    const slogan = ['Aprende,', 'comparte,', 'conecta.'];
+    slogan.forEach((line, index) => {
+      page.drawText(line, { x: 20, y: 108 - index * 22, size: 16, font: bold, color: white });
+    });
+  } else {
+    page.drawText('Aprende, comparte, conecta.', { x: 28, y: 12, size: 9, font: regular, color: white });
+    const footer = `PERU JUG  /  JCONF PERÚ ${input.year}`;
+    const footerWidth = bold.widthOfTextAtSize(footer, 9);
+    page.drawText(footer, { x: width - footerWidth - 28, y: 12, size: 9, font: bold, color: white });
   }
-
-  page.drawText('JCONF', { x: 28, y: height - 64, size: 16, font: bold, color: white });
-  page.drawText('PERÚ', { x: 28, y: height - 84, size: 12, font: bold, color: red });
-
-  const yearText = String(input.year);
-  const yearSize = 52;
-  const yearWidth = bold.widthOfTextAtSize(yearText, yearSize);
-  page.drawText(yearText, { x: (band - yearWidth) / 2, y: 270, size: yearSize, font: bold, color: white });
-  const lima = 'LIMA';
-  const limaWidth = bold.widthOfTextAtSize(lima, 11);
-  page.drawText(lima, { x: (band - limaWidth) / 2, y: 250, size: 11, font: bold, color: white });
-
-  const place = wrap(`${input.editionDateLabel}\n${input.venueLine}`.replace('\n', ' '), regular, 9, band - 36);
-  drawLines(page, place.slice(0, 5), regular, 9, 22, 78, 12, white);
 
   const x = band + 36;
   const textWidth = width - x - 36;
-  page.drawText('PERU JUG', { x, y: height - 78, size: 11, font: bold, color: red });
-  page.drawText(input.certificateTitle, { x, y: height - 112, size: 22, font: bold, color: ink });
-  page.drawText('Se otorga a', { x, y: height - 150, size: 12, font: regular, color: muted });
+  page.drawText(`JCONF PERÚ ${input.year}`, { x, y: height - 52, size: 10, font: bold, color: muted });
+  page.drawText('Certificado', { x, y: height - 102, size: 40, font: bold, color: ink });
+  const roleSize = fitSize(roleWord, bold, 28, 16, textWidth);
+  page.drawText(roleWord, { x, y: height - 138, size: roleSize, font: bold, color: red });
+  page.drawText('Se otorga el presente certificado a', { x, y: height - 172, size: 11, font: regular, color: muted });
 
-  let nameSize = 26;
-  while (nameSize > 14 && bold.widthOfTextAtSize(input.displayName, nameSize) > textWidth) nameSize -= 1;
-  page.drawText(input.displayName, { x, y: height - 186, size: nameSize, font: bold, color: ink });
-  page.drawRectangle({ x, y: height - 202, width: 132, height: 3, color: red });
+  const nameSize = fitSize(input.displayName, bold, 26, 14, textWidth);
+  page.drawText(input.displayName, { x, y: height - 208, size: nameSize, font: bold, color: ink });
+  page.drawRectangle({ x, y: height - 222, width: 132, height: 3, color: red });
 
-  const body = wrap(input.recognitionText, regular, 12, textWidth);
-  drawLines(page, body.slice(0, 6), regular, 12, x, height - 236, 18, ink);
+  const body = wrap(input.recognitionText, regular, 11, textWidth);
+  drawLines(page, body.slice(0, 5), regular, 11, x, height - 252, 16, ink);
 
-  page.drawText(SIGNATORY.name, { x, y: 92, size: 16, font: bold, color: ink });
-  page.drawText(SIGNATORY.role, { x, y: 74, size: 10, font: regular, color: muted });
+  page.drawText(SIGNATORY.name, { x, y: 78, size: 16, font: bold, color: ink });
+  page.drawText(SIGNATORY.role, { x, y: 62, size: 10, font: regular, color: muted });
 
   const qr = await pdf.embedPng(await QRCode.toBuffer(input.verificationUrl, { margin: 0, width: 180 }));
-  const qrSize = 72;
-  page.drawImage(qr, { x: width - qrSize - 36, y: 58, width: qrSize, height: qrSize });
+  const qrSize = 64;
+  page.drawImage(qr, { x: width - qrSize - 36, y: 52, width: qrSize, height: qrSize });
   const host = 'jconfperu.com';
   const hostWidth = regular.widthOfTextAtSize(host, 8);
   page.drawText(host, {
     x: width - 36 - qrSize + (qrSize - hostWidth) / 2,
-    y: 44,
+    y: 40,
     size: 8,
     font: regular,
     color: muted,

@@ -218,18 +218,13 @@ const linkedIn =
           {
             session && !dbError && step === 'claim' && (
               <form class="mt-8 grid gap-4 max-w-xl" method="post">
+                <p>
+                  La cuenta @{session.login} no está en la lista de {edition.data.title}. El certificado solo sale si el correo con el que pagaste está en esa lista.
+                </p>
                 <input type="hidden" name="intent" value="claim" />
                 <label class="grid gap-1">
                   <span class="font-bold">Correo con el que pagaste</span>
                   <input class="border px-3 py-2" style="border-color: var(--border-subtle);" type="email" name="email" required value={draft?.email ?? ''} autocomplete="email" />
-                </label>
-                <label class="grid gap-1">
-                  <span class="font-bold">Nombres</span>
-                  <input id="given-name" class="border px-3 py-2" style="border-color: var(--border-subtle);" name="givenName" value={givenValue} autocomplete="given-name" />
-                </label>
-                <label class="grid gap-1">
-                  <span class="font-bold">Apellidos</span>
-                  <input id="family-name" class="border px-3 py-2" style="border-color: var(--border-subtle);" name="familyName" value={familyValue} autocomplete="family-name" />
                 </label>
                 <button class="main-btn" type="submit">Buscar mi entrada</button>
               </form>
@@ -321,7 +316,7 @@ const linkedIn =
           }
 
           {
-            facts && (step === 'issue' || step === 'download' || step === 'claim' || step === 'pending') && (
+            facts && row && (step === 'issue' || step === 'download' || step === 'pending') && (
               <div class="mt-10 overflow-x-auto">
                 <CertificateCard
                   year={year}

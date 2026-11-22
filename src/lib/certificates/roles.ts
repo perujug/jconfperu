@@ -31,3 +31,18 @@ export function certificateTitle(role: Role): string {
       return 'Certificado de participación';
   }
 }
+
+export type CertificateKind = 'participante' | 'speaker' | 'organizador';
+
+export function certificateKind(title: string): CertificateKind {
+  const value = title.toLowerCase();
+  if (value.includes('speaker') || value.includes('conferenc')) return 'speaker';
+  if (value.includes('organiz')) return 'organizador';
+  return 'participante';
+}
+
+export function certificateRoleWord(kind: CertificateKind): string {
+  if (kind === 'speaker') return 'SPEAKER';
+  if (kind === 'organizador') return 'ORGANIZADOR';
+  return 'PARTICIPANTE';
+}

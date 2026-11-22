@@ -11,7 +11,7 @@ import { canDownload, paymentStatus } from '@lib/certificates/registration';
 import { certificateReleased, linkedInShareUrl } from '@lib/certificates/release';
 import { certificateTitle, parseRole } from '@lib/certificates/roles';
 import { editionFacts, recognitionParagraph } from '@lib/certificates/snapshot';
-import { listAttendeesForGithub, yearHasAttendees } from '@lib/certificates/store';
+import { listAttendeesForGithub } from '@lib/certificates/store';
 import { authConfigured } from '@lib/config';
 import { getAllEditions } from '@lib/editions';
 import { publicUrl } from '@lib/site';
@@ -42,13 +42,6 @@ type YearView = {
 
 let dbError = false;
 let years: YearView[] = [];
-let certificate2025Ready = false;
-
-try {
-  certificate2025Ready = await yearHasAttendees(2025);
-} catch {
-  certificate2025Ready = false;
-}
 
 if (session) {
   try {
@@ -142,7 +135,7 @@ function formatPhone(value: string | null): string {
     <p class="mt-4" style="color: var(--fg-muted);">
       Tus datos y tu certificado, separados por edición.
     </p>
-    <CertificateNotice year={2026} prominent priorDownload={certificate2025Ready} />
+    <CertificateNotice year={2026} prominent priorDownload={years.some((item) => item.year === 2025)} />
 
     {aviso && <p class="mt-6" role="alert">{aviso}</p>}
     {dbError && <p class="mt-6" role="alert">No pudimos consultar tus certificados. Inténtalo de nuevo en unos minutos.</p>}
@@ -150,7 +143,13 @@ function formatPhone(value: string | null): string {
     {
       session ? (
         <div class="mt-8 flex items-center justify-between gap-4">
-          <p>Sesión de @{session.login}</p>
+          <p>
+            {
+              session.name && session.name.toLowerCase() !== session.login.toLowerCase()
+                ? `Bienvenido ${session.name} (@${session.login})`
+                : `Bienvenido @${session.login}`
+            }
+          </p>
           <form method="post" action="/auth/github/logout">
             <button class="underline" type="submit">Salir</button>
           </form>
