@@ -13,6 +13,11 @@ export function certificateReleased(year: number, now = new Date()): boolean {
   return releaseAt == null || now.getTime() >= releaseAt.getTime();
 }
 
+/** Una edición ya publicada se reclama aunque el admin la haya cerrado. 2026 espera a su hora. */
+export function certificateClaimOpen(year: number, yearOpen: boolean, now = new Date()): boolean {
+  return yearOpen || certificateReleased(year, now);
+}
+
 export function certificatePendingCopy(year: number): string {
   const releaseAt = certificateReleaseAt(year);
   if (!releaseAt) return '';

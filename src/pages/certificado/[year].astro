@@ -10,7 +10,7 @@ import { certificateStep } from '@lib/certificates/eligibility';
 import { attendeeNotice } from '@lib/certificates/messages';
 import { normalizeEmail, splitSuggestedName, validateNames } from '@lib/certificates/names';
 import { canDownload, normalizePhone, paymentStatus } from '@lib/certificates/registration';
-import { certificateReleased, linkedInShareUrl } from '@lib/certificates/release';
+import { certificateClaimOpen, certificateReleased, linkedInShareUrl } from '@lib/certificates/release';
 import { editionFacts, recognitionParagraph } from '@lib/certificates/snapshot';
 import { claimEmail, findAttendeeByGithub, issueForGithub, registerSelf, submitOnlineCode, yearIsOpen } from '@lib/certificates/store';
 import { correctionMessage, whatsAppLink } from '@lib/certificates/whatsapp';
@@ -39,7 +39,7 @@ let row: AttendeeRow | null = null;
 
 if (edition && session) {
   try {
-    open = await yearIsOpen(year);
+    open = certificateClaimOpen(year, await yearIsOpen(year));
     row = await findAttendeeByGithub(year, session.githubId);
   } catch {
     dbError = true;

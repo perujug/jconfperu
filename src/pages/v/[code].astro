@@ -19,7 +19,7 @@ if (!valid) Astro.response.status = unavailable ? 503 : 404;
 ---
 
 <Layout
-  title={valid && row ? row.certificateTitle : 'Verificación'}
+  title={valid && row?.certificateTitle ? row.certificateTitle : 'Verificación'}
   description={
     valid && row
       ? `${row.displayName} · JConf Perú ${row.year}. Certificado verificable.`

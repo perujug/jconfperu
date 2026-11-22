@@ -135,7 +135,7 @@ function formatPhone(value: string | null): string {
     <p class="mt-4" style="color: var(--fg-muted);">
       Tus datos y tu certificado, separados por edición.
     </p>
-    <CertificateNotice year={2026} compact />
+    <CertificateNotice year={2026} prominent />
 
     {aviso && <p class="mt-6" role="alert">{aviso}</p>}
     {dbError && <p class="mt-6" role="alert">No pudimos consultar tus certificados. Inténtalo de nuevo en unos minutos.</p>}

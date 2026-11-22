@@ -1,22 +1,53 @@
 ---
 import SectionTitle from '@components/SectionTitle.astro';
-import { certificatePendingCopy, certificateReleased } from '@lib/certificates/release';
+import { certificatePendingCopy, certificateReleaseAt, certificateReleased } from '@lib/certificates/release';
 
 interface Props {
   year: number;
   /** En la portada ocupa una sección. En el flujo del certificado, un aviso. */
   compact?: boolean;
+  /** En Mi JConf, el aviso ocupa el primer plano. */
+  prominent?: boolean;
 }
 
-const { year, compact = false } = Astro.props;
+const { year, compact = false, prominent = false } = Astro.props;
 const released = certificateReleased(year);
 const pending = certificatePendingCopy(year);
 const href = `/certificado/${year}/`;
+const releaseAt = certificateReleaseAt(year);
+const parts = releaseAt
+  ? new Intl.DateTimeFormat('es-PE', {
+      day: 'numeric',
+      month: 'short',
+      hour: 'numeric',
+      minute: '2-digit',
+      hourCycle: 'h12',
+      timeZone: 'America/Lima',
+    }).formatToParts(releaseAt)
+  : [];
+const pick = (type: Intl.DateTimeFormatPartTypes) => parts.find((part) => part.type === type)?.value ?? '';
+const clock = `${pick('hour')}:${pick('minute')} ${pick('dayPeriod')}`.replace(/\s+/g, ' ').trim();
 ---
 
 {
   pending &&
-    (compact ? (
+    (prominent && !released ? (
+      <aside class="mt-8 bg-[#dd0a37] px-6 py-8 text-center text-white sm:px-10 sm:py-10" role="status">
+        <p class="text-sm font-bold uppercase tracking-[0.25em]">Certificado</p>
+        <p class="font-display mt-3 text-4xl font-black uppercase leading-none sm:text-6xl" style="color: #fff;">
+          {pick('day')} {pick('month')} {year}
+        </p>
+        <p class="font-display mt-3 text-3xl font-black uppercase sm:text-5xl" style="color: #fff;">{clock}</p>
+        <p class="mx-auto mt-5 max-w-xl text-base font-semibold sm:text-lg">
+          El certificado de {year} estará disponible al terminar el evento. Podrás descargarlo o compartirlo en LinkedIn.
+        </p>
+        <p class="mt-6">
+          <a class="inline-flex items-center bg-white px-5 py-3 text-sm font-bold uppercase tracking-wide text-[#0b0f28]" href="/certificado/2025/">
+            Certificado 2025: descárgalo ahora
+          </a>
+        </p>
+      </aside>
+    ) : compact ? (
       !released && <p class="mt-6">{pending}</p>
     ) : (
       <section id="certificado" class="border-t py-16" style="border-color: var(--border-subtle);">
@@ -33,7 +64,12 @@ const href = `/certificado/${year}/`;
                 </p>
               </>
             ) : (
-              <p class="text-base sm:text-lg" style="color: var(--fg-base);">{pending}</p>
+              <>
+                <p class="text-base sm:text-lg" style="color: var(--fg-base);">{pending}</p>
+                <p class="mt-6">
+                  <a class="underline text-brand-red" href="/certificado/2025/">El certificado de 2025 ya se puede descargar.</a>
+                </p>
+              </>
             )
           }
         </div>

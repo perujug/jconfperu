@@ -6,6 +6,7 @@ import { classifyClaim, type ClaimOutcome } from '@lib/certificates/eligibility'
 import { normalizeEmail } from '@lib/certificates/names';
 import { parseRole, type Role } from '@lib/certificates/roles';
 import { applyOnlineCode, canDownload, paymentStatus, registrationAllowed, type PaymentStatus } from '@lib/certificates/registration';
+import { certificateClaimOpen } from '@lib/certificates/release';
 import { freezeCertificate, type EditionFacts, type FrozenCertificate } from '@lib/certificates/snapshot';
 import { bootstrapAdminIds } from '@lib/config';
 import { resolveGithubAccount } from '@lib/auth/github';
@@ -236,7 +237,7 @@ export async function claimEmail(input: {
 }): Promise<ClaimOutcome> {
   const email = normalizeEmail(input.email);
   if (!email) return 'missing';
-  const open = await yearIsOpen(input.year);
+  const open = certificateClaimOpen(input.year, await yearIsOpen(input.year));
   const db = await getDb();
   const rows = await db
     .select()

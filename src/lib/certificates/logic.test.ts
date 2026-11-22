@@ -9,7 +9,7 @@ import { editionFacts, freezeCertificate, type EditionFacts } from './snapshot';
 import { safeNext } from '../auth/redirect';
 import { publicBase } from '../site';
 import { attendeeNotice } from './messages';
-import { certificatePendingCopy, certificateReleased, linkedInShareUrl } from './release';
+import { certificateClaimOpen, certificatePendingCopy, certificateReleased, linkedInShareUrl } from './release';
 import { correctionMessage, whatsAppLink } from './whatsapp';
 
 const edition: EditionFacts = {
@@ -165,6 +165,9 @@ test('el certificado de 2026 se abre a las 6:00 p. m. del 28 de noviembre', () =
   assert.equal(certificateReleased(2026, before), false);
   assert.equal(certificateReleased(2026, opening), true);
   assert.equal(certificateReleased(2025, before), true);
+  assert.equal(certificateClaimOpen(2025, false, before), true);
+  assert.equal(certificateClaimOpen(2026, false, before), false);
+  assert.equal(certificateClaimOpen(2026, true, before), true);
   assert.equal(
     certificatePendingCopy(2026),
     'Tu certificado estará disponible al terminar el evento, el sábado 28 de noviembre a las 6:00 p. m. (hora de Lima). Podrás descargarlo o compartirlo en LinkedIn.',
