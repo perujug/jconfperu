@@ -1,4 +1,6 @@
 ---
+import { Image } from 'astro:assets';
+import duke from '@/assets/images/perujug/logo-2024.png';
 import { certificateKind, certificateRoleWord } from '@lib/certificates/roles';
 
 interface Props {
@@ -27,17 +29,27 @@ const place = /lima/i.test(venueLine) ? `${year} · LIMA, PERÚ` : venueLine;
         <p class="rail-role">{roleWord}</p>
         <span class="rail-rule"></span>
         <p class="slogan">Aprende,<br />comparte,<br />conecta.</p>
+        <Image class="duke" src={duke} alt="" width={140} height={140} />
+        <p class="jug-mark">
+          <span class="mark" aria-hidden="true"></span>
+          <span>PERU JUG<small>Java User Group Peru</small></span>
+        </p>
       </aside>
     )
   }
   <div class="body">
-    {rail ? <p class="when">{dayMonth}<br />{place}</p> : <p class="kicker">JConf Perú {year}</p>}
+    {rail && <p class="when">{dayMonth}<br />{place}</p>}
+    <p class="lockup">
+      <span class="jconf"><span class="mark dark" aria-hidden="true"></span>JCONF</span>
+      <span class="jconf-year">PERU {year}</span>
+    </p>
     <h2>Certificado</h2>
     <p class="role">{roleWord}</p>
     <p class="grant">Se otorga el presente certificado a</p>
     <p class="person" id={editable ? 'certificate-person' : undefined}>{person}</p>
     <div class="rule"></div>
     <p class="prose">{recognition}</p>
+    {!rail && <Image class="duke corner" src={duke} alt="" width={120} height={120} />}
     <div class="foot">
       <div>
         <p class="signature">PERU JUG</p>
@@ -76,6 +88,89 @@ const place = /lima/i.test(venueLine) ? `${year} · LIMA, PERÚ` : venueLine;
   }
 
   .slogan {
+    margin: 0;
+  }
+
+  .duke {
+    width: 128px;
+    height: auto;
+    margin-top: auto;
+  }
+
+  .mark {
+    position: relative;
+    display: inline-block;
+    width: 0;
+    height: 0;
+    border-left: 7px solid transparent;
+    border-right: 7px solid transparent;
+    border-bottom: 12px solid currentColor;
+    color: white;
+  }
+
+  .mark::after {
+    content: '';
+    position: absolute;
+    left: -3px;
+    top: 5px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #e20613;
+  }
+
+  .mark.dark {
+    color: #171719;
+    margin-right: 4px;
+  }
+
+  .jug-mark {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    font-size: 15px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+  }
+
+  .jug-mark small {
+    display: block;
+    margin-top: 2px;
+    font-size: 7px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .lockup {
+    display: grid;
+    gap: 2px;
+    margin: 0 0 18px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #d9d5db;
+  }
+
+  .jconf {
+    display: flex;
+    align-items: center;
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    line-height: 1;
+  }
+
+  .jconf-year {
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+  }
+
+  .duke.corner {
+    position: absolute;
+    right: 28px;
+    bottom: 108px;
+    width: 112px;
     margin: 0;
   }
 

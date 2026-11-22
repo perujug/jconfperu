@@ -14,11 +14,7 @@ const paper = rgb(1, 1, 1);
 const white = rgb(1, 1, 1);
 const hairline = rgb(217 / 255, 213 / 255, 219 / 255);
 
-async function loadFont(name: string): Promise<Uint8Array> {
-  const candidates = [
-    join(process.cwd(), 'src/lib/certificates/fonts', name),
-    new URL(`./fonts/${name}`, import.meta.url),
-  ];
+async function loadBytes(candidates: Array<string | URL>, label: string): Promise<Uint8Array> {
   let lastError: unknown;
   for (const candidate of candidates) {
     try {
@@ -27,7 +23,24 @@ async function loadFont(name: string): Promise<Uint8Array> {
       lastError = error;
     }
   }
-  throw lastError instanceof Error ? lastError : new Error(`No está la fuente ${name}`);
+  throw lastError instanceof Error ? lastError : new Error(`No está ${label}`);
+}
+
+function loadFont(name: string): Promise<Uint8Array> {
+  return loadBytes(
+    [join(process.cwd(), 'src/lib/certificates/fonts', name), new URL(`./fonts/${name}`, import.meta.url)],
+    `la fuente ${name}`,
+  );
+}
+
+function loadDuke(): Promise<Uint8Array> {
+  return loadBytes(
+    [
+      join(process.cwd(), 'src/assets/images/perujug/logo-2024.png'),
+      new URL('../../assets/images/perujug/logo-2024.png', import.meta.url),
+    ],
+    'el logo de Peru JUG',
+  );
 }
 
 function wrap(text: string, font: PDFFont, size: number, maxWidth: number): string[] {
@@ -69,6 +82,11 @@ function shortDate(label: string): string {
   return `${match[1]} ${match[2].toUpperCase()}`;
 }
 
+function drawMark(page: PDFPage, x: number, peakY: number, color: ReturnType<typeof rgb>, scale = 1) {
+  page.drawSvgPath('M 8 0 L 0 14 L 16 14 Z', { x, y: peakY, scale, color });
+  page.drawCircle({ x: x + 8 * scale, y: peakY - 8 * scale, size: 3 * scale, color: red });
+}
+
 export async function renderCertificatePdf(input: {
   year: number;
   displayName: string;
@@ -88,6 +106,7 @@ export async function renderCertificatePdf(input: {
   const { width, height } = page.getSize();
   const regular = await pdf.embedFont(await loadFont('Poppins-Regular.ttf'), { subset: true });
   const bold = await pdf.embedFont(await loadFont('Poppins-Bold.ttf'), { subset: true });
+  const duke = await pdf.embedPng(await loadDuke());
   const kind = certificateKind(input.certificateTitle);
   const roleWord = certificateRoleWord(kind);
   const rail = kind === 'speaker' || kind === 'organizador' || kind === 'voluntario';
@@ -97,8 +116,19 @@ export async function renderCertificatePdf(input: {
   if (rail) page.drawRectangle({ x: 0, y: 0, width: band, height, color: ink });
   else page.drawRectangle({ x: 0, y: 0, width, height: 32, color: ink });
 
+  const dukeSize = rail ? 118 : 112;
+  const dukeX = rail ? (band - dukeSize) / 2 : width - dukeSize - 36;
+  const dukeY = rail ? 78 : 128;
+  page.drawImage(duke, { x: dukeX, y: dukeY, width: dukeSize, height: dukeSize });
+
+  if (rail) {
+    drawMark(page, 24, 40, white, 0.9);
+    page.drawText('PERU JUG', { x: 44, y: 26, size: 11, font: bold, color: white });
+    page.drawText('JAVA USER GROUP PERU', { x: 44, y: 16, size: 4.5, font: regular, color: white });
+  }
+
   const x = rail ? 286.3 : 62;
-  const textWidth = width - x - 36;
+  const textWidth = rail ? width - x - 36 : dukeX - x - 18;
 
   if (rail) {
     const roleSize = fitSize(roleWord, bold, 26, 15, band - 62);
@@ -115,13 +145,26 @@ export async function renderCertificatePdf(input: {
     drawRight(page, footer, bold, 9, width - 28, 12, white);
   }
 
-  page.drawText('Certificado', { x, y: height - (rail ? 201.26 : 102), size: rail ? 31 : 40, font: bold, color: ink });
-  const roleSize = fitSize(roleWord, bold, rail ? 20 : 28, 14, textWidth);
-  page.drawText(roleWord, { x, y: height - (rail ? 236 : 138), size: roleSize, font: bold, color: rail ? purple : red });
-  page.drawText('Se otorga el presente certificado a', { x, y: height - (rail ? 286.3 : 172), size: rail ? 10 : 11, font: regular, color: muted });
+  const lockupY = height - (rail ? 132 : 78);
+  page.drawText('JC', { x, y: lockupY, size: 22, font: bold, color: ink });
+  const jcWidth = bold.widthOfTextAtSize('JC', 22);
+  drawMark(page, x + jcWidth + 2, lockupY + 16, ink, 1.05);
+  page.drawText('NF', { x: x + jcWidth + 24, y: lockupY, size: 22, font: bold, color: ink });
+  page.drawText(`PERU ${input.year}`, { x, y: lockupY - 16, size: 9, font: bold, color: ink });
+  page.drawLine({
+    start: { x, y: lockupY - 28 },
+    end: { x: width - 36, y: lockupY - 28 },
+    thickness: 0.6,
+    color: hairline,
+  });
 
-  const nameSize = fitSize(input.displayName, bold, rail ? 25 : 26, 14, textWidth);
-  const nameY = height - (rail ? 334.5 : 208);
+  page.drawText('Certificado', { x, y: height - (rail ? 201.26 : 156), size: rail ? 31 : 34, font: bold, color: ink });
+  const roleSize = fitSize(roleWord, bold, rail ? 20 : 26, 14, textWidth);
+  page.drawText(roleWord, { x, y: height - (rail ? 236 : 196), size: roleSize, font: bold, color: rail ? purple : red });
+  page.drawText('Se otorga el presente certificado a', { x, y: height - (rail ? 286.3 : 226), size: rail ? 10 : 11, font: regular, color: muted });
+
+  const nameSize = fitSize(input.displayName, bold, rail ? 25 : 24, 14, textWidth);
+  const nameY = height - (rail ? 334.5 : 258);
   page.drawText(input.displayName, { x, y: nameY, size: nameSize, font: bold, color: ink });
   page.drawLine({
     start: { x, y: rail ? 238.1 : nameY - 14 },
@@ -131,7 +174,7 @@ export async function renderCertificatePdf(input: {
   });
 
   const body = wrap(input.recognitionText, regular, rail ? 10 : 11, textWidth);
-  drawLines(page, body.slice(0, 4), regular, rail ? 10 : 11, x, height - (rail ? 391 : 252), rail ? 14 : 16, muted);
+  drawLines(page, body.slice(0, 4), regular, rail ? 10 : 11, x, height - (rail ? 391 : 300), rail ? 14 : 15, muted);
 
   page.drawText(SIGNATORY.name, { x, y: rail ? 79 : 78, size: 14, font: bold, color: ink });
   page.drawText(SIGNATORY.role, { x, y: rail ? 64 : 62, size: 9, font: regular, color: muted });

@@ -408,35 +408,37 @@ const notices: Record<string, string> = {
                                         </form>
                                       </td>
                                       <td><span class={`state ${pay}`}>{label}</span></td>
-                                      <td class="actions-cell">
-                                        {
-                                          !person.revokedAt && pay !== 'online' && (
-                                            <form method="post">
-                                              <input type="hidden" name="intent" value="payment" />
-                                              <input type="hidden" name="id" value={person.id} />
-                                              <input type="hidden" name="q" value={rosterQuery} />
-                                              <input type="hidden" name="status" value={pay === 'paid' ? 'unpaid' : 'paid'} />
-                                              <button type="submit">{pay === 'paid' ? 'Volver a impago' : 'Marcar pagado'}</button>
-                                            </form>
-                                          )
-                                        }
-                                        <form method="post">
-                                          <input type="hidden" name="intent" value="revoke" />
-                                          <input type="hidden" name="id" value={person.id} />
-                                          <input type="hidden" name="q" value={rosterQuery} />
-                                          <input type="hidden" name="revoked" value={person.revokedAt ? '0' : '1'} />
-                                          <button type="submit">{person.revokedAt ? 'Restaurar' : 'Revocar'}</button>
-                                        </form>
-                                        {
-                                          person.githubId && !person.issuedAt && (
-                                            <form method="post">
-                                              <input type="hidden" name="intent" value="unlink" />
-                                              <input type="hidden" name="id" value={person.id} />
-                                              <input type="hidden" name="q" value={rosterQuery} />
-                                              <button type="submit">Desvincular</button>
-                                            </form>
-                                          )
-                                        }
+                                      <td>
+                                        <div class="actions-cell">
+                                          {
+                                            !person.revokedAt && pay !== 'online' && (
+                                              <form method="post">
+                                                <input type="hidden" name="intent" value="payment" />
+                                                <input type="hidden" name="id" value={person.id} />
+                                                <input type="hidden" name="q" value={rosterQuery} />
+                                                <input type="hidden" name="status" value={pay === 'paid' ? 'unpaid' : 'paid'} />
+                                                <button type="submit">{pay === 'paid' ? 'Volver a impago' : 'Marcar pagado'}</button>
+                                              </form>
+                                            )
+                                          }
+                                          <form method="post">
+                                            <input type="hidden" name="intent" value="revoke" />
+                                            <input type="hidden" name="id" value={person.id} />
+                                            <input type="hidden" name="q" value={rosterQuery} />
+                                            <input type="hidden" name="revoked" value={person.revokedAt ? '0' : '1'} />
+                                            <button type="submit">{person.revokedAt ? 'Restaurar' : 'Revocar'}</button>
+                                          </form>
+                                          {
+                                            person.githubId && !person.issuedAt && (
+                                              <form method="post">
+                                                <input type="hidden" name="intent" value="unlink" />
+                                                <input type="hidden" name="id" value={person.id} />
+                                                <input type="hidden" name="q" value={rosterQuery} />
+                                                <button type="submit">Desvincular</button>
+                                              </form>
+                                            )
+                                          }
+                                        </div>
                                       </td>
                                     </tr>
                                   );
@@ -705,12 +707,30 @@ rosa.vega@correo.com,Rosa Vega,voluntario</pre>
   .finder {
     max-width: 28rem;
   }
+  .kind-form {
+    margin: 0;
+  }
   .kind-form select {
-    width: auto;
-    min-width: 9.5rem;
+    width: 9.5rem;
+    padding: 0.35rem 0.45rem;
   }
   .table-wrap {
     overflow-x: auto;
+  }
+  #roster {
+    width: max-content;
+    min-width: 100%;
+    border-collapse: collapse;
+    font-size: 0.92rem;
+  }
+  #roster th,
+  #roster td {
+    white-space: nowrap;
+    padding-right: 1.25rem;
+  }
+  #roster td:first-child {
+    white-space: normal;
+    min-width: 14rem;
   }
   table {
     width: 100%;
@@ -739,7 +759,11 @@ rosa.vega@correo.com,Rosa Vega,voluntario</pre>
   .state.revocado {
     color: #dd0a37;
   }
-  .actions-cell,
+  .actions-cell {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
   .people li {
     display: flex;
     align-items: center;
