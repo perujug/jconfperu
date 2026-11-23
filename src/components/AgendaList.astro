@@ -1,8 +1,24 @@
 ---
-import type { CollectionEntry } from 'astro:content';
+interface AgendaSession {
+  id: string;
+  data: {
+    order: number;
+    startTime: string;
+    endTime: string;
+    room?: string | null;
+    title: string;
+    delivery?: string | null;
+    liveUrl?: string | null;
+    speakerNames?: string[];
+    speakerProfiles?: { name: string; url?: string | null }[];
+    youtubeUrl?: string | null;
+    facebookUrl?: string | null;
+    linkedinUrl?: string | null;
+  };
+}
 
 interface Props {
-  sessions: CollectionEntry<'sessions'>[];
+  sessions: AgendaSession[];
 }
 
 const { sessions } = Astro.props;
@@ -13,8 +29,8 @@ const sorted = [...sessions].sort(
     a.data.startTime.localeCompare(b.data.startTime),
 );
 
-function groupByTime(items: CollectionEntry<'sessions'>[]) {
-  const map = new Map<string, CollectionEntry<'sessions'>[]>();
+function groupByTime(items: AgendaSession[]) {
+  const map = new Map<string, AgendaSession[]>();
   for (const s of items) {
     const key = `${s.data.startTime} – ${s.data.endTime}`;
     const list = map.get(key) ?? [];
@@ -39,10 +55,19 @@ const grouped = groupByTime(sorted);
         </p>
         <div class="grid gap-4 mt-3 md:grid-cols-2">
           {items.map((s) => (
-            <article class="border-l-2 pl-4 py-1" style="border-color: var(--border-subtle);">
+            <article
+              class="border-l-2 pl-4 py-1"
+              style={`border-color: ${s.data.delivery === 'online' ? '#0f6f8a' : 'var(--border-subtle)'};`}
+            >
               {s.data.room && (
                 <p class="text-xs uppercase tracking-wide" style="color: var(--fg-muted);">
                   {s.data.room}
+                </p>
+              )}
+              {(s.data.delivery === 'online' || s.data.delivery === 'ambas') && (
+                <p class="mt-1 text-xs font-bold uppercase tracking-wide" style="color: #0f6f8a;">
+                  <i class="fa fa-video-camera" aria-hidden="true"></i>{' '}
+                  {s.data.delivery === 'online' ? 'Online' : 'También online'}
                 </p>
               )}
               <h3 class="font-display text-lg font-bold mt-0.5">{s.data.title}</h3>
@@ -63,8 +88,15 @@ const grouped = groupByTime(sorted);
                       </>
                     ))
                   ) : (
-                    s.data.speakerNames.join(', ')
+                    (s.data.speakerNames ?? []).join(', ')
                   )}
+                </p>
+              )}
+              {s.data.liveUrl && (s.data.delivery === 'online' || s.data.delivery === 'ambas') && (
+                <p class="mt-2 text-sm">
+                  <a class="font-bold hover:underline" style="color: #0f6f8a;" href={s.data.liveUrl} target="_blank" rel="noopener noreferrer">
+                    Ver en Riverside
+                  </a>
                 </p>
               )}
               {(s.data.youtubeUrl || s.data.facebookUrl || s.data.linkedinUrl) && (

@@ -1,13 +1,15 @@
 ---
+export const prerender = false;
+
 import Layout from '@layouts/Layout.astro';
 import SectionTitle from '@components/SectionTitle.astro';
 import AgendaList from '@components/AgendaList.astro';
-import SessionizeEmbed from '@components/SessionizeEmbed.astro';
+import { publishedProgram } from '@lib/atril/store';
 import { getCollection } from 'astro:content';
 import { getFeaturedEdition } from '@lib/editions';
 
 const edition = await getFeaturedEdition();
-const sessionizeAgendaEmbedId = edition.data.sessionizeAgendaEmbedId;
+const atril = await publishedProgram(edition.data.year);
 
 const allSessions = await getCollection('sessions');
 const sessionsForEdition = allSessions.filter(
@@ -27,8 +29,8 @@ const sessionsForEdition = allSessions.filter(
     />
 
     {
-      sessionizeAgendaEmbedId ? (
-        <SessionizeEmbed eventId={sessionizeAgendaEmbedId} view="GridSmart" />
+      atril.sessions.length > 0 ? (
+        <AgendaList sessions={atril.sessions} />
       ) : sessionsForEdition.length > 0 ? (
         <AgendaList sessions={sessionsForEdition} />
       ) : (

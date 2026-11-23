@@ -3,12 +3,38 @@ import { Image } from 'astro:assets';
 import type { CollectionEntry } from 'astro:content';
 import SocialIcon from '@components/SocialIcon.astro';
 
+interface PlainSpeaker {
+  name: string;
+  role?: string | null;
+  company?: string | null;
+  photoUrl?: string | null;
+  website?: string | null;
+  twitter?: string | null;
+  linkedin?: string | null;
+  github?: string | null;
+}
+
 interface Props {
-  speaker: CollectionEntry<'speakers'>;
+  speaker: CollectionEntry<'speakers'> | PlainSpeaker;
 }
 
 const { speaker } = Astro.props;
-const { data } = speaker;
+const fromCollection = 'data' in speaker;
+const name = fromCollection ? speaker.data.name : speaker.name;
+const role = fromCollection ? speaker.data.role : speaker.role;
+const company = fromCollection ? speaker.data.company : speaker.company;
+const website = fromCollection ? speaker.data.website : speaker.website;
+const twitter = fromCollection ? speaker.data.twitter : speaker.twitter;
+const linkedin = fromCollection ? speaker.data.linkedin : speaker.linkedin;
+const github = fromCollection ? speaker.data.github : speaker.github;
+const photo = fromCollection ? speaker.data.photo : null;
+const photoUrl = fromCollection ? null : speaker.photoUrl;
+const initials = name
+  .split(' ')
+  .filter(Boolean)
+  .slice(0, 2)
+  .map((part) => part[0]?.toUpperCase() ?? '')
+  .join('');
 ---
 
 <article
@@ -17,12 +43,21 @@ const { data } = speaker;
 >
   <div class="flex gap-4 items-start">
     {
-      data.photo ? (
+      photo ? (
         <Image
-          src={data.photo}
-          alt={`Foto de ${data.name}`}
+          src={photo}
+          alt={`Foto de ${name}`}
           width={96}
           height={96}
+          class="h-20 w-20 object-cover shrink-0"
+          loading="lazy"
+        />
+      ) : photoUrl ? (
+        <img
+          src={photoUrl}
+          alt={`Foto de ${name}`}
+          width="80"
+          height="80"
           class="h-20 w-20 object-cover shrink-0"
           loading="lazy"
         />
@@ -31,24 +66,19 @@ const { data } = speaker;
           class="h-20 w-20 rounded-full shrink-0 flex items-center justify-center font-display font-bold text-2xl text-white bg-brand-gradient"
           aria-hidden="true"
         >
-          {data.name
-            .split(' ')
-            .filter(Boolean)
-            .slice(0, 2)
-            .map((p) => p[0]?.toUpperCase() ?? '')
-            .join('')}
+          {initials}
         </div>
       )
     }
     <div class="min-w-0 flex-1">
-      <h3 class="font-display text-lg font-bold truncate">{data.name}</h3>
-      {data.role && <p class="text-sm" style="color: var(--fg-muted);">{data.role}</p>}
-      {data.company && <p class="text-xs" style="color: var(--fg-muted);">{data.company}</p>}
+      <h3 class="font-display text-lg font-bold truncate">{name}</h3>
+      {role && <p class="text-sm" style="color: var(--fg-muted);">{role}</p>}
+      {company && <p class="text-xs" style="color: var(--fg-muted);">{company}</p>}
       <div class="flex gap-2 mt-3 flex-wrap">
-        {data.website && <SocialIcon href={data.website} name={`Web de ${data.name}`} kind="website" />}
-        {data.twitter && <SocialIcon href={data.twitter} name={`Twitter de ${data.name}`} kind="twitter" />}
-        {data.linkedin && <SocialIcon href={data.linkedin} name={`LinkedIn de ${data.name}`} kind="linkedin" />}
-        {data.github && <SocialIcon href={data.github} name={`GitHub de ${data.name}`} kind="github" />}
+        {website && <SocialIcon href={website} name={`Web de ${name}`} kind="website" />}
+        {twitter && <SocialIcon href={twitter} name={`Twitter de ${name}`} kind="twitter" />}
+        {linkedin && <SocialIcon href={linkedin} name={`LinkedIn de ${name}`} kind="linkedin" />}
+        {github && <SocialIcon href={github} name={`GitHub de ${name}`} kind="github" />}
       </div>
     </div>
   </div>

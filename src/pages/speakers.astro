@@ -1,20 +1,16 @@
 ---
+export const prerender = false;
+
 import Layout from '@layouts/Layout.astro';
 import SectionTitle from '@components/SectionTitle.astro';
 import SpeakerCard from '@components/SpeakerCard.astro';
-import SessionizeEmbed from '@components/SessionizeEmbed.astro';
 import { getCollection } from 'astro:content';
 import { getFeaturedEdition } from '@lib/editions';
-import { fetchSpeakers } from '@lib/sessionize';
+import { publishedProgram } from '@lib/atril/store';
 import CallForPapers from '@components/CallForPapers.astro';
 
 const edition = await getFeaturedEdition();
-const sessionizeSpeakersEmbedId = edition.data.sessionizeSpeakersEmbedId;
-
-let sessionizeSpeakers: Awaited<ReturnType<typeof fetchSpeakers>> = [];
-if (!sessionizeSpeakersEmbedId && edition.data.sessionizeEventId) {
-  sessionizeSpeakers = await fetchSpeakers(edition.data.sessionizeEventId);
-}
+const atril = await publishedProgram(edition.data.year);
 
 const allLocalSpeakers = await getCollection('speakers');
 const localSpeakers = allLocalSpeakers.filter((s) =>
@@ -30,47 +26,11 @@ const localSpeakers = allLocalSpeakers.filter((s) =>
     <SectionTitle eyebrow={edition.data.title} title="Nuestros" highlight="speakers" />
 
     {
-      sessionizeSpeakersEmbedId ? (
-        <SessionizeEmbed eventId={sessionizeSpeakersEmbedId} view="SpeakerWall" />
-      ) : sessionizeSpeakers.length > 0 ? (
+      atril.speakers.length > 0 ? (
         <ul class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {sessionizeSpeakers.map((sp) => (
-            <li
-              class="rounded-card border bg-[color:var(--bg-elevated)] p-5 shadow-sm"
-              style="border-color: var(--border-subtle);"
-            >
-              <div class="flex gap-4 items-start">
-                {sp.profilePicture ? (
-                  <img
-                    src={sp.profilePicture}
-                    alt={`Foto de ${sp.fullName}`}
-                    width="80"
-                    height="80"
-                    class="h-20 w-20 object-cover shrink-0"
-                    loading="lazy"
-                  />
-                ) : (
-                  <div
-                    class="h-20 w-20 rounded-full flex items-center justify-center font-display font-bold text-2xl text-white bg-brand-gradient shrink-0"
-                    aria-hidden="true"
-                  >
-                    {sp.fullName
-                      .split(' ')
-                      .filter(Boolean)
-                      .slice(0, 2)
-                      .map((p) => p[0]?.toUpperCase() ?? '')
-                      .join('')}
-                  </div>
-                )}
-                <div class="min-w-0 flex-1">
-                  <h3 class="font-display text-lg font-bold">{sp.fullName}</h3>
-                  {sp.tagLine && (
-                    <p class="text-sm" style="color: var(--fg-muted);">
-                      {sp.tagLine}
-                    </p>
-                  )}
-                </div>
-              </div>
+          {atril.speakers.map((speaker) => (
+            <li>
+              <SpeakerCard speaker={speaker} />
             </li>
           ))}
         </ul>

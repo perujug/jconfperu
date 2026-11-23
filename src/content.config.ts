@@ -40,12 +40,6 @@ const editions = defineCollection({
           speakers: z.number().optional(),
         })
         .optional(),
-      // ID del endpoint JSON principal. Los speakers se pintan como en producción.
-      sessionizeEventId: z.string().optional(),
-      // ID del embed HTML de la agenda (view/GridSmart). Ej.: '7fotbbqo'.
-      sessionizeAgendaEmbedId: z.string().optional(),
-      // ID del embed HTML de speakers (view/SpeakerWall). Ej.: 'gi5un2zc'.
-      sessionizeSpeakersEmbedId: z.string().optional(),
       // Convocatoria de charlas, cuando está abierta.
       cfp: z
         .object({
@@ -166,8 +160,7 @@ const alliedCommunities = defineCollection({
 
 /* ──────────────────────────────────────────────────────────────────────
  *  SESSIONS
- *  Charlas del agenda hardcodeado (ediciones pasadas). Para la edición
- *  vigente, el agenda se obtiene de Sessionize en build time.
+ *  Charlas de ediciones archivadas. La edición vigente sale de Atril.
  * ──────────────────────────────────────────────────────────────────── */
 const sessions = defineCollection({
   loader: glob({ pattern: '**/*.md', base: './src/content/sessions' }),

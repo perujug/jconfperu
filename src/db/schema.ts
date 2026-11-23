@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm';
-import { bigint, boolean, integer, pgTable, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core';
+import { bigint, boolean, integer, pgTable, primaryKey, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core';
 
 export const admins = pgTable('admins', {
   githubId: bigint('github_id', { mode: 'number' }).primaryKey(),
@@ -51,3 +51,48 @@ export const attendees = pgTable(
 );
 
 export type AttendeeRow = typeof attendees.$inferSelect;
+
+export const atrilSpeakers = pgTable('atril_speakers', {
+  id: text('id').primaryKey(),
+  year: integer('year').notNull(),
+  name: text('name').notNull(),
+  role: text('role'),
+  company: text('company'),
+  bio: text('bio'),
+  photoUrl: text('photo_url'),
+  linkedin: text('linkedin'),
+  website: text('website'),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const atrilSessions = pgTable('atril_sessions', {
+  id: text('id').primaryKey(),
+  year: integer('year').notNull(),
+  title: text('title').notNull(),
+  summary: text('summary'),
+  track: text('track'),
+  format: text('format').notNull().default('charla'),
+  room: text('room'),
+  delivery: text('delivery'),
+  liveUrl: text('live_url'),
+  startsAt: timestamp('starts_at', { withTimezone: true }).notNull(),
+  endsAt: timestamp('ends_at', { withTimezone: true }).notNull(),
+  sortOrder: integer('sort_order').notNull().default(0),
+  status: text('status').notNull().default('publicada'),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const atrilSessionSpeakers = pgTable(
+  'atril_session_speakers',
+  {
+    sessionId: text('session_id').notNull(),
+    speakerId: text('speaker_id').notNull(),
+    position: integer('position').notNull().default(0),
+  },
+  (table) => [primaryKey({ columns: [table.sessionId, table.speakerId] })],
+);
+
+export type AtrilSpeakerRow = typeof atrilSpeakers.$inferSelect;
+export type AtrilSessionRow = typeof atrilSessions.$inferSelect;
