@@ -1,4 +1,4 @@
-import { and, eq, isNull } from 'drizzle-orm';
+import { and, eq, isNull, ne } from 'drizzle-orm';
 import { getDb } from '@/db';
 import { admins, attendees, certificateYears, type AttendeeRow } from '@/db/schema';
 import { mergeCsv, parseCertificateCsv, type CsvIssue, type RosterEntry } from '@lib/certificates/csv';
@@ -451,6 +451,29 @@ export async function setRosterKind(id: string, kind: 'paid' | 'speaker' | 'orga
       updatedAt: new Date(),
     })
     .where(eq(attendees.id, id));
+}
+
+export async function updateAttendeeEmail(id: string, raw: string): Promise<'updated' | 'invalid' | 'taken' | 'missing'> {
+  const email = normalizeEmail(raw);
+  if (!email) return 'invalid';
+  const db = await getDb();
+  const rows = await db.select().from(attendees).where(eq(attendees.id, id)).limit(1);
+  const row = rows[0];
+  if (!row) return 'missing';
+  if (row.email === email) return 'updated';
+  const clash = await db
+    .select({ id: attendees.id })
+    .from(attendees)
+    .where(and(eq(attendees.year, row.year), eq(attendees.email, email), ne(attendees.id, id)))
+    .limit(1);
+  if (clash.length > 0) return 'taken';
+  try {
+    await db.update(attendees).set({ email, updatedAt: new Date() }).where(eq(attendees.id, id));
+    return 'updated';
+  } catch (error) {
+    if (isUniqueViolation(error)) return 'taken';
+    throw error;
+  }
 }
 
 export async function setPaymentStatus(id: string, status: Extract<PaymentStatus, 'paid' | 'unpaid'>): Promise<void> {

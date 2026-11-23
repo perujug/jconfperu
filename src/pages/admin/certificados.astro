@@ -23,6 +23,7 @@ import {
   setRosterKind,
   setRevoked,
   setYearOpen,
+  updateAttendeeEmail,
   unlinkGithub,
   yearAccess,
   yearIsOpen,
@@ -151,6 +152,11 @@ if (Astro.request.method === 'POST' && session && allowed && year && !dbError) {
       await setPaymentStatus(String(form.get('id') ?? ''), form.get('status') === 'paid' ? 'paid' : 'unpaid');
       return Astro.redirect(adminPath(year, 'lista', undefined, String(form.get('q') ?? '')));
     }
+    if (intent === 'email') {
+      const outcome = await updateAttendeeEmail(String(form.get('id') ?? ''), String(form.get('email') ?? ''));
+      const notice = outcome === 'updated' ? 'email-updated' : outcome === 'taken' ? 'email-taken' : 'email-invalid';
+      return Astro.redirect(adminPath(year, 'lista', notice, String(form.get('q') ?? '')));
+    }
   } catch {
     return Astro.redirect(adminPath(year, view, 'error'));
   }
@@ -206,6 +212,9 @@ const notices: Record<string, string> = {
   updated: 'Persona actualizada. El certificado ya expedido no cambia.',
   taken: 'Ese GitHub ya está vinculado a otra entrada de este año.',
   invalid: 'Revisa el correo y el nombre.',
+  'email-updated': 'Correo actualizado. Con ese correo el GitHub podrá encontrar a la persona.',
+  'email-taken': 'Ese correo ya pertenece a otra persona de este año.',
+  'email-invalid': 'Revisa el correo. Tiene que ser una dirección válida.',
   github: 'No encontramos esa cuenta de GitHub.',
   phone: 'Revisa el celular. Puedes dejarlo vacío.',
   error: 'No pudimos guardar el cambio.',
@@ -391,7 +400,23 @@ const notices: Record<string, string> = {
                                   return (
                                     <tr data-search={search}>
                                       <td>{person.displayName || person.suggestedName}</td>
-                                      <td>{person.email ? <a href={`mailto:${person.email}`}>{person.email}</a> : '—'}</td>
+                                      <td>
+                                        <form class="email-form" method="post">
+                                          <input type="hidden" name="intent" value="email" />
+                                          <input type="hidden" name="id" value={person.id} />
+                                          <input type="hidden" name="q" value={rosterQuery} />
+                                          <input
+                                            type="email"
+                                            name="email"
+                                            value={person.email ?? ''}
+                                            required
+                                            autocomplete="off"
+                                            spellcheck="false"
+                                            aria-label={`Correo de ${person.displayName || person.suggestedName}`}
+                                          />
+                                          <button type="submit">Guardar</button>
+                                        </form>
+                                      </td>
                                       <td>{person.githubLogin ? `@${person.githubLogin}` : person.githubId ? String(person.githubId) : '—'}</td>
                                       <td>{chat ? <a href={chat} target="_blank" rel="noopener noreferrer">{person.phone}</a> : '—'}</td>
                                       <td>
@@ -599,6 +624,7 @@ rosa.vega@correo.com,Rosa Vega,voluntario</pre>
   }
   .account button,
   .actions-cell button,
+  .email-form button,
   .people button {
     background: none;
     border: 0;
@@ -707,8 +733,18 @@ rosa.vega@correo.com,Rosa Vega,voluntario</pre>
   .finder {
     max-width: 28rem;
   }
-  .kind-form {
+  .kind-form,
+  .email-form {
     margin: 0;
+  }
+  .email-form {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+  }
+  .email-form input {
+    width: 16rem;
+    padding: 0.35rem 0.45rem;
   }
   .kind-form select {
     width: 9.5rem;
