@@ -13,7 +13,7 @@ import { canDownload, normalizePhone, paymentStatus } from '@lib/certificates/re
 import { certificateClaimOpen, certificateReleased } from '@lib/certificates/release';
 import CertificateShare from '@components/CertificateShare.astro';
 import { editionFacts, recognitionParagraph } from '@lib/certificates/snapshot';
-import { claimEmail, findAttendeeByGithub, issueForGithub, registerSelf, submitOnlineCode, yearHasAttendees, yearIsOpen } from '@lib/certificates/store';
+import { claimEmail, findAttendeeByGithub, issueForGithub, linkAttendeesByGithubEmails, registerSelf, submitOnlineCode, yearHasAttendees, yearIsOpen } from '@lib/certificates/store';
 import { correctionMessage, whatsAppLink } from '@lib/certificates/whatsapp';
 import { authConfigured, whatsAppPhone } from '@lib/config';
 import { getEditionByYear } from '@lib/editions';
@@ -44,6 +44,9 @@ if (edition) {
     roster = await yearHasAttendees(year);
     if (session) {
       open = roster && certificateClaimOpen(year, await yearIsOpen(year));
+      if (session.emails.length > 0) {
+        await linkAttendeesByGithubEmails({ githubId: session.githubId, githubLogin: session.login, emails: session.emails });
+      }
       row = await findAttendeeByGithub(year, session.githubId);
     }
   } catch {
@@ -156,13 +159,14 @@ const whatsApp = session
       correctionMessage({
         year,
         displayName: [givenValue, familyValue].filter(Boolean).join(' '),
-        email: draft?.email || row?.email || '',
+        email: draft?.email || row?.email || session.emails[0] || '',
+        githubEmails: session.emails,
         githubLogin: session.login,
         reason,
       }),
     )
   : null;
-const showWhatsApp = avisoCode === 'missing' || avisoCode === 'taken' || avisoCode === 'revoked' || step === 'forbidden';
+const showWhatsApp = step === 'claim' || avisoCode === 'missing' || avisoCode === 'taken' || avisoCode === 'revoked' || step === 'forbidden';
 const released = Number.isInteger(year) && certificateReleased(year);
 const shareUrl =
   released && row?.issuedAt && row.publicCode
@@ -218,17 +222,9 @@ const shareUrl =
 
           {
             session && !dbError && step === 'claim' && (
-              <form class="mt-8 grid gap-4 max-w-xl" method="post">
-                <p>
-                  La cuenta @{session.login} no está en la lista de {edition.data.title}. El certificado solo sale si el correo con el que pagaste está en esa lista.
-                </p>
-                <input type="hidden" name="intent" value="claim" />
-                <label class="grid gap-1">
-                  <span class="font-bold">Correo con el que pagaste</span>
-                  <input class="border px-3 py-2" style="border-color: var(--border-subtle);" type="email" name="email" required value={draft?.email ?? ''} autocomplete="email" />
-                </label>
-                <button class="main-btn" type="submit">Buscar mi entrada</button>
-              </form>
+              <p class="mt-8 max-w-xl">
+                La cuenta @{session.login} no está en la lista de {edition.data.title} y el correo de GitHub no coincide con el registro. Pide a soporte que actualice el correo o el GitHub.
+              </p>
             )
           }
 
@@ -302,10 +298,10 @@ const shareUrl =
           {
             showWhatsApp && session && (
               <div class="mt-8 grid gap-3 max-w-xl">
-                <p>Si pagaste, envía una solicitud para validar tu entrada manualmente.</p>
+                <p>Soporte puede corregir el correo del registro o asociar tu GitHub.</p>
                 {
                   whatsApp ? (
-                    <a class="main-btn" href={whatsApp} target="_blank" rel="noopener noreferrer">Sí, yo pagué</a>
+                    <a class="main-btn" href={whatsApp} target="_blank" rel="noopener noreferrer">Escribir a soporte</a>
                   ) : (
                     <p>El WhatsApp del organizador todavía no está configurado. Escríbenos por los canales de contacto con tu correo y tu usuario de GitHub.</p>
                   )

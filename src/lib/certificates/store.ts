@@ -1,4 +1,4 @@
-import { and, eq, isNull, ne } from 'drizzle-orm';
+import { and, eq, inArray, isNull, ne } from 'drizzle-orm';
 import { getDb } from '@/db';
 import { admins, attendees, certificateYears, type AttendeeRow } from '@/db/schema';
 import { mergeCsv, parseCertificateCsv, type CsvIssue, type RosterEntry } from '@lib/certificates/csv';
@@ -233,6 +233,35 @@ export async function importAttendees(
   });
 
   return { added: merged.added, updated: merged.updated, unchanged: merged.unchanged, errors: parsed.errors };
+}
+
+export async function linkAttendeesByGithubEmails(input: {
+  githubId: number;
+  githubLogin: string;
+  emails: string[];
+}): Promise<number> {
+  const emails = [...new Set(input.emails.map((value) => normalizeEmail(value)).filter((value) => value != null))];
+  if (emails.length === 0) return 0;
+  const db = await getDb();
+  const rows = await db.select().from(attendees).where(inArray(attendees.email, emails));
+  let linked = 0;
+  for (const row of rows) {
+    if (row.revokedAt) continue;
+    if (row.githubId != null && row.githubId !== input.githubId) continue;
+    if (row.githubId === input.githubId && row.githubLogin === input.githubLogin) continue;
+    const saved = await db
+      .update(attendees)
+      .set({ githubId: input.githubId, githubLogin: input.githubLogin, updatedAt: new Date() })
+      .where(
+        and(
+          eq(attendees.id, row.id),
+          row.githubId == null ? isNull(attendees.githubId) : eq(attendees.githubId, input.githubId),
+        ),
+      )
+      .returning({ id: attendees.id });
+    linked += saved.length;
+  }
+  return linked;
 }
 
 export async function claimEmail(input: {

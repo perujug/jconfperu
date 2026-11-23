@@ -12,8 +12,9 @@ import { certificateReleased } from '@lib/certificates/release';
 import CertificateShare from '@components/CertificateShare.astro';
 import { certificateTitle, parseRole } from '@lib/certificates/roles';
 import { editionFacts, recognitionParagraph } from '@lib/certificates/snapshot';
-import { listAttendeesForGithub } from '@lib/certificates/store';
-import { authConfigured } from '@lib/config';
+import { linkAttendeesByGithubEmails, listAttendeesForGithub } from '@lib/certificates/store';
+import { correctionMessage, whatsAppLink } from '@lib/certificates/whatsapp';
+import { authConfigured, whatsAppPhone } from '@lib/config';
 import { getAllEditions } from '@lib/editions';
 import { publicUrl } from '@lib/site';
 import type { AttendeeRow } from '@/db/schema';
@@ -49,6 +50,9 @@ if (session) {
   try {
     const editions = await getAllEditions();
     const byYear = new Map(editions.map((edition) => [edition.data.year, edition]));
+    if (session.emails.length > 0) {
+      await linkAttendeesByGithubEmails({ githubId: session.githubId, githubLogin: session.login, emails: session.emails });
+    }
     const rows = await listAttendeesForGithub(session.githubId);
     years = rows
       .slice()
@@ -121,6 +125,19 @@ function statusLabel(status: ReturnType<typeof paymentStatus>): string {
 }
 
 const preview2026 = years.find((item) => item.year === 2026 && !item.released)?.certificate ?? null;
+const supportLink = session
+  ? whatsAppLink(
+      whatsAppPhone(),
+      correctionMessage({
+        year: new Date().getFullYear(),
+        displayName: session.name,
+        email: session.emails[0] ?? '',
+        githubEmails: session.emails,
+        githubLogin: session.login,
+        reason: 'missing',
+      }),
+    )
+  : null;
 
 function formatPhone(value: string | null): string {
   const digits = value?.replace(/\D/g, '') ?? '';
@@ -191,9 +208,18 @@ function formatPhone(value: string | null): string {
     {
       session && !dbError && (
         years.length === 0 ? (
-          <p class="mt-8">
-            Esta cuenta todavía no tiene un certificado. El registro se hace con el enlace que compartimos durante el evento. Si ya te registraste, entra con esa misma cuenta de GitHub.
-          </p>
+          <div class="mt-8 grid gap-3 max-w-xl">
+            <p>
+              @{session.login} no está en la lista y el correo de GitHub no coincide con ningún registro. Pide a soporte que actualice el correo o el GitHub.
+            </p>
+            {
+              supportLink ? (
+                <a class="main-btn" href={supportLink} target="_blank" rel="noopener noreferrer">Escribir a soporte</a>
+              ) : (
+                <p>Escríbenos por los canales de contacto con tu correo y tu usuario de GitHub.</p>
+              )
+            }
+          </div>
         ) : (
           <div class="mt-10 grid gap-12">
             {

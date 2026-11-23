@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 import { githubUserFromCode } from '@lib/auth/github';
 import { safeNext, withNotice } from '@lib/auth/redirect';
 import { deleteTempCookie, writeSession } from '@lib/auth/session';
+import { linkAttendeesByGithubEmails } from '@lib/certificates/store';
 import { authConfigured } from '@lib/config';
 
 export const prerender = false;
@@ -20,6 +21,11 @@ export const GET: APIRoute = async ({ url, cookies, redirect }) => {
 
   const user = await githubUserFromCode(url.origin, code);
   if (!user) return redirect(withNotice(next, 'auth'));
+  try {
+    await linkAttendeesByGithubEmails({ githubId: user.githubId, githubLogin: user.login, emails: user.emails });
+  } catch {
+    // El ingreso sigue. La persona puede buscar su correo en la lista.
+  }
   const saved = await writeSession(cookies, user);
   return redirect(saved ? next : withNotice(next, 'config'));
 }

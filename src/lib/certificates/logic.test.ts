@@ -7,6 +7,7 @@ import { parseRole } from './roles';
 import { normalizeEmail, validateNames } from './names';
 import { renderCertificatePdf } from './pdf';
 import { editionFacts, freezeCertificate, recognitionParagraph, type EditionFacts } from './snapshot';
+import { verifiedGithubEmails } from '../auth/github';
 import { safeNext } from '../auth/redirect';
 import { publicBase } from '../site';
 import { attendeeNotice } from './messages';
@@ -204,6 +205,7 @@ test('el enlace de WhatsApp lleva el nombre, el correo y el usuario', () => {
   assert.match(message, /María Quispe/);
   assert.match(message, /maria@example.com/);
   assert.match(message, /@mquispe/);
+  assert.match(message, /actualizar el correo o el GitHub/);
   assert.equal(whatsAppLink('+51 999 888 777', message)?.startsWith('https://wa.me/51999888777?text='), true);
   assert.equal(whatsAppLink('sin numero', 'hola'), null);
   assert.equal(safeNext('https://evil.test'), '/mi/');
@@ -211,6 +213,18 @@ test('el enlace de WhatsApp lleva el nombre, el correo y el usuario', () => {
   assert.equal(publicBase(false, 'http://localhost:4321'), 'https://jconfperu.com');
   assert.equal(publicBase(false, 'https://jconfperu.vercel.app'), 'https://jconfperu.com');
   assert.equal(safeNext('/admin/certificados/'), '/admin/certificados/');
+});
+
+test('el correo verificado de GitHub se puede comparar con la lista', () => {
+  assert.deepEqual(
+    verifiedGithubEmails([
+      { email: 'Ana@Example.com', verified: true },
+      { email: 'ana@example.com', verified: true },
+      { email: 'pendiente@example.com', verified: false },
+      { email: '123+ana@users.noreply.github.com', verified: true },
+    ]),
+    ['ana@example.com'],
+  );
 });
 
 test('el PDF sale de la copia congelada', async () => {

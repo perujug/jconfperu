@@ -5,6 +5,7 @@ export type Session = {
   githubId: number;
   login: string;
   name: string;
+  emails: string[];
   exp: number;
 };
 
@@ -58,7 +59,7 @@ export async function openSession(token: string | undefined): Promise<Session | 
   try {
     const session = JSON.parse(new TextDecoder().decode(base64UrlToBytes(payload))) as Session;
     if (!session.githubId || !session.login || session.exp < Date.now()) return null;
-    return session;
+    return { ...session, emails: Array.isArray(session.emails) ? session.emails : [] };
   } catch {
     return null;
   }
