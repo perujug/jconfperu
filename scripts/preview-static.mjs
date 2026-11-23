@@ -20,12 +20,23 @@ const candidates = [
 let root = candidates[0];
 for (const candidate of candidates) {
   try {
-    await access(new URL('index.html', candidate));
+    await access(candidate);
     root = candidate;
     break;
   } catch {
     /* try the next build directory */
   }
+}
+
+let render = null;
+try {
+  const functionDir = new URL('../.vercel/output/functions/_render.func/', import.meta.url);
+  const config = JSON.parse(await readFile(new URL('.vc-config.json', functionDir), 'utf8'));
+  const handler = new URL(config.handler, functionDir);
+  const mod = await import(handler);
+  if (typeof mod.default?.fetch === 'function') render = (request) => mod.default.fetch(request);
+} catch (error) {
+  console.error(`SSR preview unavailable: ${error instanceof Error ? error.message : error}`);
 }
 
 const types = {
@@ -86,6 +97,22 @@ const server = createServer(async (request, response) => {
     response.writeHead(200, { 'Content-Type': found.type });
     response.end(found.body);
     return;
+  }
+
+  if (render) {
+    try {
+      const rendered = await render(new Request(`http://${host}:${port}${request.url ?? '/'}`, {
+        method: request.method,
+        headers: request.headers,
+      }));
+      const headers = Object.fromEntries(rendered.headers);
+      const body = Buffer.from(await rendered.arrayBuffer());
+      response.writeHead(rendered.status, headers);
+      response.end(body);
+      return;
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   const missing = fileUrl('/404.html');
