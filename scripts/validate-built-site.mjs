@@ -13,7 +13,8 @@ async function exists(path) {
 const root = new URL('../', import.meta.url).pathname;
 const clientDir = join(root, 'dist/client');
 const flatDir = join(root, 'dist');
-const dist = (await exists(join(clientDir, 'index.html'))) ? clientDir : flatDir;
+const clientEntries = (await exists(clientDir)) ? await readdir(clientDir) : [];
+const dist = clientEntries.length > 0 ? clientDir : flatDir;
 const productionOrigin = 'https://jconfperu.com';
 const errors = [];
 
@@ -35,7 +36,16 @@ function candidates(pathname) {
   return [join(dist, decoded, 'index.html'), join(dist, `${decoded}.html`)];
 }
 
-const onDemandPrefixes = ['/admin', '/certificado', '/auth', '/v', '/mi'];
+const onDemandPrefixes = [
+  '/',
+  '/agenda',
+  '/speakers',
+  '/admin',
+  '/certificado',
+  '/auth',
+  '/v',
+  '/mi',
+];
 
 function isOnDemandRoute(pathname) {
   const path = pathname.replace(/\/$/, '') || '/';
