@@ -1,4 +1,11 @@
 ---
+interface AgendaSpeaker {
+  name: string;
+  url?: string | null;
+  photoUrl?: string | null;
+  company?: string | null;
+}
+
 interface AgendaSession {
   id: string;
   data: {
@@ -7,10 +14,12 @@ interface AgendaSession {
     endTime: string;
     room?: string | null;
     title: string;
+    format?: string | null;
+    type?: string | null;
     delivery?: string | null;
     liveUrl?: string | null;
     speakerNames?: string[];
-    speakerProfiles?: { name: string; url?: string | null }[];
+    speakerProfiles?: AgendaSpeaker[];
     youtubeUrl?: string | null;
     facebookUrl?: string | null;
     linkedinUrl?: string | null;
@@ -26,117 +35,480 @@ const { sessions } = Astro.props;
 const sorted = [...sessions].sort(
   (a, b) =>
     a.data.order - b.data.order ||
-    a.data.startTime.localeCompare(b.data.startTime),
+    a.data.startTime.localeCompare(b.data.startTime) ||
+    (a.data.room ?? '').localeCompare(b.data.room ?? ''),
 );
 
-function groupByTime(items: AgendaSession[]) {
-  const map = new Map<string, AgendaSession[]>();
-  for (const s of items) {
-    const key = `${s.data.startTime} – ${s.data.endTime}`;
-    const list = map.get(key) ?? [];
-    list.push(s);
-    map.set(key, list);
-  }
-  return Array.from(map.entries());
+function toMinutes(value: string) {
+  const [hour, minute] = value.split(':').map(Number);
+  return hour * 60 + (minute || 0);
 }
 
-const grouped = groupByTime(sorted);
+function clock(value: number) {
+  const hour = Math.floor(value / 60);
+  const minute = value % 60;
+  return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+}
+
+function peopleOf(session: AgendaSession): AgendaSpeaker[] {
+  if (session.data.speakerProfiles?.length) return session.data.speakerProfiles;
+  return (session.data.speakerNames ?? []).filter(Boolean).map((name) => ({ name }));
+}
+
+function kindOf(session: AgendaSession) {
+  const format = session.data.format;
+  const type = session.data.type;
+  if (format === 'pausa' || type === 'break' || type === 'opening' || type === 'closing') return 'break';
+  if (peopleOf(session).length === 0) return 'break';
+  if (format === 'taller') return 'workshop';
+  if (format === 'keynote' || type === 'keynote') return 'keynote';
+  if (toMinutes(session.data.endTime) - toMinutes(session.data.startTime) >= 90) return 'workshop';
+  return 'talk';
+}
+
+const rooms: string[] = [];
+for (const session of sorted) {
+  const room = session.data.room?.trim();
+  if (room && !rooms.includes(room)) rooms.push(room);
+}
+
+function roomKey(room: string) {
+  return room.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase();
+}
+
+function roomRank(room: string) {
+  const name = roomKey(room);
+  if (name.startsWith('sum')) return 0;
+  if (/directorio\s*1/.test(name)) return 1;
+  if (/directorio\s*2/.test(name)) return 2;
+  return 10 + rooms.indexOf(room);
+}
+
+function roomLabel(room: string) {
+  const name = roomKey(room);
+  if (name.startsWith('sum')) return { title: 'SUM', detail: '70 personas' };
+  if (/directorio\s*1/.test(name)) return { title: 'Directorio 1', detail: '' };
+  if (/directorio\s*2/.test(name)) return { title: 'Directorio 2', detail: '' };
+  return { title: room, detail: '' };
+}
+
+function roomCaption(room: string) {
+  const label = roomLabel(room);
+  return label.detail ? `${label.title} · ${label.detail}` : label.title;
+}
+
+rooms.sort((a, b) => roomRank(a) - roomRank(b) || a.localeCompare(b));
+
+const starts = [...new Set(sorted.map((session) => toMinutes(session.data.startTime)))].sort((a, b) => a - b);
+const lastEnd = sorted.reduce((max, session) => Math.max(max, toMinutes(session.data.endTime)), 0);
+const marks = lastEnd > starts[starts.length - 1] ? [...starts, lastEnd] : starts;
+
+function rowStart(minutes: number) {
+  return marks.indexOf(minutes) + 2;
+}
+
+function rowEnd(minutes: number) {
+  const index = marks.findIndex((mark) => mark >= minutes);
+  return (index === -1 ? marks.length - 1 : index) + 2;
+}
+
+function spansRooms(session: AgendaSession) {
+  if (kindOf(session) !== 'break') return !session.data.room;
+  const sameStart = sorted.filter((item) => item.data.startTime === session.data.startTime);
+  return sameStart.every((item) => kindOf(item) === 'break');
+}
+
+const placed = sorted.map((session) => {
+  const span = rooms.length > 0 && spansRooms(session);
+  const roomIndex = rooms.indexOf(session.data.room?.trim() ?? '');
+  return {
+    session,
+    people: peopleOf(session),
+    kind: kindOf(session),
+    column: span ? `2 / span ${Math.max(rooms.length, 1)}` : String((roomIndex < 0 ? 0 : roomIndex) + 2),
+    row: `${rowStart(toMinutes(session.data.startTime))} / ${rowEnd(toMinutes(session.data.endTime))}`,
+  };
+});
+
+const showOnline = placed.some((item) => item.session.data.delivery === 'online' || item.session.data.delivery === 'ambas');
+const showWorkshop = placed.some((item) => item.kind === 'workshop');
 ---
 
-<ol class="grid gap-5">
+{
+  (showOnline || showWorkshop) && (
+    <ul class="agenda-legend">
+      <li><span class="swatch swatch-room"></span> Presencial</li>
+      {showOnline && <li><span class="swatch swatch-online"></span> Online</li>}
+      {showWorkshop && <li><span class="swatch swatch-workshop"></span> Taller</li>}
+    </ul>
+  )
+}
+
+<div class="agenda-scroll">
+<div class="agenda" style={`--rooms: ${Math.max(rooms.length, 1)};`}>
+  <div class="agenda-head agenda-corner">Hora</div>
   {
-    grouped.map(([slot, items]) => (
-      <li
-        class="rounded-card border bg-[color:var(--bg-elevated)] p-5 shadow-sm"
-        style="border-color: var(--border-subtle);"
-      >
-        <p class="text-sm font-bold uppercase tracking-wide" style="color: var(--accent-text);">
-          <i class="fa fa-clock-o" aria-hidden="true"></i> {slot} (GMT-5)
-        </p>
-        <div class="grid gap-4 mt-3 md:grid-cols-2">
-          {items.map((s) => (
-            <article
-              class="border-l-2 pl-4 py-1"
-              style={`border-color: ${s.data.delivery === 'online' ? '#0f6f8a' : 'var(--border-subtle)'};`}
-            >
-              {s.data.room && (
-                <p class="text-xs uppercase tracking-wide" style="color: var(--fg-muted);">
-                  {s.data.room}
-                </p>
-              )}
-              {(s.data.delivery === 'online' || s.data.delivery === 'ambas') && (
-                <p class="mt-1 text-xs font-bold uppercase tracking-wide" style="color: #0f6f8a;">
-                  <i class="fa fa-video-camera" aria-hidden="true"></i>{' '}
-                  {s.data.delivery === 'online' ? 'Online' : 'También online'}
-                </p>
-              )}
-              <h3 class="font-display text-lg font-bold mt-0.5">{s.data.title}</h3>
-              {(s.data.speakerProfiles?.length || s.data.speakerNames?.length) && (
-                <p class="text-sm mt-1" style="color: var(--fg-muted);">
-                  Por{' '}
-                  {s.data.speakerProfiles?.length ? (
-                    s.data.speakerProfiles.map((p, i) => (
-                      <>
-                        {i > 0 && ', '}
-                        {p.url ? (
-                          <a class="underline hover-brand-red" href={p.url} target="_blank" rel="noopener noreferrer">
-                            {p.name}
-                          </a>
-                        ) : (
-                          p.name
-                        )}
-                      </>
-                    ))
-                  ) : (
-                    (s.data.speakerNames ?? []).join(', ')
-                  )}
-                </p>
-              )}
-              {s.data.liveUrl && (s.data.delivery === 'online' || s.data.delivery === 'ambas') && (
-                <p class="mt-2 text-sm">
-                  <a class="font-bold hover:underline" style="color: #0f6f8a;" href={s.data.liveUrl} target="_blank" rel="noopener noreferrer">
-                    Ver en Riverside
-                  </a>
-                </p>
-              )}
-              {(s.data.youtubeUrl || s.data.facebookUrl || s.data.linkedinUrl) && (
-                <div class="flex gap-2 mt-2 text-xs">
-                  {s.data.youtubeUrl && (
-                    <a
-                      class="inline-flex items-center gap-1 text-brand-red hover:underline"
-                      href={s.data.youtubeUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      ▶ YouTube
-                    </a>
-                  )}
-                  {s.data.facebookUrl && (
-                    <a
-                      class="inline-flex items-center gap-1 text-facebook hover:underline"
-                      href={s.data.facebookUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      ▶ Facebook
-                    </a>
-                  )}
-                  {s.data.linkedinUrl && (
-                    <a
-                      class="inline-flex items-center gap-1 text-linkedin hover:underline"
-                      href={s.data.linkedinUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      ▶ LinkedIn
-                    </a>
-                  )}
-                </div>
-              )}
-            </article>
-          ))}
+    rooms.map((room) => {
+      const label = roomLabel(room);
+      return (
+        <div class="agenda-head">
+          <span>{label.title}</span>
+          {label.detail && <small>{label.detail}</small>}
         </div>
-      </li>
+      );
+    })
+  }
+  {
+    marks.slice(0, -1).map((mark, index) => (
+      <div class="agenda-tick" style={`grid-row: ${index + 2};`}>
+        <time datetime={clock(mark)}>{clock(mark)}</time>
+      </div>
     ))
   }
-</ol>
+  {
+    placed.map(({ session, people, kind, column, row }) => {
+      const online = session.data.delivery === 'online' || session.data.delivery === 'ambas';
+      return (
+        <article
+          class:list={['agenda-card', `is-${kind}`, online && 'is-online']}
+          style={`grid-column: ${column}; grid-row: ${row};`}
+        >
+          <p class="agenda-when">
+            <time>
+              {session.data.startTime} – {session.data.endTime}
+            </time>
+            {session.data.room && <span class="agenda-room">{roomCaption(session.data.room)}</span>}
+          </p>
+          {(kind === 'workshop' || kind === 'keynote' || online) && (
+            <div class="agenda-tags">
+              {kind === 'workshop' && <span class="tag tag-workshop">Taller</span>}
+              {kind === 'keynote' && <span class="tag tag-keynote">Keynote</span>}
+              {online && (
+                <span class="tag tag-online">
+                  {session.data.delivery === 'ambas' ? 'También online' : 'Online'}
+                </span>
+              )}
+            </div>
+          )}
+          <h3>{session.data.title}</h3>
+          {people.length > 0 && (
+            <ul class="agenda-people">
+              {people.map((person) => (
+                <li>
+                  {person.photoUrl ? (
+                    <img src={person.photoUrl} alt="" width="36" height="36" loading="lazy" />
+                  ) : (
+                    <span class="avatar-fallback" aria-hidden="true">{person.name.charAt(0)}</span>
+                  )}
+                  <span>
+                    {person.url ? (
+                      <a href={person.url} target="_blank" rel="noopener noreferrer">{person.name}</a>
+                    ) : (
+                      <strong>{person.name}</strong>
+                    )}
+                    {person.company && <small>{person.company}</small>}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+          {session.data.liveUrl && online && (
+            <a class="live-link" href={session.data.liveUrl} target="_blank" rel="noopener noreferrer">
+              <i class="fa fa-video-camera" aria-hidden="true"></i> Ver en Riverside
+            </a>
+          )}
+          {(session.data.youtubeUrl || session.data.facebookUrl || session.data.linkedinUrl) && (
+            <p class="recordings">
+              {session.data.youtubeUrl && (
+                <a href={session.data.youtubeUrl} target="_blank" rel="noopener noreferrer">YouTube</a>
+              )}
+              {session.data.facebookUrl && (
+                <a href={session.data.facebookUrl} target="_blank" rel="noopener noreferrer">Facebook</a>
+              )}
+              {session.data.linkedinUrl && (
+                <a href={session.data.linkedinUrl} target="_blank" rel="noopener noreferrer">LinkedIn</a>
+              )}
+            </p>
+          )}
+        </article>
+      );
+    })
+  }
+</div>
+</div>
+
+<style>
+  .agenda-legend {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.75rem 1.25rem;
+    margin: -0.5rem 0 1.25rem;
+    padding: 0;
+    list-style: none;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--fg-muted);
+  }
+
+  .agenda-legend li {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+  }
+
+  .swatch {
+    width: 0.7rem;
+    height: 0.7rem;
+    border-radius: 1px;
+  }
+
+  .swatch-room { background: #dd0a37; }
+  .swatch-online { background: #0f6f8a; }
+  .swatch-workshop { background: #0b0f28; }
+
+  [data-theme="dark"] .swatch-workshop { background: #fff; }
+
+  .agenda-scroll {
+    overflow-x: auto;
+    margin-inline: -0.25rem;
+    padding-bottom: 0.35rem;
+  }
+
+  .agenda {
+    display: grid;
+    grid-template-columns: 4.75rem repeat(var(--rooms), minmax(15rem, 1fr));
+    gap: 0.55rem;
+    align-items: stretch;
+    min-width: calc(4.75rem + var(--rooms) * 15.5rem);
+  }
+
+  .agenda-head {
+    position: sticky;
+    top: 4.6rem;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-end;
+    gap: 0.15rem;
+    min-height: 3.25rem;
+    padding: 0.7rem 0.85rem;
+    background: #0b0f28;
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  [data-theme="dark"] .agenda-head {
+    background: #1c2340;
+    box-shadow: inset 0 -2px 0 #dd0a37;
+  }
+
+  .agenda-head small {
+    color: #ffd0d8;
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: none;
+  }
+
+  .agenda-corner {
+    left: 0;
+    z-index: 4;
+    align-items: center;
+    justify-content: center;
+    color: #ffd0d8;
+  }
+
+  .agenda-tick {
+    position: sticky;
+    left: 0;
+    z-index: 3;
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-end;
+    padding: 0.85rem 0.35rem 0 0;
+    background: var(--bg-base);
+    color: var(--accent-text);
+    font-size: 0.95rem;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .agenda-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    min-width: 0;
+    padding: 0.9rem 1rem 1rem;
+    background: var(--bg-base);
+    border: 1px solid var(--border-subtle);
+    border-top: 3px solid #dd0a37;
+    box-shadow: 0 1px 0 rgba(11, 15, 40, 0.04);
+  }
+
+  .agenda-card.is-online { border-top-color: #0f6f8a; }
+  .agenda-card.is-workshop { border-top-color: #0b0f28; }
+  .agenda-card.is-break {
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    background: #0b0f28;
+    border: 0;
+    color: #fff;
+  }
+
+  .agenda-card.is-break h3,
+  .agenda-card.is-break .agenda-when {
+    color: #fff;
+  }
+
+  .agenda-card.is-break .agenda-room { display: none; }
+
+  .agenda-card.is-break .agenda-when { justify-content: center; }
+
+  [data-theme="dark"] .agenda-card.is-workshop { border-top-color: #fff; }
+
+  [data-theme="dark"] .agenda-card.is-break {
+    background: #1c2340;
+    box-shadow: inset 3px 0 0 #dd0a37, inset 0 0 0 1px rgba(255, 255, 255, 0.22);
+  }
+
+  .agenda-when {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem 0.6rem;
+    margin: 0;
+    color: var(--fg-muted);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+  }
+
+  .agenda-room { text-transform: uppercase; }
+
+  .agenda-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+
+  .tag {
+    padding: 0.12rem 0.4rem;
+    font-size: 0.65rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .tag-workshop { background: #0b0f28; color: #fff; }
+  .tag-keynote { background: #dd0a37; color: #fff; }
+  .tag-online { background: #0f6f8a; color: #fff; }
+
+  [data-theme="dark"] .tag-workshop { background: #fff; color: #0b0f28; }
+
+  .agenda-card h3 {
+    margin: 0;
+    font-size: 1.02rem;
+    line-height: 1.3;
+    font-weight: 700;
+    text-wrap: balance;
+  }
+
+  .is-break h3 {
+    font-size: 1.05rem;
+    font-weight: 700;
+  }
+
+  .agenda-people {
+    display: grid;
+    gap: 0.55rem;
+    margin: 0.15rem 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .agenda-people li {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    min-width: 0;
+    text-align: left;
+  }
+
+  .agenda-people img,
+  .avatar-fallback {
+    width: 36px;
+    height: 36px;
+    flex: none;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+
+  .avatar-fallback {
+    display: grid;
+    place-items: center;
+    background: #0b0f28;
+    color: #fff;
+    font-size: 0.85rem;
+    font-weight: 700;
+  }
+
+  .agenda-people a,
+  .agenda-people strong {
+    display: block;
+    color: var(--fg-strong);
+    font-size: 0.86rem;
+    font-weight: 700;
+    line-height: 1.25;
+    text-decoration: none;
+  }
+
+  .agenda-people a:hover { color: var(--accent-text); }
+
+  .agenda-people small {
+    display: block;
+    color: var(--fg-muted);
+    font-size: 0.75rem;
+    font-weight: 500;
+  }
+
+  .live-link,
+  .recordings a {
+    align-self: flex-start;
+    color: #0f6f8a;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .is-break .live-link,
+  .is-break .recordings { align-self: center; }
+
+  .live-link:hover,
+  .recordings a:hover { text-decoration: underline; }
+
+  .recordings {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+    margin: 0;
+  }
+
+  .agenda-card:not(.is-break) .agenda-room {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+</style>

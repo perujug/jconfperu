@@ -158,12 +158,15 @@ export async function publishedProgram(year: number): Promise<PublishedProgram> 
             endTime: clock(session.endsAt),
             room: session.room,
             title: session.title,
+            format: session.format,
             delivery: session.delivery,
             liveUrl: session.liveUrl,
             speakerNames: people.map((speaker) => speaker.name),
             speakerProfiles: people.map((speaker) => ({
               name: speaker.name,
               url: speaker.linkedin || speaker.website,
+              photoUrl: speaker.photoUrl,
+              company: speaker.company,
             })),
           },
         };

@@ -15,18 +15,35 @@ const allSessions = await getCollection('sessions');
 const sessionsForEdition = allSessions.filter(
   (s) => s.data.edition.id === edition.id,
 );
+
+const whenRaw =
+  edition.data.date != null
+    ? new Intl.DateTimeFormat('es-PE', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+      }).format(edition.data.date)
+    : (edition.data.dateLabel ?? '');
+const when = whenRaw ? whenRaw.charAt(0).toUpperCase() + whenRaw.slice(1) : '';
+const place = [edition.data.venue.name, edition.data.venue.city].filter(Boolean).join(', ');
 ---
 
 <Layout
   title={`Agenda · ${edition.data.title}`}
   description={`Agenda completa de ${edition.data.title} con horarios, charlas y speakers.`}
 >
-  <section class="max-w-6xl mx-auto px-4 sm:px-6 py-16">
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 py-16">
     <SectionTitle
       eyebrow={edition.data.title}
       title="Nuestra"
       highlight="agenda"
     />
+    <p class="mx-auto -mt-6 mb-10 max-w-3xl text-center text-sm" style="color: var(--fg-muted);">
+      {when}
+      {place && <> · {place}</>}
+      {' '}· Hora de Lima (GMT-5)
+    </p>
 
     {
       atril.sessions.length > 0 ? (
