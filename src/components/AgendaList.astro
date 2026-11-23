@@ -1,9 +1,12 @@
 ---
+import { countryFlag } from '@lib/flags';
+
 interface AgendaSpeaker {
   name: string;
   url?: string | null;
   photoUrl?: string | null;
   company?: string | null;
+  country?: string | null;
 }
 
 interface AgendaSession {
@@ -203,11 +206,18 @@ const showWorkshop = placed.some((item) => item.kind === 'workshop');
                     <span class="avatar-fallback" aria-hidden="true">{person.name.charAt(0)}</span>
                   )}
                   <span>
-                    {person.url ? (
-                      <a href={person.url} target="_blank" rel="noopener noreferrer">{person.name}</a>
-                    ) : (
-                      <strong>{person.name}</strong>
-                    )}
+                    <span class="person-line">
+                      {person.url ? (
+                        <a href={person.url} target="_blank" rel="noopener noreferrer">{person.name}</a>
+                      ) : (
+                        <strong>{person.name}</strong>
+                      )}
+                      {countryFlag(person.country) && (
+                        <span class="flag" role="img" aria-label={person.country} title={person.country}>
+                          {countryFlag(person.country)}
+                        </span>
+                      )}
+                    </span>
                     {person.company && <small>{person.company}</small>}
                   </span>
                 </li>
@@ -479,6 +489,19 @@ const showWorkshop = placed.some((item) => item.kind === 'workshop');
   }
 
   .agenda-people a:hover { color: var(--accent-text); }
+
+  .person-line {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    min-width: 0;
+  }
+
+  .flag {
+    flex: none;
+    font-size: 0.95rem;
+    line-height: 1;
+  }
 
   .agenda-people small {
     display: block;

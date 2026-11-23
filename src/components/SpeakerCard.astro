@@ -2,6 +2,7 @@
 import { Image } from 'astro:assets';
 import type { CollectionEntry } from 'astro:content';
 import SocialIcon from '@components/SocialIcon.astro';
+import { countryFlag } from '@lib/flags';
 
 interface PlainSpeaker {
   name: string;
@@ -12,6 +13,7 @@ interface PlainSpeaker {
   twitter?: string | null;
   linkedin?: string | null;
   github?: string | null;
+  country?: string | null;
 }
 
 interface Props {
@@ -27,6 +29,8 @@ const website = fromCollection ? speaker.data.website : speaker.website;
 const twitter = fromCollection ? speaker.data.twitter : speaker.twitter;
 const linkedin = fromCollection ? speaker.data.linkedin : speaker.linkedin;
 const github = fromCollection ? speaker.data.github : speaker.github;
+const country = fromCollection ? speaker.data.country : speaker.country;
+const flag = countryFlag(country);
 const photo = fromCollection ? speaker.data.photo : null;
 const photoUrl = fromCollection ? null : speaker.photoUrl;
 const initials = name
@@ -71,7 +75,16 @@ const initials = name
       )
     }
     <div class="min-w-0 flex-1">
-      <h3 class="font-display text-lg font-bold truncate">{name}</h3>
+      <div class="flex items-center gap-2 min-w-0">
+        <h3 class="font-display text-lg font-bold truncate">{name}</h3>
+        {
+          flag && country && (
+            <span class="text-xl leading-none shrink-0" role="img" aria-label={country} title={country}>
+              {flag}
+            </span>
+          )
+        }
+      </div>
       {role && <p class="text-sm" style="color: var(--fg-muted);">{role}</p>}
       {company && <p class="text-xs" style="color: var(--fg-muted);">{company}</p>}
       <div class="flex gap-2 mt-3 flex-wrap">

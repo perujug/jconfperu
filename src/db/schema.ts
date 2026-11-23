@@ -62,6 +62,7 @@ export const atrilSpeakers = pgTable('atril_speakers', {
   photoUrl: text('photo_url'),
   linkedin: text('linkedin'),
   website: text('website'),
+  country: text('country'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });

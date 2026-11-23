@@ -11,6 +11,7 @@ export type ProgramSpeaker = {
   photoUrl: string | null;
   linkedin: string | null;
   website: string | null;
+  country: string | null;
 };
 
 export type ProgramSession = {
@@ -26,7 +27,13 @@ export type ProgramSession = {
     liveUrl?: string | null;
     confirmed?: boolean;
     speakerNames: string[];
-    speakerProfiles: { name: string; url?: string | null }[];
+    speakerProfiles: {
+      name: string;
+      url?: string | null;
+      photoUrl?: string | null;
+      company?: string | null;
+      country?: string | null;
+    }[];
   };
 };
 
@@ -145,6 +152,7 @@ export async function publishedProgram(year: number): Promise<PublishedProgram> 
         photoUrl: speaker.photoUrl,
         linkedin: speaker.linkedin,
         website: speaker.website,
+        country: speaker.country,
       })),
       sessions: sessions.map((session) => {
         const people = links
@@ -170,6 +178,7 @@ export async function publishedProgram(year: number): Promise<PublishedProgram> 
               url: speaker.linkedin || speaker.website,
               photoUrl: speaker.photoUrl,
               company: speaker.company,
+              country: speaker.country,
             })),
           },
         };

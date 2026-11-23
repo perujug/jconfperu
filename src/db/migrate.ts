@@ -62,6 +62,7 @@ const statements = [
     updated_at timestamptz NOT NULL DEFAULT now()
   )`,
   `CREATE INDEX IF NOT EXISTS atril_speakers_year ON atril_speakers (year)`,
+  `ALTER TABLE atril_speakers ADD COLUMN IF NOT EXISTS country text`,
   `CREATE TABLE IF NOT EXISTS atril_sessions (
     id text PRIMARY KEY,
     year integer NOT NULL,
