@@ -16,8 +16,9 @@ interface AgendaSession {
     title: string;
     format?: string | null;
     type?: string | null;
-    delivery?: string | null;
-    liveUrl?: string | null;
+  delivery?: string | null;
+  liveUrl?: string | null;
+  confirmed?: boolean;
     speakerNames?: string[];
     speakerProfiles?: AgendaSpeaker[];
     youtubeUrl?: string | null;
@@ -87,8 +88,8 @@ function roomRank(room: string) {
 function roomLabel(room: string) {
   const name = roomKey(room);
   if (name.startsWith('sum')) return { title: 'SUM', detail: '70 personas' };
-  if (/directorio\s*1/.test(name)) return { title: 'Directorio 1', detail: '' };
-  if (/directorio\s*2/.test(name)) return { title: 'Directorio 2', detail: '' };
+  if (/directorio\s*1/.test(name)) return { title: 'Directorio 1', detail: '16 personas' };
+  if (/directorio\s*2/.test(name)) return { title: 'Directorio 2', detail: '10 personas' };
   return { title: room, detail: '' };
 }
 
@@ -179,7 +180,7 @@ const showWorkshop = placed.some((item) => item.kind === 'workshop');
             </time>
             {session.data.room && <span class="agenda-room">{roomCaption(session.data.room)}</span>}
           </p>
-          {(kind === 'workshop' || kind === 'keynote' || online) && (
+          {(kind === 'workshop' || kind === 'keynote' || online || session.data.confirmed === false) && (
             <div class="agenda-tags">
               {kind === 'workshop' && <span class="tag tag-workshop">Taller</span>}
               {kind === 'keynote' && <span class="tag tag-keynote">Keynote</span>}
@@ -188,6 +189,7 @@ const showWorkshop = placed.some((item) => item.kind === 'workshop');
                   {session.data.delivery === 'ambas' ? 'También online' : 'Online'}
                 </span>
               )}
+              {session.data.confirmed === false && <span class="tag tag-pending">Por confirmar</span>}
             </div>
           )}
           <h3>{session.data.title}</h3>
@@ -414,8 +416,10 @@ const showWorkshop = placed.some((item) => item.kind === 'workshop');
   .tag-workshop { background: #0b0f28; color: #fff; }
   .tag-keynote { background: #dd0a37; color: #fff; }
   .tag-online { background: #0f6f8a; color: #fff; }
+  .tag-pending { background: transparent; color: #0b0f28; box-shadow: inset 0 0 0 1px #0b0f28; }
 
   :global([data-theme="dark"]) .tag-workshop { background: #fff; color: #0b0f28; }
+  :global([data-theme="dark"]) .tag-pending { color: #fff; box-shadow: inset 0 0 0 1px #fff; }
 
   .agenda-card h3 {
     margin: 0;

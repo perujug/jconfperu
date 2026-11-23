@@ -76,6 +76,7 @@ export const atrilSessions = pgTable('atril_sessions', {
   room: text('room'),
   delivery: text('delivery'),
   liveUrl: text('live_url'),
+  confirmed: boolean('confirmed').notNull().default(true),
   startsAt: timestamp('starts_at', { withTimezone: true }).notNull(),
   endsAt: timestamp('ends_at', { withTimezone: true }).notNull(),
   sortOrder: integer('sort_order').notNull().default(0),

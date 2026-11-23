@@ -21,8 +21,10 @@ export type ProgramSession = {
     endTime: string;
     room: string | null;
     title: string;
+    format?: string | null;
     delivery?: string | null;
     liveUrl?: string | null;
+    confirmed?: boolean;
     speakerNames: string[];
     speakerProfiles: { name: string; url?: string | null }[];
   };
@@ -161,6 +163,7 @@ export async function publishedProgram(year: number): Promise<PublishedProgram> 
             format: session.format,
             delivery: session.delivery,
             liveUrl: session.liveUrl,
+            confirmed: session.confirmed,
             speakerNames: people.map((speaker) => speaker.name),
             speakerProfiles: people.map((speaker) => ({
               name: speaker.name,

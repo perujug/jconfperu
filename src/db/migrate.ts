@@ -80,6 +80,7 @@ const statements = [
   `CREATE INDEX IF NOT EXISTS atril_sessions_year_status ON atril_sessions (year, status)`,
   `ALTER TABLE atril_sessions ADD COLUMN IF NOT EXISTS delivery text`,
   `ALTER TABLE atril_sessions ADD COLUMN IF NOT EXISTS live_url text`,
+  `ALTER TABLE atril_sessions ADD COLUMN IF NOT EXISTS confirmed boolean NOT NULL DEFAULT true`,
   `CREATE TABLE IF NOT EXISTS atril_session_speakers (
     session_id text NOT NULL REFERENCES atril_sessions (id) ON DELETE CASCADE,
     speaker_id text NOT NULL REFERENCES atril_speakers (id) ON DELETE CASCADE,
