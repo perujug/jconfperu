@@ -269,7 +269,7 @@ const showWorkshop = placed.some((item) => item.kind === 'workshop');
   .swatch-online { background: #0f6f8a; }
   .swatch-workshop { background: #0b0f28; }
 
-  [data-theme="dark"] .swatch-workshop { background: #fff; }
+  :global([data-theme="dark"]) .swatch-workshop { background: #fff; }
 
   .agenda-scroll {
     overflow-x: auto;
@@ -304,7 +304,7 @@ const showWorkshop = placed.some((item) => item.kind === 'workshop');
     text-transform: uppercase;
   }
 
-  [data-theme="dark"] .agenda-head {
+  :global([data-theme="dark"]) .agenda-head {
     background: #1c2340;
     box-shadow: inset 0 -2px 0 #dd0a37;
   }
@@ -364,7 +364,12 @@ const showWorkshop = placed.some((item) => item.kind === 'workshop');
   }
 
   .agenda-card.is-break h3,
-  .agenda-card.is-break .agenda-when {
+  .agenda-card.is-break .agenda-when,
+  .agenda-card.is-break .agenda-people a,
+  .agenda-card.is-break .agenda-people strong,
+  .agenda-card.is-break .agenda-people small,
+  .agenda-card.is-break .live-link,
+  .agenda-card.is-break .recordings a {
     color: #fff;
   }
 
@@ -372,9 +377,9 @@ const showWorkshop = placed.some((item) => item.kind === 'workshop');
 
   .agenda-card.is-break .agenda-when { justify-content: center; }
 
-  [data-theme="dark"] .agenda-card.is-workshop { border-top-color: #fff; }
+  :global([data-theme="dark"]) .agenda-card.is-workshop { border-top-color: #fff; }
 
-  [data-theme="dark"] .agenda-card.is-break {
+  :global([data-theme="dark"]) .agenda-card.is-break {
     background: #1c2340;
     box-shadow: inset 3px 0 0 #dd0a37, inset 0 0 0 1px rgba(255, 255, 255, 0.22);
   }
@@ -410,7 +415,7 @@ const showWorkshop = placed.some((item) => item.kind === 'workshop');
   .tag-keynote { background: #dd0a37; color: #fff; }
   .tag-online { background: #0f6f8a; color: #fff; }
 
-  [data-theme="dark"] .tag-workshop { background: #fff; color: #0b0f28; }
+  :global([data-theme="dark"]) .tag-workshop { background: #fff; color: #0b0f28; }
 
   .agenda-card h3 {
     margin: 0;
@@ -481,10 +486,15 @@ const showWorkshop = placed.some((item) => item.kind === 'workshop');
   .live-link,
   .recordings a {
     align-self: flex-start;
-    color: #0f6f8a;
+    color: #0c5f78;
     font-size: 0.8rem;
     font-weight: 700;
     text-decoration: none;
+  }
+
+  :global([data-theme="dark"]) .live-link,
+  :global([data-theme="dark"]) .recordings a {
+    color: #b7e9f6;
   }
 
   .is-break .live-link,
