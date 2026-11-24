@@ -46,12 +46,13 @@ const year = selected?.data.year ?? null;
 const requestedView = Astro.url.searchParams.get('vista');
 const view: AdminView = views.includes(requestedView as AdminView) ? (requestedView as AdminView) : 'resumen';
 
-function adminPath(nextYear = year, nextView: AdminView = view, notice?: string, q?: string) {
+function adminPath(nextYear = year, nextView: AdminView = view, notice?: string, q?: string, estado?: string) {
   const params = new URLSearchParams();
   if (nextYear) params.set('year', String(nextYear));
   if (nextView !== 'resumen') params.set('vista', nextView);
   if (notice) params.set('aviso', notice);
   if (q?.trim()) params.set('q', q.trim());
+  if (estado === 'paid' || estado === 'unpaid') params.set('estado', estado);
   const query = params.toString();
   return `/admin/certificados/${query ? `?${query}` : ''}`;
 }
@@ -70,6 +71,8 @@ if (session) {
 if (Astro.request.method === 'POST' && session && allowed && year && !dbError) {
   const form = await Astro.request.formData();
   const intent = String(form.get('intent') ?? '');
+  const listBack = (notice?: string) =>
+    adminPath(year, 'lista', notice, String(form.get('q') ?? ''), String(form.get('estado') ?? ''));
   try {
     if (intent === 'toggle') {
       await setYearOpen(year, form.get('open') === '1');
@@ -108,15 +111,15 @@ if (Astro.request.method === 'POST' && session && allowed && year && !dbError) {
     }
     if (intent === 'revoke') {
       await setRevoked(String(form.get('id') ?? ''), form.get('revoked') === '1');
-      return Astro.redirect(adminPath(year, 'lista', undefined, String(form.get('q') ?? '')));
+      return Astro.redirect(listBack());
     }
     if (intent === 'unlink') {
       await unlinkGithub(String(form.get('id') ?? ''));
-      return Astro.redirect(adminPath(year, 'lista', undefined, String(form.get('q') ?? '')));
+      return Astro.redirect(listBack());
     }
     if (intent === 'kind') {
       const kind = String(form.get('kind') ?? '');
-      if (kind !== 'paid' && kind !== 'speaker' && kind !== 'organizer' && kind !== 'volunteer') return Astro.redirect(adminPath(year, 'lista', 'error', String(form.get('q') ?? '')));
+      if (kind !== 'paid' && kind !== 'speaker' && kind !== 'organizer' && kind !== 'volunteer') return Astro.redirect(listBack('error'));
       const source = editions.find((item) => item.data.year === year);
       const facts = source
         ? editionFacts({
@@ -128,7 +131,7 @@ if (Astro.request.method === 'POST' && session && allowed && year && !dbError) {
           })
         : null;
       await setRosterKind(String(form.get('id') ?? ''), kind, facts);
-      return Astro.redirect(adminPath(year, 'lista', undefined, String(form.get('q') ?? '')));
+      return Astro.redirect(listBack());
     }
     if (intent === 'add-admin') {
       const account = await resolveGithubAccount(String(form.get('github') ?? ''));
@@ -150,12 +153,12 @@ if (Astro.request.method === 'POST' && session && allowed && year && !dbError) {
     }
     if (intent === 'payment') {
       await setPaymentStatus(String(form.get('id') ?? ''), form.get('status') === 'paid' ? 'paid' : 'unpaid');
-      return Astro.redirect(adminPath(year, 'lista', undefined, String(form.get('q') ?? '')));
+      return Astro.redirect(listBack());
     }
     if (intent === 'email') {
       const outcome = await updateAttendeeEmail(String(form.get('id') ?? ''), String(form.get('email') ?? ''));
       const notice = outcome === 'updated' ? 'email-updated' : outcome === 'taken' ? 'email-taken' : 'email-invalid';
-      return Astro.redirect(adminPath(year, 'lista', notice, String(form.get('q') ?? '')));
+      return Astro.redirect(listBack(notice));
     }
   } catch {
     return Astro.redirect(adminPath(year, view, 'error'));
@@ -206,6 +209,8 @@ const nav = [
 
 const aviso = Astro.url.searchParams.get('aviso');
 const rosterQuery = Astro.url.searchParams.get('q') ?? '';
+const requestedStatus = Astro.url.searchParams.get('estado');
+const rosterStatus = requestedStatus === 'paid' || requestedStatus === 'unpaid' ? requestedStatus : '';
 const protectedIds = new Set(bootstrapAdminIds());
 const notices: Record<string, string> = {
   added: 'Persona agregada a la lista.',
@@ -361,15 +366,23 @@ const notices: Record<string, string> = {
                       <p>Nadie se ha registrado. Comparte el enlace del resumen.</p>
                     ) : (
                       <>
-                        <form class="finder" method="get" action="/admin/certificados/">
+                        <form class="filters" method="get" action="/admin/certificados/">
                           <input type="hidden" name="year" value={year} />
                           <input type="hidden" name="vista" value="lista" />
                           <label>
                             Buscar
                             <input id="roster-search" type="search" name="q" value={rosterQuery} placeholder="Nombre, apellido, GitHub o correo" autocomplete="off" />
                           </label>
+                          <label>
+                            Estado
+                            <select id="roster-status" name="estado" aria-label="Filtrar por estado">
+                              <option value="" selected={rosterStatus === ''}>Todos</option>
+                              <option value="paid" selected={rosterStatus === 'paid'}>PAID</option>
+                              <option value="unpaid" selected={rosterStatus === 'unpaid'}>UNPAID</option>
+                            </select>
+                          </label>
                         </form>
-                        <p id="roster-empty" hidden>Nadie coincide con esa búsqueda.</p>
+                        <p id="roster-empty" hidden>Nadie coincide con ese filtro.</p>
                         <p>VOLUNTARIO es quien apoya las transmisiones en línea, el soporte de las charlas, la comida y las bebidas.</p>
                         <div class="table-wrap">
                           <table id="roster">
@@ -398,13 +411,14 @@ const notices: Record<string, string> = {
                                     .filter((value) => value != null && String(value).trim())
                                     .join(' ');
                                   return (
-                                    <tr data-search={search}>
+                                    <tr data-search={search} data-status={pay}>
                                       <td>{person.displayName || person.suggestedName}</td>
                                       <td>
                                         <form class="email-form" method="post">
                                           <input type="hidden" name="intent" value="email" />
                                           <input type="hidden" name="id" value={person.id} />
                                           <input type="hidden" name="q" value={rosterQuery} />
+                                          <input type="hidden" name="estado" value={rosterStatus} />
                                           <input
                                             type="email"
                                             name="email"
@@ -424,6 +438,7 @@ const notices: Record<string, string> = {
                                           <input type="hidden" name="intent" value="kind" />
                                           <input type="hidden" name="id" value={person.id} />
                                           <input type="hidden" name="q" value={rosterQuery} />
+                                          <input type="hidden" name="estado" value={rosterStatus} />
                                           <select name="kind" aria-label={`Rol de ${person.displayName || person.suggestedName}`} onchange="this.form.requestSubmit()">
                                             <option value="paid" selected={kind === 'paid'}>PAID</option>
                                             <option value="speaker" selected={kind === 'speaker'}>SPEAKER</option>
@@ -441,6 +456,7 @@ const notices: Record<string, string> = {
                                                 <input type="hidden" name="intent" value="payment" />
                                                 <input type="hidden" name="id" value={person.id} />
                                                 <input type="hidden" name="q" value={rosterQuery} />
+                                          <input type="hidden" name="estado" value={rosterStatus} />
                                                 <input type="hidden" name="status" value={pay === 'paid' ? 'unpaid' : 'paid'} />
                                                 <button type="submit">{pay === 'paid' ? 'Volver a impago' : 'Marcar pagado'}</button>
                                               </form>
@@ -450,6 +466,7 @@ const notices: Record<string, string> = {
                                             <input type="hidden" name="intent" value="revoke" />
                                             <input type="hidden" name="id" value={person.id} />
                                             <input type="hidden" name="q" value={rosterQuery} />
+                                          <input type="hidden" name="estado" value={rosterStatus} />
                                             <input type="hidden" name="revoked" value={person.revokedAt ? '0' : '1'} />
                                             <button type="submit">{person.revokedAt ? 'Restaurar' : 'Revocar'}</button>
                                           </form>
@@ -459,6 +476,7 @@ const notices: Record<string, string> = {
                                                 <input type="hidden" name="intent" value="unlink" />
                                                 <input type="hidden" name="id" value={person.id} />
                                                 <input type="hidden" name="q" value={rosterQuery} />
+                                          <input type="hidden" name="estado" value={rosterStatus} />
                                                 <button type="submit">Desvincular</button>
                                               </form>
                                             )
@@ -730,8 +748,19 @@ rosa.vega@correo.com,Rosa Vega,voluntario</pre>
     color: #fff;
     font-weight: 700;
   }
-  .finder {
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: end;
+    margin-bottom: 1rem;
+  }
+  .filters label:first-child {
+    flex: 1 1 16rem;
     max-width: 28rem;
+  }
+  .filters label:last-child {
+    width: 10rem;
   }
   .kind-form,
   .email-form {
@@ -858,17 +887,21 @@ rosa.vega@correo.com,Rosa Vega,voluntario</pre>
 
 <script is:inline>
   const search = document.getElementById('roster-search');
+  const status = document.getElementById('roster-status');
   const table = document.getElementById('roster');
   const empty = document.getElementById('roster-empty');
-  if (search instanceof HTMLInputElement && table && empty) {
+  if (search instanceof HTMLInputElement && status instanceof HTMLSelectElement && table && empty) {
     const rows = [...table.querySelectorAll('tbody tr')];
     const fold = (value) => value.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase();
     const apply = () => {
       const terms = fold(search.value).split(/\s+/).filter(Boolean);
+      const state = status.value;
       let shown = 0;
       for (const row of rows) {
         const hay = fold(row.getAttribute('data-search') || '');
-        const match = terms.every((term) => hay.includes(term));
+        const textMatch = terms.every((term) => hay.includes(term));
+        const stateMatch = state === '' || row.getAttribute('data-status') === state;
+        const match = textMatch && stateMatch;
         row.hidden = !match;
         if (match) shown += 1;
       }
@@ -876,8 +909,18 @@ rosa.vega@correo.com,Rosa Vega,voluntario</pre>
       document.querySelectorAll('input[name="q"]').forEach((field) => {
         if (field instanceof HTMLInputElement && field !== search) field.value = search.value;
       });
+      document.querySelectorAll('input[name="estado"]').forEach((field) => {
+        if (field instanceof HTMLInputElement) field.value = state;
+      });
+      const url = new URL(window.location.href);
+      if (search.value.trim()) url.searchParams.set('q', search.value.trim());
+      else url.searchParams.delete('q');
+      if (state === 'paid' || state === 'unpaid') url.searchParams.set('estado', state);
+      else url.searchParams.delete('estado');
+      history.replaceState(null, '', url);
     };
     search.addEventListener('input', apply);
+    status.addEventListener('change', apply);
     apply();
   }
 </script>
