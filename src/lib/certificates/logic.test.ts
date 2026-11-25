@@ -10,6 +10,8 @@ import { editionFacts, freezeCertificate, recognitionParagraph, type EditionFact
 import { verifiedGithubEmails } from '../auth/github';
 import { safeNext } from '../auth/redirect';
 import { publicBase } from '../site';
+import { rosterForExport, rosterWorkbook, type RosterExportPerson } from './excel';
+import { rosterWindow } from './pages';
 import { attendeeNotice } from './messages';
 import { certificateClaimOpen, certificatePendingCopy, certificateReleased, certificateShareDraft, linkedInComposerUrl, linkedInShareUrl } from './release';
 import { correctionMessage, whatsAppLink } from './whatsapp';
@@ -192,6 +194,69 @@ test('el certificado de 2026 se abre a las 6:00 p. m. del 28 de noviembre', () =
   assert.match(linkedInComposerUrl(draft), /shareActive=true/);
   assert.match(certificateShareDraft(2025, 'Certificado de conferencista', 'https://jconfperu.com/v/abc'), /speaker/);
   assert.match(certificateShareDraft(2025, 'Certificado de voluntario', 'https://jconfperu.com/v/abc'), /voluntario/);
+});
+
+test('el excel separa todos, pagados e impagos', () => {
+  const people: RosterExportPerson[] = [
+    {
+      displayName: null,
+      suggestedName: 'Glisse Lisbeth Jorge Malca',
+      givenName: 'Glisse Lisbeth',
+      familyName: 'Jorge Malca',
+      email: null,
+      githubLogin: 'GlisseLisbeth',
+      phone: '519777737772',
+      role: 'participante',
+      paymentStatus: 'paid',
+      revokedAt: null,
+    },
+    {
+      displayName: 'Ana Pérez',
+      suggestedName: 'Ana',
+      givenName: 'Ana',
+      familyName: 'Pérez',
+      email: 'ana@example.com',
+      githubLogin: null,
+      phone: null,
+      role: 'voluntario',
+      paymentStatus: 'unpaid',
+      revokedAt: null,
+    },
+    {
+      displayName: 'Beto',
+      suggestedName: 'Beto',
+      givenName: 'Beto',
+      familyName: 'Quispe',
+      email: 'beto@example.com',
+      githubLogin: null,
+      phone: null,
+      role: 'participante',
+      paymentStatus: 'paid',
+      revokedAt: new Date('2026-11-01'),
+    },
+  ];
+  assert.equal(rosterForExport(people, 'paid').length, 1);
+  assert.equal(rosterForExport(people, 'unpaid').length, 1);
+  assert.equal(rosterForExport(people, 'todos').length, 3);
+  const book = rosterWorkbook(people, 'todos');
+  const text = new TextDecoder().decode(book);
+  assert.equal(book[0], 0x50);
+  assert.equal(book[1], 0x4b);
+  assert.match(text, /Glisse Lisbeth Jorge Malca/);
+  assert.match(text, /GlisseLisbeth/);
+  assert.match(text, /519777737772/);
+  assert.match(text, /VOLUNTARIO/);
+  assert.match(text, /Revocado/);
+  assert.equal(new TextDecoder().decode(rosterWorkbook(people, 'unpaid')).includes('Glisse'), false);
+});
+
+test('la lista se parte de 50 en 50', () => {
+  assert.deepEqual(rosterWindow(0, 1), { page: 1, pages: 1, start: 0, end: 0 });
+  assert.deepEqual(rosterWindow(20, 3), { page: 1, pages: 1, start: 1, end: 20 });
+  assert.deepEqual(rosterWindow(64, 1), { page: 1, pages: 2, start: 1, end: 50 });
+  assert.deepEqual(rosterWindow(64, 2), { page: 2, pages: 2, start: 51, end: 64 });
+  assert.deepEqual(rosterWindow(64, 9), { page: 2, pages: 2, start: 51, end: 64 });
+  assert.deepEqual(rosterWindow(101, 3), { page: 3, pages: 3, start: 101, end: 101 });
 });
 
 test('el enlace de WhatsApp lleva el nombre, el correo y el usuario', () => {

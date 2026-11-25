@@ -17,7 +17,7 @@ export function attendeeNotice(code: string | null, year: number): string | null
     case 'registered':
       return `Tu registro para JConf Perú ${year} quedó pendiente. Podrás descargar el certificado cuando confirmemos el pago o cuando escribas el código de la charla online.`;
     case 'updated':
-      return 'Actualizamos tus datos. El certificado sigue pendiente de validación.';
+      return 'Actualizamos tus datos.';
     case 'locked':
       return 'Tu certificado ya fue validado. El nombre quedó fijo.';
     case 'bad-code':

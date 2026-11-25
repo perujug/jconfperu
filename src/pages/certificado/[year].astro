@@ -231,15 +231,23 @@ const shareUrl =
           {
             session && !dbError && step === 'pending' && (
               <div class="mt-8 grid gap-8 max-w-xl">
-                <p>Tu registro está pendiente. El certificado se descarga cuando confirmemos el pago o cuando escribas el código dicho en las charlas online.</p>
-                <form class="grid gap-4" method="post">
-                  <input type="hidden" name="intent" value="code" />
-                  <label class="grid gap-1">
-                    <span class="font-bold">Código de la charla online</span>
-                    <input class="border px-3 py-2" style="border-color: var(--border-subtle);" name="code" required autocomplete="off" />
-                  </label>
-                  <button class="main-btn" type="submit">Validar código</button>
-                </form>
+                {
+                  released ? (
+                    <>
+                      <p>Tu registro está pendiente. El certificado se descarga cuando confirmemos el pago o cuando escribas el código dicho en las charlas online.</p>
+                      <form class="grid gap-4" method="post">
+                        <input type="hidden" name="intent" value="code" />
+                        <label class="grid gap-1">
+                          <span class="font-bold">Código de la charla online</span>
+                          <input class="border px-3 py-2" style="border-color: var(--border-subtle);" name="code" required autocomplete="off" />
+                        </label>
+                        <button class="main-btn" type="submit">Validar código</button>
+                      </form>
+                    </>
+                  ) : (
+                    <p>Revisa el nombre que irá en el certificado. La descarga se abre al terminar el evento.</p>
+                  )
+                }
                 <form class="grid gap-4" method="post">
                   <input type="hidden" name="intent" value="profile" />
                   <label class="grid gap-1">

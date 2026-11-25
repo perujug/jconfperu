@@ -4,6 +4,7 @@ export const prerender = false;
 import Layout from '@layouts/Layout.astro';
 import { resolveGithubAccount } from '@lib/auth/github';
 import { deleteTempCookie, readSession, setTempCookie } from '@lib/auth/session';
+import { rosterWorkbook } from '@lib/certificates/excel';
 import { parseRole, ROLES } from '@lib/certificates/roles';
 import { editionFacts } from '@lib/certificates/snapshot';
 import { normalizePhone, paymentStatus } from '@lib/certificates/registration';
@@ -46,13 +47,15 @@ const year = selected?.data.year ?? null;
 const requestedView = Astro.url.searchParams.get('vista');
 const view: AdminView = views.includes(requestedView as AdminView) ? (requestedView as AdminView) : 'resumen';
 
-function adminPath(nextYear = year, nextView: AdminView = view, notice?: string, q?: string, estado?: string) {
+function adminPath(nextYear = year, nextView: AdminView = view, notice?: string, q?: string, estado?: string, pagina?: string) {
   const params = new URLSearchParams();
   if (nextYear) params.set('year', String(nextYear));
   if (nextView !== 'resumen') params.set('vista', nextView);
   if (notice) params.set('aviso', notice);
   if (q?.trim()) params.set('q', q.trim());
   if (estado === 'paid' || estado === 'unpaid') params.set('estado', estado);
+  const page = Number(pagina);
+  if (Number.isInteger(page) && page > 1) params.set('pagina', String(page));
   const query = params.toString();
   return `/admin/certificados/${query ? `?${query}` : ''}`;
 }
@@ -72,7 +75,7 @@ if (Astro.request.method === 'POST' && session && allowed && year && !dbError) {
   const form = await Astro.request.formData();
   const intent = String(form.get('intent') ?? '');
   const listBack = (notice?: string) =>
-    adminPath(year, 'lista', notice, String(form.get('q') ?? ''), String(form.get('estado') ?? ''));
+    adminPath(year, 'lista', notice, String(form.get('q') ?? ''), String(form.get('estado') ?? ''), String(form.get('pagina') ?? ''));
   try {
     if (intent === 'toggle') {
       await setYearOpen(year, form.get('open') === '1');
@@ -208,6 +211,25 @@ const nav = [
 ] as const;
 
 const aviso = Astro.url.searchParams.get('aviso');
+const exportScope = Astro.url.searchParams.get('exportar');
+if (
+  Astro.request.method === 'GET' &&
+  session &&
+  allowed &&
+  year &&
+  !dbError &&
+  (exportScope === 'todos' || exportScope === 'paid' || exportScope === 'unpaid')
+) {
+  const workbook = rosterWorkbook(people, exportScope);
+  return new Response(workbook, {
+    headers: {
+      'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'Content-Disposition': `attachment; filename="jconf-peru-${year}-${exportScope}.xlsx"`,
+      'Cache-Control': 'no-store',
+    },
+  });
+}
+
 const rosterQuery = Astro.url.searchParams.get('q') ?? '';
 const requestedStatus = Astro.url.searchParams.get('estado');
 const rosterStatus = requestedStatus === 'paid' || requestedStatus === 'unpaid' ? requestedStatus : '';
@@ -382,10 +404,17 @@ const notices: Record<string, string> = {
                             </select>
                           </label>
                         </form>
+                        <div class="exports">
+                          <span>Excel</span>
+                          <a href={`/admin/certificados/?year=${year}&vista=lista&exportar=todos`}>Todos</a>
+                          <a href={`/admin/certificados/?year=${year}&vista=lista&exportar=paid`}>PAID</a>
+                          <a href={`/admin/certificados/?year=${year}&vista=lista&exportar=unpaid`}>UNPAID</a>
+                        </div>
                         <p id="roster-empty" hidden>Nadie coincide con ese filtro.</p>
                         <p>VOLUNTARIO es quien apoya las transmisiones en línea, el soporte de las charlas, la comida y las bebidas.</p>
+                        <nav class="pager" data-roster-pager aria-label="Páginas de la lista" hidden></nav>
                         <div class="table-wrap">
-                          <table id="roster">
+                          <table id="roster" class="pending">
                             <thead>
                               <tr>
                                 <th>Nombre</th>
@@ -440,7 +469,7 @@ const notices: Record<string, string> = {
                                           <input type="hidden" name="q" value={rosterQuery} />
                                           <input type="hidden" name="estado" value={rosterStatus} />
                                           <select name="kind" aria-label={`Rol de ${person.displayName || person.suggestedName}`} onchange="this.form.requestSubmit()">
-                                            <option value="paid" selected={kind === 'paid'}>PAID</option>
+                                            <option value="paid" selected={kind === 'paid'}>PARTICIPANTE</option>
                                             <option value="speaker" selected={kind === 'speaker'}>SPEAKER</option>
                                             <option value="organizer" selected={kind === 'organizer'}>ORGANIZER</option>
                                             <option value="volunteer" selected={kind === 'volunteer'}>VOLUNTARIO</option>
@@ -490,6 +519,7 @@ const notices: Record<string, string> = {
                             </tbody>
                           </table>
                         </div>
+                        <nav class="pager" data-roster-pager aria-label="Páginas de la lista" hidden></nav>
                       </>
                     )
                   }
@@ -762,6 +792,63 @@ rosa.vega@correo.com,Rosa Vega,voluntario</pre>
   .filters label:last-child {
     width: 10rem;
   }
+  .exports {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 0.75rem;
+    margin: -0.25rem 0 1rem;
+    font-size: 0.92rem;
+  }
+  .exports span {
+    font-weight: 700;
+  }
+  .exports a {
+    color: var(--accent-text);
+    font-weight: 700;
+    text-decoration: none;
+  }
+  .exports a:hover {
+    text-decoration: underline;
+  }
+  .pager[hidden] {
+    display: none;
+  }
+  .pager {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+  }
+  .pager p {
+    margin: 0;
+    font-weight: 700;
+  }
+  .pager div {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+  .pager button {
+    min-width: 2.25rem;
+    padding: 0.35rem 0.6rem;
+    background: var(--bg-base);
+    color: var(--fg-strong);
+    border: 1px solid var(--border-subtle);
+    font-weight: 700;
+  }
+  .pager button[aria-current='page'] {
+    background: #dd0a37;
+    color: #fff;
+    border-color: #dd0a37;
+  }
+  .pager button:disabled {
+    opacity: 0.45;
+  }
+  #roster.pending tbody tr:nth-child(n + 51) {
+    display: none;
+  }
   .kind-form,
   .email-form {
     margin: 0;
@@ -885,42 +972,121 @@ rosa.vega@correo.com,Rosa Vega,voluntario</pre>
   }
 </style>
 
-<script is:inline>
+<script>
+  import { rosterWindow } from '@lib/certificates/pages';
+
   const search = document.getElementById('roster-search');
   const status = document.getElementById('roster-status');
   const table = document.getElementById('roster');
   const empty = document.getElementById('roster-empty');
+  const pagers = [...document.querySelectorAll('[data-roster-pager]')];
   if (search instanceof HTMLInputElement && status instanceof HTMLSelectElement && table && empty) {
     const rows = [...table.querySelectorAll('tbody tr')];
-    const fold = (value) => value.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase();
-    const apply = () => {
+    const fold = (value: string) => value.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase();
+    let page = Number(new URL(window.location.href).searchParams.get('pagina')) || 1;
+
+    const remember = () => {
+      table.querySelectorAll('form').forEach((form) => {
+        let field = form.querySelector('input[name="pagina"]');
+        if (!(field instanceof HTMLInputElement)) {
+          field = document.createElement('input');
+          field.type = 'hidden';
+          field.name = 'pagina';
+          form.append(field);
+        }
+        field.value = page > 1 ? String(page) : '';
+      });
+    };
+
+    const paint = (total: number) => {
+      const windowed = rosterWindow(total, page);
+      page = windowed.page;
+      for (const pager of pagers) {
+        pager.hidden = total === 0;
+        pager.replaceChildren();
+        if (total === 0) continue;
+        const range = document.createElement('p');
+        range.textContent = `${windowed.start}–${windowed.end} de ${total}`;
+        pager.append(range);
+        if (windowed.pages < 2) continue;
+        const controls = document.createElement('div');
+        const previous = document.createElement('button');
+        previous.type = 'button';
+        previous.textContent = 'Anterior';
+        previous.disabled = windowed.page <= 1;
+        previous.addEventListener('click', () => go(windowed.page - 1));
+        controls.append(previous);
+        for (let index = 1; index <= windowed.pages; index += 1) {
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.textContent = String(index);
+          if (index === windowed.page) button.setAttribute('aria-current', 'page');
+          button.addEventListener('click', () => go(index));
+          controls.append(button);
+        }
+        const next = document.createElement('button');
+        next.type = 'button';
+        next.textContent = 'Siguiente';
+        next.disabled = windowed.page >= windowed.pages;
+        next.addEventListener('click', () => go(windowed.page + 1));
+        controls.append(next);
+        pager.append(controls);
+      }
+    };
+
+    const apply = (fromClick = false) => {
       const terms = fold(search.value).split(/\s+/).filter(Boolean);
       const state = status.value;
-      let shown = 0;
+      const matches: HTMLTableRowElement[] = [];
       for (const row of rows) {
+        if (!(row instanceof HTMLTableRowElement)) continue;
         const hay = fold(row.getAttribute('data-search') || '');
         const textMatch = terms.every((term) => hay.includes(term));
         const stateMatch = state === '' || row.getAttribute('data-status') === state;
         const match = textMatch && stateMatch;
         row.hidden = !match;
-        if (match) shown += 1;
+        if (match) matches.push(row);
       }
-      empty.hidden = shown !== 0;
+      const windowed = rosterWindow(matches.length, page);
+      page = windowed.page;
+      matches.forEach((row, index) => {
+        const visible = index >= windowed.start - 1 && index < windowed.end;
+        row.hidden = !visible;
+      });
+      table.classList.remove('pending');
+      empty.hidden = matches.length !== 0;
+      paint(matches.length);
       document.querySelectorAll('input[name="q"]').forEach((field) => {
         if (field instanceof HTMLInputElement && field !== search) field.value = search.value;
       });
       document.querySelectorAll('input[name="estado"]').forEach((field) => {
         if (field instanceof HTMLInputElement) field.value = state;
       });
+      remember();
       const url = new URL(window.location.href);
       if (search.value.trim()) url.searchParams.set('q', search.value.trim());
       else url.searchParams.delete('q');
       if (state === 'paid' || state === 'unpaid') url.searchParams.set('estado', state);
       else url.searchParams.delete('estado');
+      if (page > 1) url.searchParams.set('pagina', String(page));
+      else url.searchParams.delete('pagina');
       history.replaceState(null, '', url);
+      if (fromClick) table.scrollIntoView({ block: 'start' });
     };
-    search.addEventListener('input', apply);
-    status.addEventListener('change', apply);
+
+    const go = (next: number) => {
+      page = next;
+      apply(true);
+    };
+
+    search.addEventListener('input', () => {
+      page = 1;
+      apply();
+    });
+    status.addEventListener('change', () => {
+      page = 1;
+      apply();
+    });
     apply();
   }
 </script>
