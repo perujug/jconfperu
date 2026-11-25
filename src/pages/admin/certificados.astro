@@ -221,7 +221,7 @@ if (
   (exportScope === 'todos' || exportScope === 'paid' || exportScope === 'unpaid')
 ) {
   const workbook = rosterWorkbook(people, exportScope);
-  return new Response(workbook, {
+  return new Response(workbook.slice().buffer, {
     headers: {
       'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       'Content-Disposition': `attachment; filename="jconf-peru-${year}-${exportScope}.xlsx"`,
@@ -979,7 +979,9 @@ rosa.vega@correo.com,Rosa Vega,voluntario</pre>
   const status = document.getElementById('roster-status');
   const table = document.getElementById('roster');
   const empty = document.getElementById('roster-empty');
-  const pagers = [...document.querySelectorAll('[data-roster-pager]')];
+  const pagers = [...document.querySelectorAll('[data-roster-pager]')].filter(
+    (node): node is HTMLElement => node instanceof HTMLElement,
+  );
   if (search instanceof HTMLInputElement && status instanceof HTMLSelectElement && table && empty) {
     const rows = [...table.querySelectorAll('tbody tr')];
     const fold = (value: string) => value.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase();
@@ -987,9 +989,9 @@ rosa.vega@correo.com,Rosa Vega,voluntario</pre>
 
     const remember = () => {
       table.querySelectorAll('form').forEach((form) => {
-        let field = form.querySelector('input[name="pagina"]');
-        if (!(field instanceof HTMLInputElement)) {
-          field = document.createElement('input');
+        const existing = form.querySelector('input[name="pagina"]');
+        const field = existing instanceof HTMLInputElement ? existing : document.createElement('input');
+        if (!(existing instanceof HTMLInputElement)) {
           field.type = 'hidden';
           field.name = 'pagina';
           form.append(field);
