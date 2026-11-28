@@ -90,7 +90,7 @@ export function limaDate(value: string | undefined): Date | null {
   return Number.isNaN(date.getTime()) ? null : date;
 }
 
-export const RIVERSIDE_URL = 'https://riverside.com/studio/jhosep-lunas-studio/foij-xlkm';
+export const RIVERSIDE_URL = 'https://riverside.com/';
 
 export function sessionDelivery(categories: Category[] | undefined): 'presencial' | 'online' | 'ambas' | null {
   const options = categoryNames(categories, 'Option').map((name) => name.toLowerCase());
